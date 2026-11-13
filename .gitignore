@@ -4,8 +4,24 @@ __pycache__/
 .pytest_cache/
 .coverage
 .env
+.env.*
 .venv/
 venv/
 .DS_Store
 Thumbs.db
 *.crdownload
+
+# Personal resumes, scorecards, and local audit caches
+resumes/
+scorecards/
+cache/
+*Resume*.docx
+*Resume*.pdf
+*Resume*.txt
+*resume*.docx
+*resume*.pdf
+!*sample_resume.txt
+!examples/sample_resume.txt
+*scorecard*.md
+*scorecard*.json
+*_tailored*.docx
