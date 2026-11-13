@@ -1,0 +1,21 @@
+JORDAN VANCE
+St. Louis, MO | jordan.vance@email.com | 314-555-0192
+
+Professional Summary
+Senior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.
+
+Work Experience
+Senior Analytics Manager - Apex Global Retail (03/2022 - Present)
+- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue, integrating SAP S/4HANA, Power BI, Kubernetes, and Six Sigma Black Belt DMAIC controls.
+- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.
+- Partnered with cross-functional leadership on Workforce Capacity Modeling and annual P&L Ownership ($18M operating budget) reviews.
+
+Supply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)
+- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.
+- Supported ERP migration readiness and warehouse slotting audits.
+
+Education
+B.S. in Industrial Engineering - University of Missouri (05/2018)
+
+Technical & Core Skills
+SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership

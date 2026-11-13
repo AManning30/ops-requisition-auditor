@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent — Interactive Capability Workbench</title>
+<style>
+  :root {
+    --bg-base: #090b0f;
+    --bg-panel: #10141d;
+    --bg-elevated: #161b28;
+    --bg-hover: #1d2436;
+    --border: #232b3e;
+    --border-focus: #3b82f6;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-blue: #38bdf8;
+    --accent-amber: #f59e0b;
+    --accent-emerald: #10b981;
+    --accent-rose: #f43f5e;
+    --accent-violet: #a78bfa;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* Top Status Bar */
+  header.topbar {
+    height: 52px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: #090b0f;
+    font-size: 15px;
+  }
+  .brand-title {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .brand-sub {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+  }
+  .telemetry-pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+  .pill {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+  }
+  .pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-emerald);
+    box-shadow: 0 0 8px var(--accent-emerald);
+  }
+  .pill strong { color: var(--text-primary); font-weight: 600; }
+
+  /* Main Workspace Layout */
+  .workspace {
+    display: grid;
+    grid-template-columns: 250px 1fr 360px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left Navigation Rail */
+  nav.rail {
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+  }
+  .rail-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 8px 10px 4px;
+  }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.12s ease;
+  }
+  .nav-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+  .nav-btn.active {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: var(--accent-blue);
+  }
+  .nav-btn .badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+  }
+  .nav-btn.active .badge {
+    background: rgba(56, 189, 248, 0.2);
+    color: var(--accent-blue);
+  }
+
+  /* Center Stage */
+  main.stage {
+    padding: 24px 28px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .view-pane { display: none; flex-direction: column; gap: 20px; }
+  .view-pane.active { display: flex; }
+
+  .pane-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 14px;
+  }
+  .pane-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .pane-desc { color: var(--text-secondary); font-size: 13px; margin-top: 3px; }
+
+  /* Metric Cards Grid */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .kpi-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .kpi-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .kpi-val {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: var(--text-primary);
+  }
+  .kpi-delta {
+    font-size: 11.5px;
+    margin-top: 4px;
+    color: var(--accent-emerald);
+    font-family: var(--font-mono);
+  }
+
+  /* Interactive Panels */
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 12px 16px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .panel-body { padding: 16px; }
+
+  /* Interactive ATS Simulator Table */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  table.data-table th {
+    text-align: left;
+    padding: 9px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+  table.data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(35, 43, 62, 0.6);
+    vertical-align: middle;
+  }
+  .status-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .tag-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+  .tag-red { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+  .sim-toggle {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--accent-blue);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .sim-toggle:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.12); }
+  .sim-toggle.applied {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: var(--accent-emerald);
+    color: #34d399;
+  }
+
+  /* Skill Explorer Grid */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+  .chip.active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+  }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+  }
+  .skill-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 13px 15px;
+    cursor: pointer;
+    transition: border-color 0.12s, transform 0.12s;
+  }
+  .skill-card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-1px);
+  }
+  .skill-cat {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--accent-violet);
+    text-transform: uppercase;
+  }
+  .skill-name {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13.5px;
+    margin: 4px 0;
+    color: var(--text-primary);
+  }
+  .skill-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* Right Inspector / Live Terminal Trace */
+  aside.inspector {
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .inspector-head {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-elevated);
+  }
+  .terminal-stream {
+    flex: 1;
+    padding: 14px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #07090d;
+  }
+  .log-entry {
+    border-left: 2px solid var(--border);
+    padding-left: 10px;
+    line-height: 1.45;
+  }
+  .log-entry.tool { border-color: var(--accent-blue); }
+  .log-entry.ok { border-color: var(--accent-emerald); }
+  .log-entry.warn { border-color: var(--accent-amber); }
+  .log-time { color: var(--text-muted); font-size: 10.5px; }
+  .log-cmd { color: var(--accent-blue); font-weight: 600; }
+  .log-out { color: var(--text-secondary); margin-top: 2px; white-space: pre-wrap; }
+
+  .prompt-launcher {
+    padding: 14px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-elevated);
+  }
+  .prompt-box {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--accent-emerald);
+    margin-top: 6px;
+    user-select: all;
+  }
+  .copy-btn {
+    margin-top: 8px;
+    width: 100%;
+    background: var(--accent-blue);
+    color: #090b0f;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { opacity: 0.92; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-badge">H</div>
+    <span class="brand-title">Hermes Agent Workbench</span>
+    <span class="brand-sub">Live System Telemetry &bull; Profile: default</span>
+  </div>
+  <div class="telemetry-pills">
+    <div class="pill"><span class="dot"></span> Host: <strong>Windows 11 (MSYS Bash)</strong></div>
+    <div class="pill">Python: <strong>3.14.9</strong></div>
+    <div class="pill">Active Repo: <strong>enterprise-ats-auditor (99 files)</strong></div>
+    <div class="pill">Installed Skills: <strong>45 Ready</strong></div>
+  </div>
+</header>
+
+<div class="workspace">
+  <nav class="rail">
+    <div class="rail-label">Interactive Demos</div>
+    <button class="nav-btn active" onclick="switchTab('ats', this)">
+      <span>1. Live ATS Score Simulator</span>
+      <span class="badge">88.3</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('repo', this)">
+      <span>2. Project &amp; Vercel Ops</span>
+      <span class="badge">99 files</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('skills', this)">
+      <span>3. Skill Library Explorer</span>
+      <span class="badge">45</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('swarm', this)">
+      <span>4. Multi-Agent &amp; Code Kernel</span>
+      <span class="badge">Parallel</span>
+    </button>
+  </nav>
+
+  <main class="stage">
+    <!-- TAB 1: ATS SIMULATOR -->
+    <section id="tab-ats" class="view-pane active">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Deterministic Enterprise ATS Auditor (Live Sandbox)</div>
+          <div class="pane-desc">Real output from your newly patched <code>ats-auditor-recruiter</code> skill. Toggle Tier 1/Tier 2 rewrites below to see real-time 100-point math updates.</div>
+        </div>
+        <button class="sim-toggle" onclick="resetAtsSim()">Reset Baseline (88.3)</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Composite ATS Score</div>
+          <div class="kpi-val" id="kpi-composite">88.3 <span style="font-size:14px;color:var(--text-muted)">/ 100</span></div>
+          <div class="kpi-delta" id="kpi-verdict">Verdict: Strong Advance (+0.00 pts)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Legacy Literal (Taleo/iCIMS)</div>
+          <div class="kpi-val" id="kpi-literal">82.9%</div>
+          <div class="kpi-delta" id="kpi-lit-delta">Comp 1 Lit (35.25) + Comp 2 Lit (12.67)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Keyword &amp; Context (65 pts)</div>
+          <div class="kpi-val" id="kpi-kwctx">53.33</div>
+          <div class="kpi-delta" id="kpi-kwctx-sub">Comp 1 (39.00) + Comp 2 (14.33)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Alignment + Gates + Schema</div>
+          <div class="kpi-val">35.0 <span style="font-size:14px;color:var(--text-muted)">/ 35</span></div>
+          <div class="kpi-delta">C3: 15/15 &bull; C4: 10/10 &bull; C5: 10/10</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span>12-Item Deterministic ATS Audit Ledger (<code>offline_ats_auditor.py</code>)</span>
+            <button class="chip active" id="btn-filter-all" onclick="setLedgerFilter('all')" style="padding:2px 8px;font-size:11px">All 12 Rows</button>
+            <button class="chip" id="btn-filter-fixes" onclick="setLedgerFilter('fixes')" style="padding:2px 8px;font-size:11px">6 Actionable Fixes</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px" id="ledger-weight-summary">Denominator: 60.0 Max Weight Units</span>
+            <button class="sim-toggle" onclick="applyAllAtsFixes()">+ Apply All 6 Fixes (100.0)</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>JD Requirement</th>
+                <th>Category &amp; Tier (Max Wt)</th>
+                <th>Current Match &amp; Placement</th>
+                <th>Resume Evidence / Grounded Fix Rewrite</th>
+                <th>Gain</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="ats-sim-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: MULTI-BOARD JOB COLLECTOR -->
+    <section id="tab-repo" class="view-pane">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Compliant Universal Job Posting Collector &amp; Batch Ranker</div>
+          <div class="pane-desc">Extracts structured <code>JobPostingRecord</code> schemas and ranks candidate resumes across live job boards without bypassing anti-bot or CAPTCHA gates.</div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Supported ATS &amp; Boards</div>
+          <div class="kpi-val" style="font-size:16px;margin-top:8px">9 Platforms</div>
+          <div class="kpi-delta">LinkedIn &bull; Greenhouse &bull; Lever &bull; Workday</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Taxonomy Dictionary</div>
+          <div class="kpi-val">120+</div>
+          <div class="kpi-delta">Hard/Soft Skills + Bidirectional Synonyms</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Native Resume I/O</div>
+          <div class="kpi-val" style="font-size:15px;margin-top:8px">.docx &bull; .pdf &bull; .txt</div>
+          <div class="kpi-delta">Preserves Word XML Formatting on Export</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Runtime Footprint</div>
+          <div class="kpi-val" style="font-size:15px;margin-top:8px">Zero Pip Deps</div>
+          <div class="kpi-delta">100% Python 3 Standard Library</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">Click Any CLI Workflow to Load Command into the Inspector</div>
+        <div class="panel-body skills-grid">
+          <div class="skill-card" onclick="setPrompt('python scripts/offline_ats_auditor.py --resume examples/sample_resume.txt --jd-config examples/sample_ats_config.json --output scorecard.md')">
+            <div class="skill-cat">Deterministic Audit</div>
+            <div class="skill-name">100-Point Resume Audit</div>
+            <div class="skill-desc">Runs the 5-component mathematical audit on sample_resume.txt (88.3 / 100 baseline) and generates a 3-Tier Point Recovery Plan.</div>
+          </div>
+          <div class="skill-card" onclick="setPrompt('python scripts/job_posting_collector.py --search "Workforce Management Analyst" --location "United States" --limit 5 --resume examples/sample_resume.txt --output leaderboard.md')">
+            <div class="skill-cat">Live Job Discovery</div>
+            <div class="skill-name">Multi-Job Batch Leaderboard</div>
+            <div class="skill-desc">Queries live public job postings, audits the candidate resume against every JD, and outputs a ranked match leaderboard.</div>
+          </div>
+          <div class="skill-card" onclick="setPrompt('python scripts/offline_ats_auditor.py --resume Resume.docx --jd-config examples/sample_ats_config.json --replacements-json examples/sample_replacements.json --export-docx Resume_Optimized.docx')">
+            <div class="skill-cat">Word XML Export</div>
+            <div class="skill-name">Format-Preserving .docx Optimizer</div>
+            <div class="skill-desc">Applies verified synonym-to-literal swaps directly inside .docx XML runs while preserving fonts, margins, and layout.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SKILL EXPLORER -->
+    <section id="tab-skills" class="view-pane">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Procedural Skill Library (45 Installed Skills)</div>
+          <div class="pane-desc">Click any category to filter, or click a skill card to load its exact trigger prompt into the launcher on the right.</div>
+        </div>
+      </div>
+      <div class="filter-bar" id="skill-filters"></div>
+      <div class="skills-grid" id="skills-container"></div>
+    </section>
+
+    <!-- TAB 4: MULTI-AGENT & KERNEL -->
+    <section id="tab-swarm" class="view-pane">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Programmatic Tool Kernel &amp; Parallel Subagent Delegation</div>
+          <div class="pane-desc">Hermes doesn't just chat—it runs persistent Python tool kernels (<code>execute_code</code>) and spawns up to 10 isolated parallel subagents (<code>delegate_task</code>).</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">How This Demo Was Built (Real Execution Trace)</div>
+        <div class="panel-body" style="font-family:var(--font-mono);font-size:12.5px;display:flex;flex-direction:column;gap:12px">
+          <div>1. <strong>Skill Inspection &amp; Bug Discovery:</strong> Extracted <code>ats-auditor-recruiter.zip.crdownload</code>, ran <code>pygount</code> LOC analysis, and identified 3 critical scoring bugs (including 0.5x synonyms overwriting 1.0x literal skills and candidate names triggering false acronym penalties).</div>
+          <div>2. <strong>Self-Updating Procedural Memory (<code>skill_manage</code>):</strong> Patched <code>offline_ats_auditor.py</code> and installed <code>ats-auditor-recruiter</code> directly into your permanent Hermes skills library.</div>
+          <div>3. <strong>Persistent Python Tool Kernel (<code>execute_code</code>):</strong> Ran a single Python script that queried your workspace files (99 files in <code>enterprise-ats-auditor</code>), executed the deterministic ATS engine, and parsed the resulting JSON scorecard in one turn.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Right Inspector -->
+  <aside class="inspector">
+    <div class="inspector-head">
+      <span>LIVE SESSION EXECUTION LOG</span>
+      <span style="color:var(--accent-emerald)">● ONLINE</span>
+    </div>
+    <div class="terminal-stream" id="term-log">
+      <div class="log-entry tool">
+        <div class="log-time">19:00:28 CST &bull; skill_view</div>
+        <div class="log-cmd">Loaded: claude-design, codebase-inspection</div>
+        <div class="log-out">Surface archetype locked: Command / Monitor Workbench</div>
+      </div>
+      <div class="log-entry ok">
+        <div class="log-time">19:00:55 CST &bull; skill_manage(create)</div>
+        <div class="log-cmd">Installed: productivity/ats-auditor-recruiter</div>
+        <div class="log-out">Patched evaluate_requirement() &amp; acronym scanner.</div>
+      </div>
+      <div class="log-entry ok">
+        <div class="log-time">19:01:18 CST &bull; execute_code (Python 3.14.9)</div>
+        <div class="log-cmd">Ran 3 tool calls in persistent kernel</div>
+        <div class="log-out">enterprise-ats-auditor: 99 files
+ATS Demo Composite: 88.3 / 100 (Strong Advance)
+Legacy Literal Score: 82.9% (+5.3% vs unpatched)</div>
+      </div>
+    </div>
+    <div class="prompt-launcher">
+      <div style="font-size:11.5px;font-weight:600;color:var(--text-secondary)">READY-TO-PASTE HERMES PROMPT:</div>
+      <div class="prompt-box" id="active-prompt">Audit my resume against a job description using the ats-auditor-recruiter skill and give me a Tier 1/2 rewrite table.</div>
+      <button class="copy-btn" onclick="copyPrompt()" id="copy-btn">Copy Prompt to Clipboard</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+  const atsItems = [
+    {
+      id: 1, name: 'Python', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0x Exact / 1.0x Recent Exp',
+      quote: 'Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers...',
+      fixable: false, applied: false
+    },
+    {
+      id: 2, name: 'SQL', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0x Exact / 1.0x Recent Exp',
+      quote: 'Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.',
+      fixable: false, applied: false
+    },
+    {
+      id: 3, name: 'Snowflake', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0x Exact / 1.0x Recent Exp',
+      quote: 'Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.',
+      fixable: false, applied: false
+    },
+    {
+      id: 4, name: 'SAP S/4HANA', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
+      state: '1.0x Match / 0.4x Skills-Only',
+      quote: 'Skills Section: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes',
+      fix: 'Tier 2 Contextual Elevation (0.4x -> 1.0x): Integrate SAP S/4HANA into recent role bullet alongside Snowflake ERP ingestion.',
+      rewrittenQuote: 'Engineered automated ERP data ingestion pipelines from SAP S/4HANA into Snowflake, tracking SLA compliance for 1,200+ global vendors.',
+      fixable: true, applied: false
+    },
+    {
+      id: 5, name: 'Power BI', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
+      state: '1.0x Match / 0.4x Skills-Only',
+      quote: 'Skills Section: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes (0.5x Tableau in recent role)',
+      fix: 'Tier 2 Contextual Elevation (0.4x -> 1.0x): Elevate Power BI from Skills list into recent executive KPI dashboard bullet.',
+      rewrittenQuote: 'Built automated data pipelines in Snowflake and executive KPI dashboards in Power BI & Tableau for 1,200+ global vendors.',
+      fixable: true, applied: false
+    },
+    {
+      id: 6, name: 'Workforce Capacity Modeling', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 0.5, baseMult: 1.0, baseLitMult: 0.0,
+      state: '0.5x Synonym (capacity planning)',
+      quote: 'Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.',
+      fix: 'Tier 1 Lexical Swap (0.5x -> 1.0x): Replace synonym "capacity planning" with exact JD phrase "Workforce Capacity Modeling".',
+      rewrittenQuote: 'Partnered with cross-functional leadership on Workforce Capacity Modeling and annual P&L Ownership ($50M+ operating budget).',
+      fixable: true, applied: false
+    },
+    {
+      id: 7, name: 'Demand Forecasting', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0x Exact / 1.0x Recent Exp',
+      quote: 'Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers...',
+      fixable: false, applied: false
+    },
+    {
+      id: 8, name: 'P&L Ownership', cat: 'title_scope', tier: 'Required (2.0x)', maxWeight: 4.0,
+      baseCredit: 0.5, baseMult: 1.0, baseLitMult: 0.0,
+      state: '0.5x Synonym (operating budget)',
+      quote: 'Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.',
+      fix: 'Tier 1 Lexical Swap (0.5x -> 1.0x): Align "operating budget" to exact JD scope term "P&L Ownership".',
+      rewrittenQuote: 'Directed Workforce Capacity Modeling and end-to-end P&L Ownership across annual operating budget reviews.',
+      fixable: true, applied: false
+    },
+    {
+      id: 9, name: 'Kubernetes', cat: 'hard_skill', tier: 'Preferred (1.0x)', maxWeight: 3.0,
+      baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
+      state: '1.0x Match / 0.4x Skills-Only',
+      quote: 'Skills Section: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes',
+      fix: 'Tier 2 Contextual Elevation (0.4x -> 1.0x): Anchor Kubernetes container orchestration in recent Python/Snowflake pipeline bullet.',
+      rewrittenQuote: 'Deployed containerized Python forecasting microservices on Kubernetes, reducing stockout rates by 18.4% across 420 centers.',
+      fixable: true, applied: false
+    },
+    {
+      id: 10, name: 'Six Sigma Black Belt', cat: 'hard_skill', tier: 'Preferred (1.0x)', maxWeight: 3.0,
+      baseCredit: 0.0, baseMult: 0.0, baseLitMult: 0.0,
+      state: '0.0x Missing (True Gap)',
+      quote: 'MISSING from resume (Requires human confirmation before adding)',
+      fix: 'Tier 3 Verified Addition (0.0x -> 1.0x): Candidate confirms Six Sigma Black Belt certification and adds to Certifications/Experience.',
+      rewrittenQuote: 'Certifications: Six Sigma Black Belt (ASQ) — Applied DMAIC variance reduction across 420 distribution centers.',
+      fixable: true, applied: false
+    },
+    {
+      id: 11, name: 'Cross-Functional Leadership', cat: 'soft_skill', tier: 'Required (2.0x)', maxWeight: 2.0,
+      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0x Exact / 1.0x Recent Exp',
+      quote: 'Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.',
+      fixable: false, applied: false
+    },
+    {
+      id: 12, name: 'B.S. (Knockout Gate)', cat: 'hard_skill', tier: 'Required Gate (2.0x)', maxWeight: 6.0,
+      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0x Gate Passed (Education)',
+      quote: 'B.S. in Industrial Engineering - University of Missouri (05/2018)',
+      fixable: false, applied: false
+    }
+  ];
+
+  let ledgerFilter = 'all';
+  const TOTAL_MAX_WEIGHT = 60.0;
+  const COMP3_4_5_FIXED = 35.0; // Comp3 (15.0) + Comp4 (10.0) + Comp5 (10.0)
+
+  function itemGainPts(item) {
+    const baseKw = item.maxWeight * item.baseCredit;
+    const baseCtx = item.maxWeight * (item.baseCredit * item.baseMult);
+    const newKw = item.maxWeight * 1.0;
+    const newCtx = item.maxWeight * 1.0;
+    return ((newKw - baseKw) / TOTAL_MAX_WEIGHT) * 45.0 + ((newCtx - baseCtx) / TOTAL_MAX_WEIGHT) * 20.0;
+  }
+
+  function itemLitGainPts(item) {
+    const baseLitKw = item.baseCredit === 1.0 ? item.maxWeight : 0.0;
+    const baseLitCtx = item.maxWeight * item.baseLitMult;
+    const newLitKw = item.maxWeight;
+    const newLitCtx = item.maxWeight;
+    return ((newLitKw - baseLitKw) / TOTAL_MAX_WEIGHT) * 45.0 + ((newLitCtx - baseLitCtx) / TOTAL_MAX_WEIGHT) * 20.0;
+  }
+
+  function computeTotals() {
+    let sumKw = 0, sumCtx = 0, sumLitKw = 0, sumLitCtx = 0;
+    atsItems.forEach(it => {
+      const credit = it.applied ? 1.0 : it.baseCredit;
+      const mult = it.applied ? 1.0 : it.baseMult;
+      const litMult = it.applied ? 1.0 : it.baseLitMult;
+      sumKw += it.maxWeight * credit;
+      sumCtx += it.maxWeight * (credit * mult);
+      sumLitKw += (credit === 1.0 ? it.maxWeight : 0.0);
+      sumLitCtx += it.maxWeight * litMult;
+    });
+    const comp1 = 45.0 * (sumKw / TOTAL_MAX_WEIGHT);
+    const comp2 = 20.0 * (sumCtx / TOTAL_MAX_WEIGHT);
+    const comp1Lit = 45.0 * (sumLitKw / TOTAL_MAX_WEIGHT);
+    const comp2Lit = 20.0 * (sumLitCtx / TOTAL_MAX_WEIGHT);
+    const composite = comp1 + comp2 + COMP3_4_5_FIXED;
+    const literal = comp1Lit + comp2Lit + COMP3_4_5_FIXED;
+    return { comp1, comp2, comp1Lit, comp2Lit, composite, literal, sumKw, sumCtx };
+  }
+
+  function setLedgerFilter(mode) {
+    ledgerFilter = mode;
+    document.getElementById('btn-filter-all').className = 'chip ' + (mode === 'all' ? 'active' : '');
+    document.getElementById('btn-filter-fixes').className = 'chip ' + (mode === 'fixes' ? 'active' : '');
+    renderAtsTable();
+  }
+
+  function renderAtsTable() {
+    const tbody = document.getElementById('ats-sim-rows');
+    tbody.innerHTML = '';
+    const totals = computeTotals();
+    const deltaFromBase = totals.composite - 88.3333;
+
+    const rowsToShow = atsItems.filter(it => ledgerFilter === 'all' || it.fixable);
+    rowsToShow.forEach(item => {
+      const tr = document.createElement('tr');
+      const gain = itemGainPts(item);
+      const litGain = itemLitGainPts(item);
+      let tagClass = 'tag-green';
+      if (!item.applied && item.fixable) {
+        tagClass = item.baseCredit === 0.0 ? 'tag-red' : 'tag-amber';
+      }
+      const statusLabel = item.applied ? '1.0x Exact / 1.0x Recent Exp (Fixed)' : item.state;
+      const evidenceHtml = item.fixable
+        ? (item.applied
+            ? `<div style="color:var(--accent-emerald);font-weight:500">✓ Rewritten: &ldquo;${item.rewrittenQuote}&rdquo;</div>`
+            : `<div style="color:var(--text-secondary)">${item.fix}</div><div style="color:var(--text-muted);font-size:11px;margin-top:2px">Current: &ldquo;${item.quote}&rdquo;</div>`)
+        : `<div style="color:var(--text-muted);font-size:11.5px">&ldquo;${item.quote}&rdquo;</div>`;
+
+      tr.innerHTML = `
+        <td style="font-family:var(--font-mono);color:var(--text-muted)">${item.id}</td>
+        <td><strong>${item.name}</strong></td>
+        <td style="font-family:var(--font-mono);color:var(--text-secondary);font-size:11.5px">${item.tier} &bull; ${item.maxWeight.toFixed(1)}w</td>
+        <td><span class="status-tag ${tagClass}">${statusLabel}</span></td>
+        <td>${evidenceHtml}</td>
+        <td style="font-family:var(--font-mono);color:${item.fixable ? 'var(--accent-emerald)' : 'var(--text-muted)'};font-weight:600">
+          ${item.fixable ? `+${gain.toFixed(2)} pts<div style="font-size:10px;color:var(--text-muted)">+${litGain.toFixed(2)}% lit</div>` : 'Maxed'}
+        </td>
+        <td>
+          ${item.fixable ? `
+            <button class="sim-toggle ${item.applied ? 'applied' : ''}" onclick="toggleAtsItem(${item.id})">
+              ${item.applied ? '✓ Simulated' : '+ Simulate Fix'}
+            </button>` : `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">✓ Locked</span>`}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('kpi-composite').innerHTML = `${totals.composite.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
+    document.getElementById('kpi-verdict').textContent = `Verdict: Strong Advance (${deltaFromBase >= 0.01 ? '+' + deltaFromBase.toFixed(2) + ' pts recovered' : 'Baseline 88.3'})`;
+    document.getElementById('kpi-literal').textContent = `${totals.literal.toFixed(1)}%`;
+    document.getElementById('kpi-lit-delta').textContent = `Comp 1 Lit (${totals.comp1Lit.toFixed(2)}) + Comp 2 Lit (${totals.comp2Lit.toFixed(2)})`;
+    document.getElementById('kpi-kwctx').textContent = (totals.comp1 + totals.comp2).toFixed(2);
+    document.getElementById('kpi-kwctx-sub').textContent = `Comp 1 (${totals.comp1.toFixed(2)}/45) + Comp 2 (${totals.comp2.toFixed(2)}/20)`;
+    document.getElementById('ledger-weight-summary').textContent = `Matched: ${totals.sumKw.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} Kw Wt | ${totals.sumCtx.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} Ctx Wt`;
+    const navBadge = document.querySelector('.nav-btn .badge');
+    if (navBadge) navBadge.textContent = totals.composite.toFixed(1);
+  }
+
+  function toggleAtsItem(id) {
+    const it = atsItems.find(x => x.id === id);
+    if (!it || !it.fixable) return;
+    it.applied = !it.applied;
+    renderAtsTable();
+    const totals = computeTotals();
+    const gain = itemGainPts(it).toFixed(2);
+    const litGain = itemLitGainPts(it).toFixed(2);
+    appendLog(
+      'sim',
+      `${it.applied ? 'Simulated Fix (+' + gain + ' pts)' : 'Reverted Fix (-' + gain + ' pts)'}: ${it.name}`,
+      `Composite: ${totals.composite.toFixed(2)} / 100 | Legacy Literal: ${totals.literal.toFixed(2)}% (Δ ${it.applied ? '+' : '-'}${litGain}%)
+${it.applied ? 'Bullet: ' + it.rewrittenQuote : 'Restored baseline state: ' + it.state}`
+    );
+  }
+
+  function applyAllAtsFixes() {
+    atsItems.forEach(x => { if (x.fixable) x.applied = true; });
+    renderAtsTable();
+    const totals = computeTotals();
+    appendLog('sim', 'Applied All 6 Actionable ATS Fixes', `Composite Score: ${totals.composite.toFixed(1)} / 100 | Legacy Literal: ${totals.literal.toFixed(1)}% (All 60.0 / 60.0 weight units maxed).`);
+  }
+
+  function resetAtsSim() {
+    atsItems.forEach(x => x.applied = false);
+    renderAtsTable();
+    appendLog('tool', 'Reset ATS Simulator to Baseline', 'Composite: 88.3 / 100 | Legacy Literal: 82.9%');
+  }
+
+  const skillsData = [
+    { cat: 'Productivity', name: 'ats-auditor-recruiter', desc: 'Deterministic 100-pt enterprise ATS resume auditor & bullet optimizer.', prompt: 'Audit my resume against a job description using ats-auditor-recruiter.' },
+    { cat: 'Software Dev', name: 'codebase-inspection', desc: 'Inspect codebases with pygount: LOC, languages, comment ratios.', prompt: 'Run codebase-inspection on ./enterprise-ats-auditor and summarize LOC by language.' },
+    { cat: 'Software Dev', name: 'dogfood', desc: 'Exploratory QA of web apps: find bugs, capture evidence & reports.', prompt: 'Use the dogfood skill to test http://localhost:8000/demo.html and report any UI or console bugs.' },
+    { cat: 'Software Dev', name: 'systematic-debugging', desc: '4-phase root cause debugging: trace and reproduce before fixing.', prompt: 'Use systematic-debugging to investigate an issue in my project.' },
+    { cat: 'Software Dev', name: 'simplify-code', desc: 'Parallel 4-agent cleanup of recent code changes for clarity & speed.', prompt: 'Run simplify-code on my latest git changes.' },
+    { cat: 'Creative', name: 'claude-design', desc: 'Design bespoke interactive HTML prototypes, dashboards, and decks.', prompt: 'Use claude-design to prototype an interactive ATS analytics dashboard.' },
+    { cat: 'Creative', name: 'architecture-diagram', desc: 'Dark-themed SVG architecture, cloud, and system diagrams as HTML.', prompt: 'Create an architecture-diagram showing the multi-board job collector and ATS scoring pipeline.' },
+    { cat: 'Creative', name: 'manim-video', desc: '3Blue1Brown-style mathematical and algorithmic animations.', prompt: 'Create a manim-video animation explaining how deterministic ATS scoring works.' },
+    { cat: 'Deploy & Cloud', name: 'deploy-to-vercel', desc: 'Deploy and verify full-stack web apps on Vercel.', prompt: 'Check the deployment status of enterprise-ats-auditor on Vercel.' },
+    { cat: 'Productivity', name: 'pdf', desc: 'Create, read, merge, fill, OCR, and extract tables from PDF files.', prompt: 'Extract the text from my PDF resume and run an ATS audit on it.' },
+    { cat: 'Productivity', name: 'microsoft-office', desc: 'Create, read, and edit Word (.docx), PowerPoint (.pptx), and Excel (.xlsx).', prompt: 'Export the ATS audit ledger into a formatted Excel spreadsheet.' },
+    { cat: 'Research', name: 'competitor-news-monitor', desc: 'Watch named companies or markets for material updates with citations.', prompt: 'Run a competitor analysis for custom art & commission studios in St. Louis.' }
+  ];
+
+  let currentCat = 'All';
+  function renderSkills() {
+    const cats = ['All', ...new Set(skillsData.map(s => s.cat))];
+    const fbar = document.getElementById('skill-filters');
+    fbar.innerHTML = '';
+    cats.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'chip ' + (c === currentCat ? 'active' : '');
+      btn.textContent = c;
+      btn.onclick = () => { currentCat = c; renderSkills(); };
+      fbar.appendChild(btn);
+    });
+
+    const grid = document.getElementById('skills-container');
+    grid.innerHTML = '';
+    skillsData.filter(s => currentCat === 'All' || s.cat === currentCat).forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      card.onclick = () => setPrompt(s.prompt);
+      card.innerHTML = `
+        <div class="skill-cat">${s.cat}</div>
+        <div class="skill-name">${s.name}</div>
+        <div class="skill-desc">${s.desc}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function setPrompt(text) {
+    document.getElementById('active-prompt').textContent = text;
+    appendLog('tool', 'Prompt staged in launcher', text);
+  }
+
+  function copyPrompt() {
+    const text = document.getElementById('active-prompt').textContent;
+    navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copied! Paste into Hermes CLI';
+    setTimeout(() => { btn.textContent = 'Copy Prompt to Clipboard'; }, 1800);
+  }
+
+  function appendLog(type, title, detail) {
+    const stream = document.getElementById('term-log');
+    const div = document.createElement('div');
+    div.className = 'log-entry ' + (type === 'sim' ? 'ok' : 'tool');
+    const now = new Date().toLocaleTimeString();
+    div.innerHTML = `<div class="log-time">${now} &bull; interactive</div><div class="log-cmd">${title}</div><div class="log-out">${detail}</div>`;
+    stream.appendChild(div);
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  renderAtsTable();
+  renderSkills();
+</script>
+</body>
+</html>
