@@ -1,21 +1,13 @@
 ---
-name: "ats-auditor-recruiter"
+name: ats-auditor-recruiter
 description: "Audit a resume against a job description and rewrite it without fabricating anything. Produces a transparent, repeatable JD-alignment score (keyword coverage, placement and recency, title and tenure fit, knockout gates, parse hygiene), a ranked point-recovery plan, and grounded bullet rewrites. Use whenever the user shares a resume together with a job posting or JD and asks about ATS fit, match score, keyword gaps, 'will this get past the ATS', resume tailoring, bullet rewrites, or ATS-friendly formatting, or wants job details (pay, benefits, requirements) pulled from a posting or URL, even if they never say 'ATS'. Not for writing a resume from scratch with no JD, cover letters, or interview prep."
 license: MIT
 metadata:
-  version: '1.4.0'
+  version: 1.4.0
   author: Hermes Agent
   hermes:
-    tags:
-    - ATS
-    - Resume
-    - Recruiter
-    - Career
-    - Scoring
-    - HR-XML
-    related_skills:
-    - document-to-action-items
-    - writing-guidelines
+    tags: [ATS, Resume, Recruiter, Career, Scoring, HR-XML]
+    related_skills: [document-to-action-items, writing-guidelines]
 ---
 # Grounded Resume & JD Alignment Auditor
 
@@ -108,13 +100,13 @@ Resumes hold personal data. Use only what is needed, and when building public ex
 When the user wants posting details rather than, or in addition to, an audit, capture: company, title, requisition ID, source and apply URL, location and workplace type, employment type, seniority, posted and expiry dates, salary range and extras (bonus, equity, commission), benefits, required vs preferred qualifications, responsibilities, years of experience, education and certification gates, hard and soft skills, clearance, work authorization, and travel.
 
 Fetch in this order and stop at the first that works:
-1. **Pasted text or a saved file** from the user. This is the most reliable route, and the only one for LinkedIn, Indeed, ZipRecruiter, and Glassdoor (`scripts/job_posting_collector.py --input-file`).
-2. **Employer-published postings:** a Greenhouse or Lever link (their public posting APIs), or an employer career page with embedded `Schema.org/JobPosting` data (`scripts/job_posting_collector.py --url`; details in `references/job-board-api-endpoints.md`). The script identifies itself honestly in its User-Agent, so keep use low-volume and personal.
+1. **Pasted text or a saved file** from the user. This is the most reliable route, and the only one for the 10 restricted paste-only boards: LinkedIn, Indeed, SimplyHired, ZipRecruiter, Glassdoor, Monster, CareerBuilder, Dice, Built In, and Wellfound/AngelList (`scripts/job_posting_collector.py --input-file` or `scripts/offline_ats_auditor.py --jd-file`).
+2. **Compliant public APIs and employer-published postings:** the 4 supported public APIs — **Greenhouse** (`boards-api.greenhouse.io`), **Lever** (US `api.lever.co` + EU `api.eu.lever.co`), **Ashby** (`api.ashbyhq.com`), and **USAJobs** (`data.usajobs.gov`, requiring `USAJOBS_API_KEY` + `USAJOBS_USER_AGENT` and preserving OPM attribution) — or an employer career page with embedded `Schema.org/JobPosting` JSON-LD fallback (`scripts/job_posting_collector.py --url` or `scripts/offline_ats_auditor.py --url` / `--greenhouse` / `--lever` / `--ashby` / `--usajobs`; details in `references/job-board-api-endpoints.md`). The script identifies itself honestly in its User-Agent, so keep use low-volume and personal.
 3. **Ask the user to paste the description** whenever a fetch fails or is declined.
 
-Do not fetch LinkedIn, Indeed, ZipRecruiter, or Glassdoor links. Those sites' terms restrict automated access, and the scripts decline them too. Ask the user to paste the description instead. If they like, and a web search tool is available, look for the same role on the employer's own careers page or Greenhouse/Lever board and use that. Never attempt to solve, click through, wait out, or work around CAPTCHAs, login walls, or rate limits.
+Do not fetch LinkedIn, Indeed, SimplyHired, ZipRecruiter, Glassdoor, Monster, CareerBuilder, Dice, Built In, or Wellfound/AngelList (`wellfound.com` / `angel.co`) links. Those sites' terms restrict automated access, and the scripts decline them pre-socket with exit code 2 (`ComplianceBlockError`). Ask the user to paste the description instead. If they like, and a web search tool is available, look for the same role on the employer's own careers page or Greenhouse, Lever, or Ashby board and use that. Never attempt to solve, click through, wait out, or work around CAPTCHAs, login walls, or rate limits.
 
 ## Reference files
 - `references/ats-scoring-rubric.md`: the scoring model as implemented in the script, for checking math.
-- `references/job-board-api-endpoints.md`: employer ATS endpoints (Greenhouse, Lever) and JSON-LD fallback used for posting collection.
+- `references/job-board-api-endpoints.md`: the 4 compliant public ATS APIs (Greenhouse, Lever US+EU, Ashby, USAJobs), the 10-board paste-only compliance gate, and the `Schema.org/JobPosting` JSON-LD fallback used for posting collection.
 - `references/maintainer-notes.md`: script CLI recipes, parser pitfalls, serialization details, and public-showcase packaging. Read only when modifying or debugging the scripts.

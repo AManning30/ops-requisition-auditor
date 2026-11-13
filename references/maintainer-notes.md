@@ -24,9 +24,9 @@ python scripts/offline_ats_auditor.py --resume Resume.docx --jd-config jd_config
 ```
 `python scripts/offline_ats_auditor.py --demo` and `python scripts/job_posting_collector.py --demo` run built-in fixtures and are the quickest regression checks.
 
-## Collector scope (changed in 1.3.0)
-- Fetches only employer-published postings: Greenhouse and Lever public posting APIs, plus direct page fetches that read embedded `Schema.org/JobPosting` data. SmartRecruiters has a documented public API but is not implemented in the script; use pasted text or the page fetch.
-- LinkedIn, Indeed, ZipRecruiter, and Glassdoor hosts are declined without any network request (`paste_only_platform()`, matched on hostname so a Greenhouse board named "linkedin" still works). The result carries `paste_required: True`, and the CLIs tell the user to paste the description.
+## Collector scope (changed in 1.3.0 / 1.4.0)
+- Fetches only compliant public APIs and employer-published postings: Greenhouse (`boards-api.greenhouse.io`), Lever (US `api.lever.co` + EU `api.eu.lever.co`), Ashby (`api.ashbyhq.com`), and USAJobs (`data.usajobs.gov` with `USAJOBS_API_KEY` + `USAJOBS_USER_AGENT`), plus direct career-page fetches that read embedded `Schema.org/JobPosting` JSON-LD data. SmartRecruiters has a documented public API but is not implemented in the script; use pasted text or the page fetch.
+- All 10 restricted job-board hosts (`linkedin.com`, `indeed.com`, `simplyhired.com`, `ziprecruiter.com`, `glassdoor.com`, `monster.com`, `careerbuilder.com`, `dice.com`, `builtin.com`, `wellfound.com`, `angel.co`) are declined pre-socket without any network request (`enforce_domain_compliance()` / `paste_only_platform()`, matched on hostname so an employer board slug named "linkedin" still works). The result carries `paste_required: True` (CLI exit code `2`), and the CLIs tell the user to paste the description.
 - Requests send an honest `User-Agent` (`USER_AGENT` in the collector) instead of a browser string.
 - Removed: LinkedIn guest-page fetching, the `--search`, `--location`, `--limit`, and `--resume` leaderboard mode, and the browser-mimicking headers.
 

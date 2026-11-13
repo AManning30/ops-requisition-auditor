@@ -308,12 +308,11 @@ def normalized_job_to_record(njob: NormalizedJob) -> JobPostingRecord:
 
 def fetch_job_source(url: str) -> Dict[str, Any]:
     """
-    Fetch a job posting URL using the best available endpoint:
-      1. Greenhouse Board API (`boards-api.greenhouse.io/v1/boards/{b}/jobs/{id}`)
-      2. Lever Postings API (`api.lever.co/v0/postings/{c}/{id}?mode=json`)
-      3. Ashby GraphQL / JSON-LD page
-      4. LinkedIn Guest Job Posting API (`/jobs-guest/jobs/api/jobPosting/{id}`)
-      5. Direct HTML fetch (extracting Schema.org JobPosting JSON-LD + body text)
+    Fetch a job posting URL using the best available compliant endpoint:
+      1. Greenhouse Board API (`boards-api.greenhouse.io/v1/boards/{b}/jobs/{id}?questions=true`)
+      2. Lever Postings API (`api.lever.co` or `api.eu.lever.co/v0/postings/{c}/{id}?mode=json`)
+      3. Ashby Public Job Board API (`api.ashbyhq.com/posting-api/job-board/{b}?includeCompensation=true`)
+      4. Direct HTML fetch (extracting Schema.org/JobPosting JSON-LD + body text)
     """
     try:
         enforce_domain_compliance(url)
@@ -346,11 +345,12 @@ def fetch_job_source(url: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 2. Lever direct API
-    lever_match = re.search(r"jobs\.lever\.co/([^/?#]+)/([0-9a-fA-F-]{20,})", url, re.IGNORECASE)
+    # 2. Lever direct API (US + EU)
+    lever_match = re.search(r"jobs\.(?:(eu)\.)?lever\.co/([^/?#]+)/([0-9a-fA-F-]{20,})", url, re.IGNORECASE)
     if lever_match:
-        company, jid = lever_match.group(1), lever_match.group(2)
-        api_url = f"https://api.lever.co/v0/postings/{company}/{jid}?mode=json"
+        is_eu, company, jid = bool(lever_match.group(1)), lever_match.group(2), lever_match.group(3)
+        api_host = "api.eu.lever.co" if is_eu else "api.lever.co"
+        api_url = f"https://{api_host}/v0/postings/{company}/{jid}?mode=json"
         status, body = _http_get(api_url)
         if status == 200:
             try:
