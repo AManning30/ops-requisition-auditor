@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
@@ -166,6 +167,32 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
         manual_job = tcc.load_manual_jd("Required: Python, SQL, Workforce Management")
         self.assertEqual(manual_job.source, "manual")
         self.assertIn("Workforce Management", manual_job.description_text)
+
+    def test_load_jds_for_audit_offline_and_filtering(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jd_txt = Path(tmpdir) / "senior_wfm_analyst.txt"
+            jd_txt.write_text("Job Title: Senior WFM Analyst\n- NICE IEX\n- SQL\n", encoding="utf-8")
+
+            jobs_from_file = oaa.load_jds_for_audit(jd_file=str(jd_txt))
+            self.assertEqual(len(jobs_from_file), 1)
+            self.assertEqual(jobs_from_file[0]["source"], "local_file")
+            self.assertEqual(jobs_from_file[0]["job_id"], "senior_wfm_analyst")
+            self.assertIn("NICE IEX", jobs_from_file[0]["description_text"])
+
+            snap_json = Path(tmpdir) / "cached_board.json"
+            sample_board = [
+                {"source": "greenhouse", "job_id": "1", "title": "Senior Workforce Analyst", "description_text": "- SQL"},
+                {"source": "greenhouse", "job_id": "2", "title": "Frontend Engineer", "description_text": "- React"},
+            ]
+            snap_json.write_text(json.dumps(sample_board), encoding="utf-8")
+
+            filtered = oaa.load_jds_for_audit(from_json=str(snap_json), title_filter=r"workforce|wfm")
+            self.assertEqual(len(filtered), 1)
+            self.assertEqual(filtered[0]["job_id"], "1")
+
+            collector_mod = oaa._import_collector()
+            self.assertTrue(hasattr(collector_mod, "collect_from_url"))
+            self.assertTrue(hasattr(collector_mod, "fetch_greenhouse"))
 
 
 if __name__ == "__main__":
