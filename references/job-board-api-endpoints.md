@@ -1,52 +1,30 @@
-# Public Job Board & Enterprise ATS Endpoints
+# Employer ATS Endpoints for Posting Collection
 
-Use these compliant, unauthenticated endpoints and search-index pivots to retrieve structured job postings when aggregator HTML pages serve anti-bot challenges.
+These are the sources `scripts/job_posting_collector.py --url` reads. They are published by employers or their ATS vendor for reading job postings, need no login, and are used with an honest User-Agent. Keep use low-volume and personal.
 
-## 1. LinkedIn Public Guest APIs
+## Not fetched: LinkedIn, Indeed, ZipRecruiter, Glassdoor
+Those sites' terms restrict automated access, so neither the scripts nor the skill fetch them. Ask the user to paste the description (or save the page and use `--input-file`). If a web search tool is available, a search for the job title plus company can often find the same posting on the employer's own careers page or Greenhouse/Lever board, which can then be fetched below. Never attempt to solve, click through, wait out, or work around CAPTCHAs, login walls, or rate limits.
 
-LinkedIn exposes unauthenticated guest endpoints that return clean HTML fragments without login walls:
+## 1. Greenhouse Board API (implemented)
+`https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs/{job_id}?questions=true`
+- Converts from `boards.greenhouse.io/{board_token}/jobs/{job_id}` or `job-boards.greenhouse.io/{board_token}/jobs/{job_id}`.
+- Fields: `title`, `company_name`, `location.name`, `updated_at`, `content` (HTML-escaped full JD), `pay_input_ranges` (structured min/max/currency), `departments`, `offices`.
 
-- **Job Search Endpoint:**
-  `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={urlencoded_keywords}&location={urlencoded_location}&start={offset}`
-  - Returns `<li>` job cards containing `data-entity-urn="urn:li:jobPosting:{job_id}"`.
-  - Key selectors: `.base-search-card__title` (title), `.base-search-card__subtitle` (company), `.job-search-card__location` (location), `.job-search-card__salary-info` (salary badge), `<time datetime="...">` (posted date).
+## 2. Lever Postings API (implemented)
+`https://api.lever.co/v0/postings/{company}/{job_id}?mode=json`
+- Converts from `jobs.lever.co/{company}/{job_id}`.
+- Fields: `text` (title), `categories` (`location`, `department`, `commitment`, `team`), `workplaceType`, `descriptionPlain`, `lists` (array of `{text, content}` requirement sections), `salaryRange` (`min`, `max`, `currency`, `interval`), `applyUrl`.
 
-- **Single Job Posting Detail Endpoint:**
-  `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{job_id}`
-  - Extract `job_id` from `/jobs/view/{slug}-{job_id}`, `/jobs/view/{job_id}`, or `?currentJobId={job_id}`.
-  - Key selectors:
-    - Title: `h2.top-card-layout__title`
-    - Company: `a.topcard__org-name-link`
-    - Location: `span.topcard__flavor--bullet`
-    - Posted age: `span.posted-time-ago__text`
-    - Compensation badge: `.compensation__salary`
-    - Full JD HTML: `div.show-more-less-html__markup`
-    - Criteria items (Seniority level, Employment type, Job function, Industries): `h3.description__job-criteria-subheader` paired with `span.description__job-criteria-text`
+## 3. Embedded `Schema.org/JobPosting` (implemented as the page-fetch fallback)
+Many employer career pages (including Ashby, Workday, and iCIMS-hosted pages) embed `<script type="application/ld+json">` with `title`, `hiringOrganization.name`, `jobLocation`, `baseSalary`, `employmentType`, `datePosted`, `validThrough`, and `description`. The collector reads this when it fetches a public career page.
 
-## 2. Public Enterprise ATS JSON APIs
+## 4. SmartRecruiters (documented, not implemented)
+`https://api.smartrecruiters.com/v1/companies/{company}/postings/{posting_id}` is a public posting API. The script does not call it yet; use pasted text or the page fetch above.
 
-Most roles syndicated on Indeed, LinkedIn, and ZipRecruiter originate from an employer ATS whose public API returns full JSON with structured compensation:
+## 5. Ashby Public Job Board API (implemented in v1.4.0)
+`https://api.ashbyhq.com/posting-api/job-board/{board_name}?includeCompensation=true`
+- Converts from `jobs.ashbyhq.com/{board_name}[/{job_id}]`.
 
-- **Greenhouse Board API:**
-  `https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs/{job_id}?questions=true`
-  - Converts from `boards.greenhouse.io/{board_token}/jobs/{job_id}` or `job-boards.greenhouse.io/{board_token}/jobs/{job_id}`.
-  - Fields: `title`, `company_name`, `location.name`, `updated_at`, `content` (HTML-escaped full JD), `pay_input_ranges` (structured min/max/currency), `departments`, `offices`.
-
-- **Lever Postings API:**
-  `https://api.lever.co/v0/postings/{company}/{job_id}?mode=json`
-  - Converts from `jobs.lever.co/{company}/{job_id}`.
-  - Fields: `text` (title), `categories` (`location`, `department`, `commitment`, `team`), `workplaceType`, `descriptionPlain`, `lists` (array of `{text, content}` requirement sections), `salaryRange` (`min`, `max`, `currency`, `interval`), `applyUrl`.
-
-- **SmartRecruiters Public Posting API:**
-  `https://api.smartrecruiters.com/v1/companies/{company}/postings/{posting_id}`
-
-- **Ashby / Workday / iCIMS:**
-  Check embedded `<script type="application/ld+json">` for `Schema.org/JobPosting` (`title`, `hiringOrganization.name`, `jobLocation`, `baseSalary`, `employmentType`, `datePosted`, `validThrough`, `description`).
-
-## 3. Cross-Board Resolution for Gated Aggregators (Indeed / ZipRecruiter / Glassdoor)
-
-When a direct URL on Indeed (`indeed.com/viewjob?jk=...`) or ZipRecruiter (`ziprecruiter.com/c/...`) is gated by Cloudflare Turnstile/403:
-
-1. **Never attempt to solve, click, wait out, or bypass CAPTCHA/Turnstile challenges.**
-2. **Query Search Indexes First:** Run `web_search` with the exact job key or URL slug (e.g., `"{jk_id}" site:indeed.com` or `site:indeed.com/viewjob "{role_title}" "{company}"` / `site:ziprecruiter.com/c/ "{role_title}"`). Search snippets frequently preserve the title, company, location, salary badge, and core qualifications.
-3. **Pivot to Canonical ATS or LinkedIn Guest API:** Once `(Job Title, Company Name)` is known from the URL slug, search snippet, or user prompt, query `site:boards.greenhouse.io OR site:jobs.lever.co "{company}" "{job_title}"` or search the LinkedIn Guest Search API (`seeMoreJobPostings/search`) to pull the complete unblocked job description.
+## 6. USAJobs Official Federal Open Data API (implemented in v1.4.0)
+`https://data.usajobs.gov/api/search?Keyword={kw}&LocationName={loc}&ResultsPerPage=25&Page=1&Fields=full`
+- Requires `USAJOBS_API_KEY` and `USAJOBS_USER_AGENT` environment variables and preserves mandatory OPM attribution.

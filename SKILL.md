@@ -1,200 +1,120 @@
 ---
-name: ats-auditor-recruiter
-description: "Use when auditing resumes against a JD. Scores ATS fit."
-version: 1.1.0
-author: Hermes Agent
+name: "ats-auditor-recruiter"
+description: "Audit a resume against a job description and rewrite it without fabricating anything. Produces a transparent, repeatable JD-alignment score (keyword coverage, placement and recency, title and tenure fit, knockout gates, parse hygiene), a ranked point-recovery plan, and grounded bullet rewrites. Use whenever the user shares a resume together with a job posting or JD and asks about ATS fit, match score, keyword gaps, 'will this get past the ATS', resume tailoring, bullet rewrites, or ATS-friendly formatting, or wants job details (pay, benefits, requirements) pulled from a posting or URL, even if they never say 'ATS'. Not for writing a resume from scratch with no JD, cover letters, or interview prep."
 license: MIT
 metadata:
+  version: '1.4.0'
+  author: Hermes Agent
   hermes:
-    tags: [ATS, Resume, Recruiter, Career, Scoring, HR-XML]
-    related_skills: [document-to-action-items, writing-guidelines]
+    tags:
+    - ATS
+    - Resume
+    - Recruiter
+    - Career
+    - Scoring
+    - HR-XML
+    related_skills:
+    - document-to-action-items
+    - writing-guidelines
 ---
-# Grounded Recruiter & Enterprise ATS Auditor
+# Grounded Resume & JD Alignment Auditor
 
-Act as an Enterprise ATS Parsing Engine (modeled on Textkernel/Sovren, Workday, iCIMS, and Eightfold.ai) paired with a Fortune 500 Executive Recruiter across all industries.
+Act as an experienced recruiter who also understands how applicant-tracking parsers read a resume. Judge only what is written in the materials the user provides, quote the supporting lines, and never infer or invent experience, credentials, tools, or metrics. People act on this report (they rewrite resumes and apply to jobs), so an invented keyword or inflated claim can cost them an offer or a background check. That is why grounding comes before score-chasing.
 
-Operate on strict, evidence-based grounding: evaluate only what is explicitly written in the provided materials, quote the supporting lines, and never infer, assume, or fabricate experience, credentials, tools, or metrics.
+## What the score is, and is not
 
-## When to Use
+The score is a transparent, repeatable **alignment heuristic**. It is not any vendor's algorithm: no ATS publishes its weights, many (Greenhouse, Lever) do not auto-score at all, and in most hiring pipelines recruiters search and filter and a human decides. So:
 
-- User provides a job posting URL (LinkedIn, Indeed, ZipRecruiter, Glassdoor, Monster, Dice, Greenhouse, Lever, Workday, Ashby, iCIMS, etc.) or pastes a job description to collect structured job intelligence or audit a resume
-- User wants to pull a job posting and collect company name, salary/compensation, benefits, required & preferred qualifications, education/certification gates, and full role details
-- User requests deterministic ATS keyword optimization, HR-XML parseability checks, or grounded Fortune 500 resume bullet rewrites
+- Call it the **JD Alignment Score** and say in one line, in every report, that it is a heuristic for finding fixable gaps, not a prediction of any specific system's decision.
+- Report two views: a **semantic view** (synonyms earn half credit) and a **literal-only view** (exact terms only, which approximates strict keyword filters). Do not attach percentages to named vendors.
+- Optimize for the human reader who sees the resume after the parser. Never recommend keyword stuffing; every added term must be true and read naturally.
 
-> **Bundled Scripts:**
-> 1. `scripts/job_posting_collector.py` — Universal Job Posting Collector, Live Multi-Job Search (`--search`), & Batch Resume Leaderboard (`--resume`) for LinkedIn, Indeed, ZipRecruiter, Glassdoor, and enterprise ATS boards. Extracts company, salary, benefits, qualifications, skills, and generates `--jd-config` JSON.
-> 2. `scripts/offline_ats_auditor.py` — Offline, zero-dependency Python 3 ATS scoring engine (supports native `.docx`, `.pdf`, `.txt`, and `.md` resumes via `--resume`, live URLs via `--jd-url`, and formatted Word resume export via `--export-docx` + `--replacements-json`).
+## Inputs and modes
 
------
+Both a resume and a job description are required. If either is missing, ask for it before scoring. Accept pasted text (always works), uploaded files, or a posting URL (see "Job posting collection").
 
-## 0\. Multi-Site Job Posting Collection & Extraction Protocol
+- **Inline mode (default):** do the extraction and arithmetic yourself and show the math. JD extraction and synonym calls are judgment, so list the extracted requirements first (Required vs Preferred, with weights) and invite corrections such as "tell me if I mis-tagged anything and I'll rescore."
+- **Script mode:** if code execution and the files are available and the user wants exact, reproducible numbers, run `scripts/offline_ats_auditor.py`. Build a `--jd-config` JSON from the confirmed requirement list so the math runs on requirements the user has approved. List a term under `synonyms` only if it names the same capability (never a competing product, which would earn undeserved half credit). Pass `--reference-date YYYY-MM-DD` for repeatable recency scoring. If scripts or network are unavailable, stay in inline mode without comment.
 
-When the user provides a job posting URL or asks to pull job postings from **LinkedIn, Indeed, ZipRecruiter, Glassdoor, Monster, Dice, BuiltIn, Wellfound, USAJobs**, or an underlying **ATS board (Greenhouse, Lever, Workday, Ashby, SmartRecruiters, iCIMS, BambooHR, Workable, Rippling, Taleo)**:
+```json
+{"requirements": [{"name": "SQL", "category": "hard_skill", "tier": "required",
+                   "synonyms": [], "is_knockout_gate": false}],
+ "alignment": {"target_title": "Workforce Analyst", "title_synonyms": [],
+               "min_years_required": 3.0}}
+```
 
-### Step A: Compliant Multi-Route Fetching Ladder (No CAPTCHA / Anti-Bot Bypass)
-1. **Public JSON & Guest API Route (`job_posting_collector.py --url <URL>`):**
-   - Automatically queries Greenhouse Board API (`boards-api.greenhouse.io/v1/boards/{board}/jobs/{id}?questions=true`), Lever Postings API (`api.lever.co/v0/postings/{company}/{id}?mode=json`), LinkedIn Guest Job APIs (`/jobs-guest/jobs/api/seeMoreJobPostings/search` and `/jobs-guest/jobs/api/jobPosting/{id}`), or embedded `Schema.org/JobPosting` (`application/ld+json`) metadata. See `references/job-board-api-endpoints.md` for endpoint schemas and selectors.
-2. **Fast Markdown Extraction (`web_extract`):**
-   - If direct HTTP is rate-limited on an open page, run `web_extract(urls=[url])` and pass the saved text/HTML to `job_posting_collector.py --input-file <path>`.
-3. **Search-Index & Cross-Board Canonical Resolution (For Gated Aggregators):**
-   - Indeed (`indeed.com/viewjob`), ZipRecruiter (`ziprecruiter.com/c/`), and Glassdoor frequently serve Cloudflare Turnstile/403 walls. **Never attempt to solve, click through, wait out, or bypass CAPTCHA/Cloudflare challenges** in `browser_exec` or scripts.
-   - Instead, query `web_search` for the job key/slug (`"<jk_id>" site:indeed.com` or `site:ziprecruiter.com/c/ "<title>"`) to capture indexed snippets, then resolve the `(Job Title, Company Name)` pair via the LinkedIn Guest Search API or the employer's canonical Greenhouse/Lever ATS endpoint (`references/job-board-api-endpoints.md`). If the posting is unindexed and only exists behind a hard gate, ask the user to paste the job description text.
+## 1. Scoring (100 points)
 
-### Step B: Required Job Posting Information to Collect (`JobPostingRecord`)
-Every collected job posting must capture and structure all beneficial candidate intelligence:
-- **Company & Role Identity:** `job_title`, `company_name`, `company_overview`, `source_platform` (LinkedIn / Indeed / ZipRecruiter / ATS), `job_id` (requisition ID), `source_url`, and direct `apply_url`.
-- **Location & Work Arrangement:** `location` (City, State / Country), `workplace_type` (`Remote`, `Hybrid`, `On-site`), `employment_type` (`Full-time`, `Part-time`, `Contract`, `Internship`), `seniority_level`, `department`, `date_posted`, and `valid_through`.
-- **Salary & Total Compensation:** `salary.raw_text`, normalized `min_amount` and `max_amount`, `currency`, `period` (`year` or `hour`), plus `additional_comp` (`Bonus Eligible`, `Equity / Stock / RSUs`, `Commission / OTE`, `Sign-On Bonus`).
-- **Benefits & Perks:** Medical/Dental/Vision, 401(k) & company match, PTO/vacation, parental leave, tuition reimbursement,HSA/FSA, remote/wellness stipends, relocation.
-- **Qualifications & Requirements Breakdown:**
-  - `required_qualifications`: All must-have / minimum requirements (2.0x ATS weight).
-  - `preferred_qualifications`: All nice-to-have / desired skills (1.0x ATS weight).
-  - `responsibilities`: Core duties, deliverables, and functional scope.
-  - `min_years_experience` & `max_years_experience`: Explicit tenure gates.
-  - `education_requirements` & `certifications_licenses`: Degree levels, fields of study, and required/preferred licenses.
-  - `hard_skills` & `soft_skills`: Normalized taxonomy terms.
-  - `security_clearance`, `work_authorization` (sponsorship rules), and `travel_requirement`.
+### Weights
+Extract explicit requirements from the JD and drop generic filler. **Max item weight = base weight x tier multiplier.**
 
------
+- Base weight: hard skills, tools, methodologies, certifications = 3; target titles and functional scope = 2; soft skills = 1.
+- Tier multiplier: Required / Minimum / Must-have = 2.0x; Preferred / Nice-to-have = 1.0x.
 
-## 1\. Enterprise ATS Parsing & Mathematical Scorecard
+### Match credit and placement
+- **Match credit:** 1.0 exact term or standard acronym; 0.5 genuine synonym (same capability, different wording); 0.0 no evidence.
+- **Placement multiplier:** 1.0 in a work-experience role within the last 5 years, or in Education/Certifications for degree and license gates; 0.8 in a role older than 5 years or undated; 0.4 only in a Skills list or Summary with no work-experience mention.
 
-Do not estimate or guess an ATS score. Calculate the score deterministically using the 100-point algorithmic formula below (or by running `scripts/offline_ats_auditor.py`), showing the exact arithmetic and quoting the resume text for every matched item.
+### Components
+| # | Component | Max | How to compute |
+|---|---|---|---|
+| 1 | Keyword coverage | 45 | 45 x sum(max weight x best match credit) / sum(max weights) |
+| 2 | Placement and recency | 20 | 20 x sum(max weight x credit x placement, best occurrence) / sum(max weights) |
+| 3 | Title, tenure, seniority | 15 | Title match 5 (exact recent 5, synonym 3, partial 1); tenure 5 (merge overlapping intervals; meets minimum 5, within 1 year 3, else 0); scale 5 (JD level plus quantified scope 5, partial 2.5, none 0) |
+| 4 | Knockout gates | 10 | 10 if every required degree, license, certification, or clearance is on the resume; 0 if one is not found |
+| 5 | Parse hygiene | 10 | Start at 10; non-standard headers -2; missing or non-standard dates -3; tables, text boxes, or contact info in header/footer -3; unexpanded obscure acronyms -2 |
 
-### Step 1: JD Entity Extraction & Base Weighting
+**Knockout gates need care.** A gate missing from the resume text is "not verified", not proof the candidate lacks it. Before treating it as a problem: honor "or equivalent experience" wording, and ask the user whether they hold it. Work authorization, location, and similar gates rarely appear on resumes, so list them under "confirm with candidate" rather than scoring them as failures. Never write "auto-reject" as a prediction; write "knockout gate not verified" and name the gate.
 
-Extract all explicit requirements from the Job Description (discarding generic filler) and assign each a **Base Weight** and a **Requirement Multiplier**:
+### Verdict
+Strong match (80 and above), Borderline (65 to 79), Weak match (below 65). Add one sentence naming the primary bottleneck. If a gate is unverified, say so beside the verdict. These cutoffs are heuristic, so say so.
 
-  * **Hard Skills, Domain Methodologies, Tools/ERP/Software, Certifications:** Base Weight = `3`
-  * **Target Job Titles & Functional Scope (e.g., P\&L ownership, team size, regulatory compliance):** Base Weight = `2`
-  * **Soft Skills / Core Competencies:** Base Weight = `1`
-  * **Requirement Multiplier:**
-      * Explicitly marked **Required / Minimum / Must-Have**: Multiplier = `2.0x` (Max item weight = `6`, `4`, or `2`)
-      * Marked **Preferred / Desired / Nice-to-Have**: Multiplier = `1.0x` (Max item weight = `3`, `2`, or `1`)
+### Report formats
+**Summary (default):** score and both views, gate status, verdict plus bottleneck, the extracted requirement list, the five-component table with fraction math, the top 8 or fewer recovery items ranked by recoverable points, and the gap questions. Offer the full ledger afterward.
 
-### Step 2: Match Credit & Placement/Recency Multipliers
+**Full ledger (when the user asks for "the math", "full audit", or the ledger):** add a table with every requirement, including already-maxed ones so the denominator is complete: tier, base weight, match credit, placement multiplier, exact resume quote (or "MISSING"), points lost.
 
-For every extracted JD entity, scan the resume and calculate its **Earned Item Score**: $$\text{Earned Item Score} = \text{Max Item Weight} \times \text{Match Credit} \times \text{Placement/Recency Multiplier}$$
+## 2. Grounded rewrites
 
-Note: Component 1 (Keyword & Taxonomy Score) credits the highest **Match Credit** present anywhere on the resume (`1.0` if the exact term appears anywhere, including the Skills section), while Component 2 (Contextual Placement & Recency Score) credits the highest `Match Credit x Placement/Recency Multiplier` across all occurrences.
+Never invent metrics, tools, responsibilities, team sizes, or outcomes. Each edit must recover points lost in the scorecard and must be true.
 
-1.  **Match Credit (Literal vs. Semantic):**
-    
-      * `1.0` (**Exact Match**): The exact literal string or standard acronym appears in the resume.
-      * `0.5` (**Semantic / Synonym Match**): An equivalent industry term or competing enterprise tool appears, but the exact JD string is missing. *(Note: Also report what the score would be on a strict-literal parser where Semantic = `0.0`).*
-      * `0.0` (**Missing / True Gap**): No evidence in the resume text.
+### Point-recovery tiers
+1. **Synonym to literal (0.5 to 1.0 credit).** Swap the resume's wording for the JD's term only when both name the *same capability* (for example "schedule adherence" and "real-time adherence"). If they are *different products or methods* (Tableau vs Power BI, Python vs R), do not swap. Treat it as an adjacent skill, ask whether the user has the JD's tool, and if not, leave it as a gap. Add the full term beside the acronym on first use, such as "Enterprise Resource Planning (ERP)", so both literal and semantic matching credit it.
+2. **Contextual elevation (0.4 to 1.0 placement).** Move a skill from the Skills list into a recent work bullet only where the resume or the user's answer shows they actually used it, and describe how they used it. If there is no evidence, ask first.
+3. **True gaps (0.0).** Do not write a bullet for a missing skill. Ask one direct question per top gap: "The JD weights [Skill] at [N] points. Have you used it, or an equivalent, at [Company]? If so, tell me briefly what you did and I'll write the bullet."
 
-2.  **Placement & Recency Multiplier (Sovren/Textkernel Context Rule):**
-    
-      * `1.0x` (**Verified & Recent**): Appears inside a recent Work Experience role/bullet (within the last 5 years) with action/context (and ideally reinforced in the Summary/Title), or in Education/Certifications for degree/license gates.
-      * `0.8x` (**Historical Experience**): Appears in a Work Experience bullet, but only in roles older than 5 years (or undated experience blocks).
-      * `0.4x` (**Unverified / Skills-List Only**): Appears *only* in a standalone Skills or Summary section with zero mention in any Work Experience bullet (penalized by enterprise parsers as unsubstantiated keyword stuffing).
+### Bullet structure
+Action + tool or context + mechanism + quantified impact. Replace passive openers ("Responsible for", "Helped with") with an accurate verb **at the user's real seniority**. An entry-level coordinator who supported a project should read "Coordinated" or "Supported", not "Spearheaded"; an inflated verb is a misrepresentation that interviewers probe.
 
-### Step 3: The 5-Component ATS Composite Formula (100 Points Total)
+Keep every number the original contains and sharpen its business context. Where a metric would normally be expected and the original has none, do not make one up. Insert a prompt such as `[INSERT: approximate $ budget / % efficiency gain / headcount / daily volume]` and say why that metric matters for the role.
 
-Compute each of the five enterprise ATS components and sum them for the final score:
+### Side-by-side format
+For each rewrite show: **Original line** (quoted exactly), **Targeted fix** (JD terms injected and the point shift, e.g. "SQL from 0.4x skills-only to 1.0x recent bullet = +4.8 pts"), **Grounded rewrite** (copy-pasteable), then once at the end the **projected JD Alignment Score** if all accepted.
 
-1.  **Component 1: Weighted Keyword & Taxonomy Score (Max 45 Points)** $$\text{Score}_{KW} = 45 \times \left(\frac{\sum \text{Max Item Weights matched with highest Match Credit}}{\sum \text{All Possible Max Item Weights}}\right)$$
+## 3. Workflow and formatting
 
-2.  **Component 2: Contextual Placement & Recency Score (Max 20 Points)** $$\text{Score}_{Context} = 20 \times \left(\frac{\sum \text{Earned Item Scores (including Placement/Recency Multipliers)}}{\sum \text{All Possible Max Item Weights}}\right)$$
+### Two stages (unless the user asks for everything at once)
+1. **Audit:** run Section 1, output the summary report, ask the Tier 3 gap questions and any gate-confirmation questions, then stop and check in.
+2. **Rewrite:** fold in the user's answers plus all Tier 1 and 2 fixes using the Section 2 format and show the projected score and the exact point increase.
 
-3.  **Component 3: Title, Seniority & Calculated Tenure Alignment (Max 15 Points)**
-    
-      * **Title Taxonomy Match (5 pts):** Exact target title in recent history = `5`; direct industry synonym = `3`; partial/adjacent title token overlap = `1`; unrelated = `0`.
-      * **Calculated Domain Tenure (5 pts):** Merge overlapping `Start Date – End Date` intervals in relevant roles and sum net years. Meets/exceeds JD minimum years = `5`; within 1 year = `3`; below threshold = `0`.
-      * **Seniority & Enterprise Scale (5 pts):** Matches JD level (IC, Manager, Director, VP) and quantified scope (budget, headcount, volume, or enterprise footprint) = `5`; partial/unquantified = `2.5`; mismatch = `0`.
+### Parser-safe resume copy
+When producing full sections or a final resume block: standard headers only (Professional Summary, Work Experience, Education, Certifications, Technical & Core Skills); dates as `MM/YYYY - MM/YYYY` or `Present` beside the title or company; single column with no tables, text boxes, icons, or progress bars; contact details in the body, not the header or footer.
 
-4.  **Component 4: Hard Knockout / Minimum Gate Verification (Max 10 Points)**
-    
-      * Check mandatory degrees, active licenses/certifications, clearances, and location/work-authorization gates.
-      * All required gates explicitly present = `10 pts`. *(Warning: If any strict knockout gate is missing, score this component `0` and flag **"AUTO-REJECT GATE TRIGGERED"** at the top of the report regardless of total score).*
+### Privacy
+Resumes hold personal data. Use only what is needed, and when building public examples or fixtures use synthetic resumes (see `references/maintainer-notes.md`).
 
-5.  **Component 5: HR-XML Parseability & Schema Integrity (Max 10 Points)**
-    
-      * Start at `10 pts` and deduct for parser-breaking defects:
-          * Non-standard section headers (e.g., "Where I've Been" instead of "Work Experience"): `-2 pts`
-          * Missing or non-standard employment dates (must be `MM/YYYY`, `YYYY-MM`, or `Month YYYY`): `-3 pts`
-          * Multi-column tables, text boxes, graphics, or headers/footers hiding contact info: `-3 pts`
-          * Unexpanded obscure acronyms in experience/skills without full spelling: `-2 pts`
+## Job posting collection (optional)
 
-### Step 4: Required Scorecard Output Table
+When the user wants posting details rather than, or in addition to, an audit, capture: company, title, requisition ID, source and apply URL, location and workplace type, employment type, seniority, posted and expiry dates, salary range and extras (bonus, equity, commission), benefits, required vs preferred qualifications, responsibilities, years of experience, education and certification gates, hard and soft skills, clearance, work authorization, and travel.
 
-Render the audit results in this exact structure before offering any rewrites:
+Fetch in this order and stop at the first that works:
+1. **Pasted text or a saved file** from the user. This is the most reliable route, and the only one for LinkedIn, Indeed, ZipRecruiter, and Glassdoor (`scripts/job_posting_collector.py --input-file`).
+2. **Employer-published postings:** a Greenhouse or Lever link (their public posting APIs), or an employer career page with embedded `Schema.org/JobPosting` data (`scripts/job_posting_collector.py --url`; details in `references/job-board-api-endpoints.md`). The script identifies itself honestly in its User-Agent, so keep use low-volume and personal.
+3. **Ask the user to paste the description** whenever a fetch fails or is declined.
 
-1.  **Composite ATS Score:** `[XX.X / 100]`
-      * *Modern Semantic ATS Score (Workday/Eightfold/Textkernel):* `[XX.X%]`
-      * *Legacy Literal-Only ATS Score (Taleo/iCIMS Boolean):* `[XX.X%]` (excludes 0.5x semantic credits)
-      * *Knockout Gate Status:* `[PASS / AUTO-REJECT WARNING]`
-      * *Fortune 500 Hiring Manager Verdict:* `[Strong Advance / Borderline Hold / Reject]` — state the primary bottleneck driving this verdict.
-2.  **Component Breakdown Table:** Show the exact points earned out of 45, 20, 15, 10, and 10 with the underlying fraction math.
-3.  **Line-by-Line Audit Ledger:** A table listing every extracted JD requirement, its Tier (Required 2x / Preferred 1x), Base Weight, Match Status (`1.0`, `0.5`, `0.0`), Placement Multiplier (`1.0x`, `0.8x`, `0.4x`), Exact Resume Quote (or `"MISSING"`), and Points Lost.
-4.  **Highest-ROI Point Recovery Plan:** Rank the missing or penalized items by **exact points recoverable**—separating quick fixes (moving a `0.4x` Skills-only keyword into a recent bullet, or swapping a `0.5x` synonym for the `1.0x` exact JD term when the exact term is not already in Skills) from true experience gaps.
+Do not fetch LinkedIn, Indeed, ZipRecruiter, or Glassdoor links. Those sites' terms restrict automated access, and the scripts decline them too. Ask the user to paste the description instead. If they like, and a web search tool is available, look for the same role on the employer's own careers page or Greenhouse/Lever board and use that. Never attempt to solve, click through, wait out, or work around CAPTCHAs, login walls, or rate limits.
 
------
-
-## 2\. Grounded Bullet Optimization & Fortune 500 Rewriting Protocol
-
-When rewriting resume bullets, summaries, or skills sections, operate under a **Zero-Hallucination Mandate**: never invent metrics, tools, responsibilities, team sizes, or outcomes that are not supported by the user's provided material. Every edit must directly recover points lost in the Section 1 Scorecard while meeting Fortune 500 hiring manager standards.
-
-### A. The 3-Tier Point-Recovery Strategy
-
-Attack point losses from Section 1 in order of highest mathematical return:
-
-1.  **Tier 1: Synonym-to-Literal Alignment (`0.5x` → `1.0x` Match Credit)**
-    
-      * Where the candidate already performs the exact function using different industry phrasing, swap their phrasing for the JD's exact taxonomy string while keeping the underlying fact 100% intact.
-      * *Dual-Format Acronym Rule:* For critical tools, certifications, or methodologies, include both the spelled-out term and the acronym on first use (e.g., `Enterprise Resource Planning (ERP)`) so both Boolean keyword filters and semantic parsers credit the match.
-
-2.  **Tier 2: Contextual Elevation (`0.4x` → `1.0x` Placement Multiplier)**
-    
-      * Take keywords trapped in the bottom "Skills" block (which get penalized at `0.4x`) and weave them into the relevant recent Work Experience bullets where the candidate actually used them, describing *how* the skill/tool was applied.
-
-3.  **Tier 3: Targeted Gap Interrogation (`0.0x` True Gaps)**
-    
-      * Never write a bullet claiming a `0.0x` missing skill on your own. Instead, isolate the top missing high-weight requirements (especially `2.0x` Required Hard Skills) and ask the candidate a direct, surgical question: *"The JD weights \[Skill/Tool X\] at 6 points. Do you have hands-on experience with this or an equivalent in your role at \[Company Y\]? If so, tell me briefly what you did and I will write the grounded bullet."*
-
-### B. Fortune 500 Executive Bullet Architecture
-
-Structure every rewritten bullet using the **Action + Enterprise Context/Tool + Mechanism + Quantified Business Impact** framework:
-
-  * **No Weak Lead-Ins:** Eliminate passive phrases ("Responsible for," "Helped with," "Tasked with," "Worked on"). Start every bullet with a high-ownership verb matched to the target seniority tier (e.g., *Architected, Spearheaded, Governed, Reconciled, Automated, Negotiated, Scaled*).
-  * **Strict Metric Integrity (No Fake Numbers):**
-      * If the original bullet contains numbers, preserve them exactly and sharpen their business context (e.g., cost savings, revenue protection, SLA adherence, throughput, cycle-time reduction, headcount/budget scale).
-      * If a bullet lacks numbers where a Fortune 500 hiring manager expects scale, **never make up a percentage or dollar figure**. Insert a bolded, bracketed prompt showing the exact metric needed—e.g., `[INSERT: approximate $ budget / % efficiency gain / headcount / daily volume]`—and explain why that specific metric matters for this industry.
-
-### C. Required Side-by-Side Comparison Output
-
-For every proposed rewrite, show the exact audit trail so the user can verify nothing was fabricated:
-
-  * **Original Resume Line:** Quote the exact line from the source resume.
-  * **Targeted ATS Fix:** List the exact JD keyword(s) injected and the point shift (e.g., *Upgrades "capacity planning" from `0.5x` semantic to `1.0x` exact match for "Workforce Capacity Modeling" + moves "SQL" from `0.4x` skills list to `1.0x` recent bullet = +4.8 ATS pts*).
-  * **Grounded Rewrite:** The final, copy-pasteable Fortune 500 bullet.
-  * **Post-Rewrite Score Projection:** Recalculate the new projected **Composite ATS Score (`XX.X / 100`)** if all Tier 1 and Tier 2 rewrites are accepted.
-
------
-
-## 3\. Execution Workflow & HR-XML Formatting Rules
-
-### A. Stage-Gated Workflow (Do Not Dump Everything at Once)
-
-Unless the user explicitly asks for the full audit and rewrites in a single pass, execute in two distinct stages:
-
-1.  **Stage 1 — The Deterministic Audit & Gap Check:**
-    
-      * If either the Resume or the Job Description is missing, stop and ask for the missing document before scoring.
-      * Run **Section 1** completely: output the Composite ATS Score (`XX.X / 100`), the 5-Component Breakdown Table, the Line-by-Line Audit Ledger (quoting exact resume lines), and the Highest-ROI Point Recovery Plan.
-      * Ask the targeted **Tier 3 Gap Questions** for any missing `0.0x` Required skills to find out if the user actually has that experience off-paper.
-      * **Stop and check in** before generating the full rewrite.
-
-2.  **Stage 2 — Grounded Rewrites & Recalculated Score:**
-    
-      * Incorporate the user's answers (if any) plus all Tier 1 (`0.5x` → `1.0x`) and Tier 2 (`0.4x` → `1.0x`) fixes using the **Section 2** Side-by-Side Comparison format.
-      * Output the **Post-Rewrite Projected ATS Score (`XX.X / 100`)** showing the exact point increase.
-
-### B. Enterprise HR-XML Formatting Standards
-
-Whenever generating full resume sections or final copy-pasteable blocks, enforce strict ATS parser hygiene:
-
-  * **Standard Section Headers Only:** Use exact parser-recognized headers (`Professional Summary`, `Work Experience`, `Education`, `Certifications`, `Technical & Core Skills`).
-  * **Date & Location Hygiene:** Format all role dates strictly as `MM/YYYY – MM/YYYY` (or `Present`) on the right margin or immediately following the company and title so tenure math (`End Date - Start Date`) parses with zero errors.
-  * **Single-Column Plain Text Architecture:** No tables, multi-column layouts, text boxes, progress bars, or icons in the final resume copy.
+## Reference files
+- `references/ats-scoring-rubric.md`: the scoring model as implemented in the script, for checking math.
+- `references/job-board-api-endpoints.md`: employer ATS endpoints (Greenhouse, Lever) and JSON-LD fallback used for posting collection.
+- `references/maintainer-notes.md`: script CLI recipes, parser pitfalls, serialization details, and public-showcase packaging. Read only when modifying or debugging the scripts.

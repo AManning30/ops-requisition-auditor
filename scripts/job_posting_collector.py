@@ -2,9 +2,14 @@
 """
 Universal Job Posting Collector & Structured JD Parser
 ======================================================
-Pulls and parses job postings from LinkedIn, Indeed, ZipRecruiter, Glassdoor,
-Monster, Dice, BuiltIn, Wellfound, USAJobs, and enterprise ATS boards
-(Greenhouse, Lever, Workday, Ashby, SmartRecruiters, iCIMS, BambooHR, Rippling, Workable, Taleo).
+Parses job postings from pasted text or saved pages (any site: LinkedIn, Indeed, ZipRecruiter,
+Glassdoor, employer career pages, ATS boards) and can fetch employer-published postings
+directly: Greenhouse, Lever (US + EU), Ashby, and USAJobs via their public posting APIs,
+and other employer career pages via embedded Schema.org JobPosting metadata.
+
+LinkedIn, Indeed, SimplyHired, ZipRecruiter, Glassdoor, Monster, CareerBuilder, Dice,
+BuiltIn, and Wellfound/AngelList links are never fetched, because those sites' terms
+restrict automated access. Paste the description (or save the page) and use --input-file.
 
 Extracts a complete, structured JobPostingRecord containing:
   - Job Title, Company Name, Source Site / ATS Platform, URL, Job / Requisition ID
@@ -227,16 +232,40 @@ def extract_jsonld_job_posting(raw_html: str) -> Optional[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# Site-Specific API & URL Helpers (LinkedIn, Greenhouse, Lever, Indeed, etc.)
+# Employer-Published Posting Helpers (Greenhouse API, Lever API, direct career pages)
 # ---------------------------------------------------------------------------
+
+USER_AGENT = "ats-auditor-recruiter/1.4 (personal, low-volume job-posting reader; no login or CAPTCHA handling)"
+
+PASTE_ONLY_HOSTS = re.compile(
+    r"(?:^|\.)(linkedin|indeed|simplyhired|ziprecruiter|glassdoor|monster|careerbuilder|dice|builtin|wellfound|angel)\.[a-z.]+$",
+    re.IGNORECASE,
+)
+PASTE_ONLY_LABELS = {
+    "linkedin": "LinkedIn",
+    "indeed": "Indeed",
+    "simplyhired": "SimplyHired",
+    "ziprecruiter": "ZipRecruiter",
+    "glassdoor": "Glassdoor",
+    "monster": "Monster",
+    "careerbuilder": "CareerBuilder",
+    "dice": "Dice",
+    "builtin": "BuiltIn",
+    "wellfound": "Wellfound",
+    "angel": "Wellfound",
+}
+
+
+def paste_only_platform(url: str) -> Optional[str]:
+    """Return the job board's name if `url` is on a paste-only host, else None (host-based, not substring-based)."""
+    host = (urllib.parse.urlparse(url).hostname or "").lower()
+    m = PASTE_ONLY_HOSTS.search(host)
+    return PASTE_ONLY_LABELS[m.group(1).lower()] if m else None
+
 
 def _http_get(url: str, timeout: int = 20) -> Tuple[int, str]:
     headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/130.0.0.0 Safari/537.36"
-        ),
+        "User-Agent": USER_AGENT,
         "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
     }
@@ -254,17 +283,6 @@ def _http_get(url: str, timeout: int = 20) -> Tuple[int, str]:
         return e.code, body
     except Exception as e:
         return 0, str(e)
-
-
-def extract_linkedin_job_id(url: str) -> Optional[str]:
-    """Extract numeric LinkedIn job ID from `/jobs/view/<id>`, `currentJobId=<id>`, or slug-id."""
-    m = re.search(r"currentJobId=(\d+)", url)
-    if m:
-        return m.group(1)
-    m = re.search(r"/jobs/view/(?:[^/?#]*?-)?(\d{7,})(?:[/?#]|$)", url)
-    if m:
-        return m.group(1)
-    return None
 
 
 def normalized_job_to_record(njob: NormalizedJob) -> JobPostingRecord:
@@ -300,7 +318,17 @@ def fetch_job_source(url: str) -> Dict[str, Any]:
     try:
         enforce_domain_compliance(url)
     except ComplianceBlockError as exc:
-        return {"ok": False, "error": str(exc)}
+        return {
+            "ok": False,
+            "error": str(exc),
+            "status": 0,
+            "platform": paste_only_platform(url) or detect_platform(url),
+            "mode": "paste_required",
+            "html": "",
+            "url": url,
+            "blocked": False,
+            "paste_required": True,
+        }
     platform = detect_platform(url)
 
     # 1. Greenhouse direct API
@@ -331,16 +359,7 @@ def fetch_job_source(url: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 3. LinkedIn Guest API + public page
-    if platform == "LinkedIn":
-        lid = extract_linkedin_job_id(url)
-        if lid:
-            guest_url = f"https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{lid}"
-            status, body = _http_get(guest_url)
-            if status == 200 and len(body) > 400 and ("description" in body.lower() or "topcard" in body.lower()):
-                return {"ok": True, "platform": "LinkedIn", "mode": "linkedin_guest_html", "html": body, "job_id": lid, "url": url}
-
-    # 4. General direct HTML fetch
+    # 3. General direct HTML fetch (honest User-Agent; employer career pages)
     status, body = _http_get(url)
     is_blocked = (
         status in (401, 403, 429, 503)
@@ -1170,56 +1189,6 @@ Benefits & Perks
 """
 
 
-def search_linkedin_guest_jobs(keywords: str, location: str = "United States", limit: int = 5) -> List[JobPostingRecord]:
-    """Query LinkedIn's public Guest Job Search API and fetch full structured JobPostingRecords."""
-    q_kw = urllib.parse.quote(keywords)
-    q_loc = urllib.parse.quote(location)
-    search_url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={q_kw}&location={q_loc}&start=0"
-    status, html_cards = _http_get(search_url)
-    if status != 200 or not html_cards:
-        return []
-
-    job_ids: List[str] = []
-    for m in re.finditer(r"urn:li:jobPosting:(\d+)", html_cards):
-        jid = m.group(1)
-        if jid not in job_ids:
-            job_ids.append(jid)
-        if len(job_ids) >= limit:
-            break
-
-    records: List[JobPostingRecord] = []
-    for jid in job_ids:
-        detail_url = f"https://www.linkedin.com/jobs/view/{jid}"
-        fetch_res = fetch_job_source(detail_url)
-        if not fetch_res.get("ok"):
-            continue
-        raw_html = str(fetch_res.get("html") or "")
-        title_m = re.search(r"<h2[^>]*top-card-layout__title[^>]*>(.*?)</h2>", raw_html, re.DOTALL | re.IGNORECASE)
-        comp_m = re.search(r"<a[^>]*topcard__org-name-link[^>]*>(.*?)</a>", raw_html, re.DOTALL | re.IGNORECASE)
-        loc_m = re.search(r"<span[^>]*topcard__flavor--bullet[^>]*>(.*?)</span>", raw_html, re.DOTALL | re.IGNORECASE)
-        sal_m = re.search(r"<div[^>]*compensation__salary[^>]*>(.*?)</div>", raw_html, re.DOTALL | re.IGNORECASE)
-        desc_m = re.search(r"<div[^>]*show-more-less-html__markup[^>]*>(.*?)</div>", raw_html, re.DOTALL | re.IGNORECASE)
-
-        title_txt = html_fragment_to_text(title_m.group(1)) if title_m else ""
-        comp_txt = html_fragment_to_text(comp_m.group(1)) if comp_m else ""
-        loc_txt = html_fragment_to_text(loc_m.group(1)) if loc_m else ""
-        sal_txt = html_fragment_to_text(sal_m.group(1)) if sal_m else ""
-        desc_txt = html_fragment_to_text(desc_m.group(1)) if desc_m else html_fragment_to_text(raw_html)
-
-        synthesized = (
-            f"Job Title: {title_txt}\n"
-            f"Company: {comp_txt}\n"
-            f"Location: {loc_txt}\n"
-            f"Job ID: {jid}\n"
-            + (f"Salary: {sal_txt}\n" if sal_txt else "")
-            + f"\n{desc_txt}"
-        )
-        rec = parse_job_posting_text(synthesized, url=detail_url, platform_hint="LinkedIn")
-        rec.job_id = jid
-        records.append(rec)
-    return records
-
-
 # ---------------------------------------------------------------------------
 # Stage 1 Public API Functions & Unified 10-Board ToS Compliance Router
 # ---------------------------------------------------------------------------
@@ -1612,11 +1581,7 @@ def load_manual_jd(text: str, title: str = "Manual Paste", company: str = "Manua
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Universal Job Posting Collector & Structured JD Parser")
-    parser.add_argument("--url", type=str, help="Job posting URL (LinkedIn, Indeed, ZipRecruiter, Greenhouse, Lever, Workday, etc.)")
-    parser.add_argument("--search", type=str, help="Live job search keywords (e.g., 'Workforce Analyst', 'Operations Analyst')")
-    parser.add_argument("--location", type=str, default="United States", help="Location for --search (default: 'United States')")
-    parser.add_argument("--limit", type=int, default=5, help="Max jobs to pull in --search mode (default: 5)")
-    parser.add_argument("--resume", type=str, help="Optional resume path (.docx/.txt/.pdf) to batch-score and rank against fetched jobs")
+    parser.add_argument("--url", type=str, help="Employer-published job posting URL (Greenhouse, Lever, Ashby, career page)")
     parser.add_argument("--input-file", type=str, help="Path to saved HTML or plain-text job posting file")
     parser.add_argument("--platform", type=str, default="", help="Optional source platform override (e.g., LinkedIn, Indeed, ZipRecruiter)")
     parser.add_argument("--output", type=str, help="Path to save Markdown summary report")
@@ -1626,71 +1591,6 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.search:
-        records = search_linkedin_guest_jobs(args.search, location=args.location, limit=args.limit)
-        if not records:
-            sys.stderr.write(f"[WARN] No live jobs returned for search='{args.search}' in '{args.location}'.\n")
-            sys.exit(1)
-        resume_text = ""
-        oaa_mod = None
-        if args.resume:
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            import offline_ats_auditor as oaa_mod
-            resume_text = oaa_mod.load_resume_file(args.resume)
-
-        ranked_rows = []
-        for rec in records:
-            score_val = None
-            lit_val = None
-            verdict_str = "N/A"
-            top_fixes: List[str] = []
-            if oaa_mod and resume_text:
-                cfg = rec.ats_config
-                reqs = [oaa_mod.JDRequirement(**item) for item in cfg.get("requirements", [])]
-                align_cfg = oaa_mod.AlignmentConfig(**cfg.get("alignment", {}))
-                rep = oaa_mod.run_ats_audit(resume_text, reqs, align_cfg)
-                score_val = round(rep.composite_score, 1)
-                lit_val = round(rep.legacy_literal_score, 1)
-                verdict_str = rep.verdict
-                top_fixes = [f"{r['requirement']} (+{r['points_recoverable']} pts)" for r in rep.recovery_plan[:3]]
-            ranked_rows.append((score_val or 0.0, lit_val or 0.0, verdict_str, top_fixes, rec))
-
-        if args.resume:
-            ranked_rows.sort(key=lambda x: x[0], reverse=True)
-
-        md_lines = [
-            f"# Live Batch Job Search & ATS Match Leaderboard: `{args.search}` ({args.location})",
-            "",
-            "| Rank | Composite ATS | Legacy Literal | Job Title | Company | Location / Model | Salary | Top Recoverable Fixes |",
-            "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
-        ]
-        out_payload = []
-        for idx, (sc, lit, verd, fixes, r) in enumerate(ranked_rows, 1):
-            sal_disp = r.salary.raw_text or "Not listed"
-            loc_disp = f"{r.location} ({r.workplace_type})" if r.workplace_type else (r.location or "N/A")
-            fix_disp = "; ".join(fixes) if fixes else "None / Maxed"
-            sc_disp = f"**{sc:.1f} / 100** ({verd})" if args.resume else "N/A"
-            lit_disp = f"{lit:.1f}%" if args.resume else "N/A"
-            md_lines.append(f"| {idx} | {sc_disp} | {lit_disp} | [{r.job_title}]({r.source_url}) | {r.company_name} | {loc_disp} | {sal_disp} | {fix_disp} |")
-            item_dict = dataclasses.asdict(r)
-            item_dict["ats_score"] = sc
-            item_dict["legacy_literal_score"] = lit
-            item_dict["verdict"] = verd
-            item_dict["top_recoverable_fixes"] = fixes
-            out_payload.append(item_dict)
-
-        md_report = "\n".join(md_lines)
-        if args.output:
-            os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(md_report + "\n")
-        if args.json_out:
-            os.makedirs(os.path.dirname(os.path.abspath(args.json_out)), exist_ok=True)
-            with open(args.json_out, "w", encoding="utf-8") as f:
-                json.dump(out_payload, f, indent=2, default=str)
-        print(md_report)
-        return
-
     if args.demo or (not args.url and not args.input_file):
         rec = parse_job_posting_text(
             DEMO_JOB_POSTING_TEXT,
@@ -1699,10 +1599,17 @@ def main() -> None:
         )
     elif args.url:
         fetch_res = fetch_job_source(args.url)
+        if fetch_res.get("paste_required") or fetch_res.get("error"):
+            err_msg = fetch_res.get("error") or f"{fetch_res.get('platform')} restricts automated access."
+            sys.stderr.write(
+                f"[COMPLIANCE GATE] {err_msg}\n"
+                "Paste the job description into a text file (or save the page) and re-run with --input-file <path>.\n"
+            )
+            sys.exit(2)
         if not fetch_res.get("ok"):
             sys.stderr.write(
-                f"[WARN] Direct HTTP fetch for {args.url} returned status={fetch_res.get('status')} (blocked={fetch_res.get('blocked')}).\n"
-                "Tip: Use Hermes `web_extract` or `browser_exec` for bot-walled pages and pass the saved file via `--input-file`.\n"
+                f"[WARN] Direct fetch for {args.url} returned status={fetch_res.get('status')} (blocked={fetch_res.get('blocked')}).\n"
+                "Tip: copy the job description into a text file and pass it with --input-file. Do not try to work around CAPTCHAs or login walls.\n"
             )
         rec = parse_from_fetch_result(fetch_res)
         if args.platform:
