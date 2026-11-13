@@ -1182,6 +1182,21 @@ def export_updated_docx(src_docx_path: str, dst_docx_path: str, replacements: Di
     return replaced_count
 
 
+def audit_resume_against_jd(
+    resume_text: str,
+    jd_text: str,
+    reference_date: Optional[datetime] = None,
+) -> AuditReport:
+    """Audit resume text against clean JD text only (excluding external metadata/attribution noise)."""
+    reqs, align_cfg = extract_jd_from_text(jd_text)
+    return run_ats_audit(resume_text, reqs, align_cfg, reference_date=reference_date)
+
+
+def print_scorecard(scorecard: AuditReport) -> None:
+    """Print rendered Markdown scorecard to stdout."""
+    print(render_markdown_report(scorecard))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Offline Deterministic Enterprise ATS Auditor")
     parser.add_argument("--resume", type=str, help="Path to candidate resume (.docx, .pdf, .txt, or .md)")
@@ -1225,6 +1240,13 @@ def main() -> None:
         if args.jd_config:
             reqs, align_cfg = load_jd_config(args.jd_config)
         elif has_audit_loader_src:
+            if args.export_docx and args.resume and args.resume.lower().endswith(".docx"):
+                repl_map_early: Dict[str, str] = {}
+                if args.replacements_json and os.path.exists(args.replacements_json):
+                    with open(args.replacements_json, "r", encoding="utf-8") as rf:
+                        repl_map_early = json.load(rf)
+                export_updated_docx(args.resume, args.export_docx, repl_map_early)
+
             jobs = load_jds_for_audit(
                 url=args.url,
                 greenhouse=args.greenhouse,
@@ -1239,11 +1261,34 @@ def main() -> None:
             )
             if not jobs:
                 parser.error("No matching job postings found for the given source / title filter.")
-            primary_job = jobs[0]
-            desc_text = primary_job.get("description_text", "")
-            reqs, align_cfg = extract_jd_from_text(desc_text)
-            if primary_job.get("title") and (not align_cfg.target_title or primary_job.get("source") != "local_file"):
-                align_cfg.target_title = str(primary_job["title"])
+
+            md_blocks: List[str] = []
+            json_reports: List[Dict[str, Any]] = []
+            for job in jobs:
+                scorecard = audit_resume_against_jd(
+                    resume_text=resume_text,
+                    jd_text=job["description_text"],  # Clean JD text only — excludes USAJobs disclaimer noise
+                    reference_date=ref_date,
+                )
+                print(f"=== {job['title']} | {job['company']} ({job['source']}) ===")
+                if job.get("url"):
+                    print(f"URL: {job['url']}")
+                if job.get("attribution"):
+                    print(f"Note: {job['attribution']}")
+                print_scorecard(scorecard)
+                md_blocks.append(render_markdown_report(scorecard))
+                json_reports.append(dataclasses.asdict(scorecard))
+
+            if args.output:
+                os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
+                with open(args.output, "w", encoding="utf-8") as f:
+                    f.write("\n\n---\n\n".join(md_blocks) + "\n")
+            if args.json_out:
+                os.makedirs(os.path.dirname(os.path.abspath(args.json_out)), exist_ok=True)
+                with open(args.json_out, "w", encoding="utf-8") as f:
+                    payload = json_reports[0] if len(json_reports) == 1 else json_reports
+                    json.dump(payload, f, indent=2, default=str)
+            return
         elif args.jd_url:
             import job_posting_collector as jpc
             fetch_res = jpc.fetch_job_source(args.jd_url)
