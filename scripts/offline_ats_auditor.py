@@ -1339,6 +1339,9 @@ def main() -> None:
                     title_filter=args.title_filter,
                 )
             except Exception as exc:
+                if exc.__class__.__name__ == "ComplianceBlockError" or str(exc).startswith("BLOCKED"):
+                    sys.stderr.write(f"[COMPLIANCE GATE] {exc}\n")
+                    sys.exit(2)
                 parser.error(str(exc))
 
             if not jobs:
