@@ -127,11 +127,19 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
 
     def test_tos_compliance_router_and_parsers(self):
         import tos_compliant_collector as tcc
-        for domain in tcc.RESTRICTED_DOMAINS:
-            with self.assertRaises(tcc.ComplianceBlockError):
-                tcc.enforce_domain_compliance(f"https://www.{domain}/job/12345")
-            with self.assertRaises(tcc.ComplianceBlockError):
-                jpc.fetch_job_source(f"https://{domain}/viewjob?jk=abc")
+        self.assertEqual(set(jpc.RESTRICTED_DOMAINS.keys()), {
+            "linkedin.com", "indeed.com", "simplyhired.com", "ziprecruiter.com",
+            "glassdoor.com", "monster.com", "careerbuilder.com", "dice.com",
+            "builtin.com", "wellfound.com", "angel.co",
+        })
+        for domain in jpc.RESTRICTED_DOMAINS:
+            with self.assertRaises(jpc.ComplianceBlockError):
+                jpc.enforce_domain_compliance(f"https://www.{domain}/job/12345")
+            with self.assertRaises(jpc.ComplianceBlockError):
+                jpc.collect_from_url(f"https://www.{domain}/job/12345")
+            fetch_res = jpc.fetch_job_source(f"https://{domain}/viewjob?jk=abc")
+            self.assertFalse(fetch_res.get("ok"))
+            self.assertIn(domain, fetch_res.get("error", ""))
 
         proc = subprocess.run(
             [sys.executable, os.path.join(ROOT_DIR, "scripts", "tos_compliant_collector.py"), "--url", "https://www.indeed.com/viewjob?jk=123"],
@@ -141,7 +149,7 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
         self.assertIn("[COMPLIANCE GATE]", proc.stderr)
 
         raw_gh = "&amp;lt;p&amp;gt;Role Overview&amp;lt;/p&amp;gt;&amp;lt;ul&amp;gt;&amp;lt;li&amp;gt;Python &amp;amp; SQL&amp;lt;/li&amp;gt;&amp;lt;li&amp;gt;Snowflake&amp;lt;/li&amp;gt;&amp;lt;/ul&amp;gt;"
-        cleaned = tcc.html_to_plain_text(raw_gh)
+        cleaned = jpc.html_to_plain_text(raw_gh)
         self.assertIn("Role Overview", cleaned)
         self.assertIn("- Python & SQL", cleaned)
         self.assertIn("- Snowflake", cleaned)

@@ -26,14 +26,17 @@ import urllib.request
 DEFAULT_USER_AGENT = "ATS-Ledger-CompliantCollector/1.0 (Public-API-Only)"
 
 RESTRICTED_DOMAINS: dict[str, str] = {
+    "linkedin.com": "LinkedIn Terms of Service prohibit automated scraping and bots.",
+    "indeed.com": "Indeed Terms of Service prohibit crawlers, scrapers, bots, and automated extraction.",
+    "simplyhired.com": "SimplyHired is governed by Indeed Terms of Service, which ban crawlers, scrapers, and bots.",
+    "ziprecruiter.com": "ZipRecruiter Terms of Use prohibit automated scraping and data extraction.",
+    "glassdoor.com": "Glassdoor Terms of Use prohibit bots, scrapers, and automated access.",
     "monster.com": "Monster/BOLD unified Terms of Use (§ 2) prohibit bots, scrapers, and external app reuse.",
     "careerbuilder.com": "CareerBuilder/BOLD unified Terms of Use (§ 2) prohibit bots, scrapers, and external app reuse.",
     "dice.com": "Dice Terms & Conditions (Clause aa) prohibit robots, spiders, and retrieval scripts.",
     "builtin.com": "Built In Community Terms (§ 3(f)) prohibit bots, scrapers, crawlers, and indexing agents.",
     "wellfound.com": "Wellfound General Terms prohibit spiders, robots, offline readers, and automated access.",
     "angel.co": "Wellfound (formerly AngelList) General Terms prohibit automated scraping.",
-    "simplyhired.com": "SimplyHired is governed by Indeed Terms of Service, which ban crawlers, scrapers, and bots.",
-    "indeed.com": "Indeed Terms of Service prohibit crawlers, scrapers, bots, and automated extraction.",
 }
 
 
