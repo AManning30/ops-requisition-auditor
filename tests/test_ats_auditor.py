@@ -123,5 +123,50 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
         self.assertNotIn("C:/Users/", demo_html)
 
 
+
+    def test_tos_compliance_router_and_parsers(self):
+        import tos_compliant_collector as tcc
+        for domain in tcc.RESTRICTED_DOMAINS:
+            with self.assertRaises(tcc.ComplianceBlockError):
+                tcc.enforce_domain_compliance(f"https://www.{domain}/job/12345")
+            with self.assertRaises(tcc.ComplianceBlockError):
+                jpc.fetch_job_source(f"https://{domain}/viewjob?jk=abc")
+
+        proc = subprocess.run(
+            [sys.executable, os.path.join(ROOT_DIR, "scripts", "tos_compliant_collector.py"), "--url", "https://www.indeed.com/viewjob?jk=123"],
+            cwd=ROOT_DIR, capture_output=True, text=True
+        )
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("[COMPLIANCE GATE]", proc.stderr)
+
+        raw_gh = "&amp;lt;p&amp;gt;Role Overview&amp;lt;/p&amp;gt;&amp;lt;ul&amp;gt;&amp;lt;li&amp;gt;Python &amp;amp; SQL&amp;lt;/li&amp;gt;&amp;lt;li&amp;gt;Snowflake&amp;lt;/li&amp;gt;&amp;lt;/ul&amp;gt;"
+        cleaned = tcc.html_to_plain_text(raw_gh)
+        self.assertIn("Role Overview", cleaned)
+        self.assertIn("- Python & SQL", cleaned)
+        self.assertIn("- Snowflake", cleaned)
+
+        lever_job = tcc._parse_lever_posting("acme", {
+            "id": "lev-01",
+            "text": "Workforce Management Analyst",
+            "categories": {"location": "Remote, US"},
+            "workplaceType": "remote",
+            "descriptionPlain": "Lead NICE IEX forecasting.",
+            "lists": [{"text": "Requirements", "content": "<li>SQL</li><li>Power BI</li>"}],
+            "salaryRange": {"min": 95000, "max": 120000, "currency": "USD", "interval": "per-year"},
+            "hostedUrl": "https://jobs.lever.co/acme/lev-01",
+            "createdAt": 1762000000000,
+        })
+        self.assertEqual(lever_job.source, "lever")
+        self.assertIn("USD 95000-120000", lever_job.compensation)
+        self.assertIn("- SQL", lever_job.description_text)
+        rec = jpc.normalized_job_to_record(lever_job)
+        self.assertEqual(rec.company_name, "acme")
+        self.assertIn("SQL", rec.hard_skills)
+
+        manual_job = tcc.load_manual_jd("Required: Python, SQL, Workforce Management")
+        self.assertEqual(manual_job.source, "manual")
+        self.assertIn("Workforce Management", manual_job.description_text)
+
+
 if __name__ == "__main__":
     unittest.main()

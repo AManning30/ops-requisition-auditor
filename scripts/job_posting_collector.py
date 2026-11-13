@@ -36,6 +36,23 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
+from tos_compliant_collector import (
+    DEFAULT_USER_AGENT,
+    RESTRICTED_DOMAINS,
+    ComplianceBlockError,
+    NormalizedJob,
+    _BlockPreservingHTMLParser,
+    html_to_plain_text,
+    _http_get_json,
+    enforce_domain_compliance,
+    fetch_greenhouse,
+    _parse_lever_posting,
+    fetch_lever,
+    fetch_ashby,
+    fetch_usajobs,
+    collect_from_url,
+    load_manual_jd,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -265,6 +282,27 @@ def extract_linkedin_job_id(url: str) -> Optional[str]:
     return None
 
 
+def normalized_job_to_record(njob: NormalizedJob) -> JobPostingRecord:
+    header_lines = [
+        f"Job Title: {njob.title}",
+        f"Company: {njob.company}",
+        f"Location: {njob.location}",
+        f"Workplace Type: {njob.workplace_type}",
+        f"Job ID: {njob.job_id}",
+    ]
+    if njob.compensation:
+        header_lines.append(f"Salary: {njob.compensation}")
+    synthesized = chr(10).join(header_lines) + chr(10) + chr(10) + (njob.description_text or "")
+    rec = parse_job_posting_text(synthesized, url=njob.url, platform_hint=njob.source)
+    rec.job_id = njob.job_id or rec.job_id
+    rec.company_name = njob.company or rec.company_name
+    rec.job_title = njob.title or rec.job_title
+    rec.location = njob.location or rec.location
+    rec.workplace_type = njob.workplace_type or rec.workplace_type
+    rec.date_posted = njob.published_at or rec.date_posted
+    return rec
+
+
 def fetch_job_source(url: str) -> Dict[str, Any]:
     """
     Fetch a job posting URL using the best available endpoint:
@@ -274,6 +312,7 @@ def fetch_job_source(url: str) -> Dict[str, Any]:
       4. LinkedIn Guest Job Posting API (`/jobs-guest/jobs/api/jobPosting/{id}`)
       5. Direct HTML fetch (extracting Schema.org JobPosting JSON-LD + body text)
     """
+    enforce_domain_compliance(url)
     platform = detect_platform(url)
 
     # 1. Greenhouse direct API

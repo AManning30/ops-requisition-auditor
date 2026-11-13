@@ -15,8 +15,9 @@ dependencies = []
 
 [tool.setuptools]
 package-dir = {"" = "scripts"}
-py-modules = ["offline_ats_auditor", "job_posting_collector"]
+py-modules = ["offline_ats_auditor", "job_posting_collector", "tos_compliant_collector"]
 
 [project.scripts]
 ats-auditor = "offline_ats_auditor:main"
 job-collector = "job_posting_collector:main"
+tos-collector = "tos_compliant_collector:main"
