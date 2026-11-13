@@ -103,6 +103,7 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
             cwd=ROOT_DIR,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=True,
         )
         self.assertIn("Senior Analytics Manager", res.stdout)
@@ -202,35 +203,56 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
             self.assertTrue(hasattr(collector_mod, "collect_from_url"))
             self.assertTrue(hasattr(collector_mod, "fetch_greenhouse"))
 
-            # Verify CLI loop prints header/url/attribution and scores only description_text
+            # Verify CLI loop prints header/url/attribution, scores only description_text + title, and supports descending sort + --top N
             usajobs_snap = Path(tmpdir) / "usajobs_snap.json"
-            usajobs_snap.write_text(json.dumps([{
-                "source": "usajobs",
-                "job_id": "USA-1",
-                "company": "Department of Veterans Affairs",
-                "title": "Management and Program Analyst",
-                "location": "Orlando, FL",
-                "compensation": "$88,000 - $114,000",
-                "url": "https://www.usajobs.gov/job/123456",
-                "description_text": "Job Title: Senior Analytics Manager\n- Python\n- SQL\n- Snowflake\n",
-                "attribution": "Data source: USAJOBS. Not endorsed by OPM.",
-            }]), encoding="utf-8")
+            usajobs_snap.write_text(json.dumps([
+                {
+                    "source": "usajobs",
+                    "job_id": "USA-LOW",
+                    "company": "Department of Veterans Affairs",
+                    "title": "Unrelated Rust Firmware Role",
+                    "location": "Orlando, FL",
+                    "compensation": "$88,000 - $114,000",
+                    "url": "https://www.usajobs.gov/job/000001",
+                    "description_text": "Required:\n- Rust\n- Embedded C\n- FPGA\n",
+                    "attribution": "Data source: USAJOBS. Not endorsed by OPM.",
+                },
+                {
+                    "source": "usajobs",
+                    "job_id": "USA-HIGH",
+                    "company": "Department of Veterans Affairs",
+                    "title": "Senior Analytics Manager",
+                    "location": "Orlando, FL",
+                    "compensation": "$110,000 - $140,000",
+                    "url": "https://www.usajobs.gov/job/123456",
+                    "description_text": "Required:\n- Python\n- SQL\n- Snowflake\n- Power BI\n",
+                    "attribution": "Data source: USAJOBS. Not endorsed by OPM.",
+                },
+            ]), encoding="utf-8")
+            json_out_path = Path(tmpdir) / "multi_out.json"
             cli_res = subprocess.run(
                 [
                     sys.executable,
                     os.path.join(ROOT_DIR, "scripts", "offline_ats_auditor.py"),
                     "--resume", os.path.join(ROOT_DIR, "examples", "sample_resume.txt"),
                     "--from-json", str(usajobs_snap),
+                    "--top", "1",
+                    "--json-out", str(json_out_path),
                 ],
                 cwd=ROOT_DIR,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
                 check=True,
             )
-            self.assertIn("=== Management and Program Analyst | Department of Veterans Affairs (usajobs) ===", cli_res.stdout)
-            self.assertIn("URL: https://www.usajobs.gov/job/123456", cli_res.stdout)
-            self.assertIn("Note: Data source: USAJOBS. Not endorsed by OPM.", cli_res.stdout)
+            self.assertIn("## Senior Analytics Manager — Department of Veterans Affairs (`usajobs`)", cli_res.stdout)
+            self.assertIn("**Source URL:** https://www.usajobs.gov/job/123456", cli_res.stdout)
+            self.assertIn("> Data source: USAJOBS. Not endorsed by OPM.", cli_res.stdout)
+            self.assertNotIn("Unrelated Rust Firmware Role", cli_res.stdout)
             self.assertNotIn("OPM", cli_res.stdout.split("# JD Alignment Scorecard")[1])
+            saved_json = json.loads(json_out_path.read_text(encoding="utf-8"))
+            self.assertEqual(len(saved_json), 1)
+            self.assertEqual(saved_json[0]["job_meta"]["job_id"], "USA-HIGH")
 
 
 if __name__ == "__main__":

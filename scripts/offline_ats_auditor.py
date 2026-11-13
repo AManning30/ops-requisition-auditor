@@ -175,6 +175,10 @@ class AuditReport:
     ledger: List[AuditLedgerRow]
     recovery_plan: List[Dict[str, object]]
 
+    @property
+    def overall_score(self) -> float:
+        return self.composite_score
+
 
 # ---------------------------------------------------------------------------
 # Resume Parser & HR-XML Schema Auditor
@@ -1007,86 +1011,6 @@ def extract_jd_from_text(jd_text: str) -> Tuple[List[JDRequirement], AlignmentCo
     return reqs, AlignmentConfig(target_title=target_title, min_years_required=min_years)
 
 
-def _import_collector():
-    """Lazy-import sibling job_posting_collector only when live API collection is requested."""
-    try:
-        from . import job_posting_collector as collector  # package mode
-    except ImportError:
-        scripts_dir = str(Path(__file__).resolve().parent)
-        if scripts_dir not in sys.path:
-            sys.path.insert(0, scripts_dir)
-        import job_posting_collector as collector  # direct CLI script mode
-    return collector
-
-
-def load_jds_for_audit(
-    *,
-    url: str | None = None,
-    greenhouse: str | None = None,
-    lever: str | None = None,
-    ashby: str | None = None,
-    usajobs: str | None = None,
-    location: str = "",
-    jd_file: str | None = None,
-    from_json: str | None = None,
-    cache_json: str | None = None,
-    title_filter: str | None = None,
-) -> list[dict[str, Any]]:
-    """
-    Returns normalized job dicts ready for scoring.
-    Uses local disk only when `jd_file` or `from_json` is passed;
-    lazy-imports `job_posting_collector` only for live compliant API calls.
-    """
-    # 1. Pure offline paths (zero network imports)
-    if from_json:
-        raw = json.loads(Path(from_json).read_text(encoding="utf-8"))
-        jobs = raw if isinstance(raw, list) else [raw]
-    elif jd_file:
-        text = Path(jd_file).read_text(encoding="utf-8").strip()
-        jobs = [{
-            "source": "local_file",
-            "job_id": Path(jd_file).stem,
-            "company": "Local",
-            "title": Path(jd_file).stem,
-            "location": "",
-            "compensation": "",
-            "url": "",
-            "description_text": text,
-            "attribution": "",
-        }]
-    else:
-        # 2. Direct in-memory function import from job_posting_collector.py
-        collector = _import_collector()
-        if url:
-            objs = collector.collect_from_url(url)
-        elif greenhouse:
-            objs = collector.fetch_greenhouse(greenhouse)
-        elif lever:
-            objs = collector.fetch_lever(lever)
-        elif ashby:
-            objs = collector.fetch_ashby(ashby)
-        elif usajobs:
-            objs = collector.fetch_usajobs(usajobs, location=location)
-        else:
-            raise ValueError("Provide a JD input source (--jd-file, --from-json, --url, or an API board flag).")
-
-        jobs = [obj.to_dict() for obj in objs]
-
-        # Optional snapshot write so repeat resume audits stay 100% offline & deterministic
-        if cache_json:
-            Path(cache_json).write_text(
-                json.dumps(jobs, indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8",
-            )
-
-    # 3. Optional title regex pre-filter for full-board pulls (Greenhouse/Lever/Ashby/USAJobs)
-    if title_filter:
-        pattern = re.compile(title_filter, re.IGNORECASE)
-        jobs = [j for j in jobs if pattern.search(j.get("title", ""))]
-
-    return jobs
-
-
 def load_jd_config(path: str) -> Tuple[List[JDRequirement], AlignmentConfig]:
     """Load structured JD requirements and AlignmentConfig from a JSON file."""
     with open(path, "r", encoding="utf-8") as jf:
@@ -1182,14 +1106,154 @@ def export_updated_docx(src_docx_path: str, dst_docx_path: str, replacements: Di
     return replaced_count
 
 
+def _import_collector():
+    """Lazy-import sibling job_posting_collector whether run as CLI script or package module."""
+    try:
+        from . import job_posting_collector as collector
+    except ImportError:
+        scripts_dir = os.path.dirname(os.path.abspath(__file__))
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+        import job_posting_collector as collector
+    return collector
+
+
+def extract_reqs_consistent(
+    raw_text: str,
+    title: str = "",
+    jd_record_out: Optional[str] = None,
+) -> Tuple[List[JDRequirement], AlignmentConfig]:
+    """
+    Single deterministic extraction path across local files, cached JSON, and public APIs.
+    Prepends clean job title if missing from body text; excludes external attribution noise.
+    """
+    clean_body = raw_text.strip()
+    if title and title.lower() not in clean_body[:250].lower():
+        clean_input = f"Job Title: {title.strip()}\n\n{clean_body}"
+    else:
+        clean_input = clean_body
+
+    try:
+        jpc = _import_collector()
+        if hasattr(jpc, "parse_job_posting_text"):
+            if "<html" in clean_input.lower() or "application/ld+json" in clean_input.lower():
+                jsonld = jpc.extract_jsonld_job_posting(clean_input)
+                plain = jpc.html_fragment_to_text(clean_input)
+                rec = jpc.parse_job_posting_text(plain, jsonld=jsonld)
+            else:
+                rec = jpc.parse_job_posting_text(clean_input)
+
+            if jd_record_out:
+                os.makedirs(os.path.dirname(os.path.abspath(jd_record_out)), exist_ok=True)
+                with open(jd_record_out, "w", encoding="utf-8") as jf:
+                    json.dump(dataclasses.asdict(rec), jf, indent=2, default=str)
+
+            cfg_data = getattr(rec, "ats_config", {}) or {}
+            if cfg_data.get("requirements"):
+                reqs = [JDRequirement(**item) for item in cfg_data["requirements"]]
+                align_dict = dict(cfg_data.get("alignment", {}))
+                align_dict.pop("reference_date", None)
+                align_cfg = AlignmentConfig(**align_dict)
+                return reqs, align_cfg
+    except ImportError:
+        pass
+
+    return extract_jd_from_text(clean_input)
+
+
 def audit_resume_against_jd(
     resume_text: str,
     jd_text: str,
+    title: str = "",
     reference_date: Optional[datetime] = None,
+    jd_record_out: Optional[str] = None,
 ) -> AuditReport:
-    """Audit resume text against clean JD text only (excluding external metadata/attribution noise)."""
-    reqs, align_cfg = extract_jd_from_text(jd_text)
+    """Audit resume text against clean JD text + title only (excluding attribution/disclaimer noise)."""
+    reqs, align_cfg = extract_reqs_consistent(jd_text, title=title, jd_record_out=jd_record_out)
     return run_ats_audit(resume_text, reqs, align_cfg, reference_date=reference_date)
+
+
+def load_jds_for_audit(
+    *,
+    url: Optional[str] = None,
+    greenhouse: Optional[str] = None,
+    lever: Optional[str] = None,
+    ashby: Optional[str] = None,
+    usajobs: Optional[str] = None,
+    location: str = "",
+    jd_file: Optional[str] = None,
+    from_json: Optional[str] = None,
+    cache_json: Optional[str] = None,
+    title_filter: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Loads normalized job dicts from offline files or compliant APIs."""
+    if from_json:
+        with open(from_json, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        jobs = raw if isinstance(raw, list) else [raw]
+    elif jd_file:
+        with open(jd_file, "r", encoding="utf-8") as f:
+            text = f.read().strip()
+        stem = os.path.splitext(os.path.basename(jd_file))[0]
+        jobs = [{
+            "source": "local_file",
+            "job_id": stem,
+            "company": "Local",
+            "title": "",
+            "location": "",
+            "compensation": "",
+            "url": "",
+            "description_text": text,
+            "attribution": "",
+        }]
+    else:
+        jpc = _import_collector()
+        if url:
+            try:
+                objs = jpc.collect_from_url(url)
+                jobs = [obj.to_dict() for obj in objs]
+            except ValueError:
+                # Non-Greenhouse/Lever/Ashby corporate career URL -> fallback to compliant fetch_job_source
+                jpc.enforce_domain_compliance(url)
+                fetch_res = jpc.fetch_job_source(url)
+                if not fetch_res.get("ok"):
+                    raise RuntimeError(
+                        fetch_res.get("error")
+                        or "Could not fetch JD from that URL. Paste text into a file and pass --jd-text instead."
+                    )
+                raw_body = fetch_res.get("text") or fetch_res.get("html") or ""
+                jobs = [{
+                    "source": "career_page",
+                    "job_id": url,
+                    "company": fetch_res.get("company", "Employer Site"),
+                    "title": fetch_res.get("title", ""),
+                    "location": "",
+                    "compensation": "",
+                    "url": url,
+                    "description_text": raw_body,
+                    "attribution": "",
+                }]
+        elif greenhouse:
+            jobs = [obj.to_dict() for obj in jpc.fetch_greenhouse(greenhouse)]
+        elif lever:
+            jobs = [obj.to_dict() for obj in jpc.fetch_lever(lever)]
+        elif ashby:
+            jobs = [obj.to_dict() for obj in jpc.fetch_ashby(ashby)]
+        elif usajobs:
+            jobs = [obj.to_dict() for obj in jpc.fetch_usajobs(usajobs, location=location)]
+        else:
+            raise ValueError("No JD source specified.")
+
+        if cache_json:
+            os.makedirs(os.path.dirname(os.path.abspath(cache_json)), exist_ok=True)
+            with open(cache_json, "w", encoding="utf-8") as cf:
+                json.dump(jobs, cf, indent=2, ensure_ascii=False)
+
+    if title_filter:
+        pattern = re.compile(title_filter, re.IGNORECASE)
+        jobs = [j for j in jobs if pattern.search(j.get("title", ""))]
+
+    return jobs
 
 
 def print_scorecard(scorecard: AuditReport) -> None:
@@ -1198,27 +1262,31 @@ def print_scorecard(scorecard: AuditReport) -> None:
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Offline Deterministic Enterprise ATS Auditor")
     parser.add_argument("--resume", type=str, help="Path to candidate resume (.docx, .pdf, .txt, or .md)")
     parser.add_argument("--jd-config", type=str, help="Path to structured JD JSON config")
-    parser.add_argument("--jd-text", type=str, help="Path to raw Job Description text or HTML file")
-    parser.add_argument("--jd-file", type=str, help="Path to local plain-text JD file (pure offline via load_jds_for_audit)")
-    parser.add_argument("--from-json", type=str, help="Path to cached normalized job JSON file (pure offline via load_jds_for_audit)")
-    parser.add_argument("--url", type=str, help="Compliant Greenhouse/Lever/Ashby job URL via load_jds_for_audit")
-    parser.add_argument("--greenhouse", type=str, help="Greenhouse board token via load_jds_for_audit")
-    parser.add_argument("--lever", type=str, help="Lever company slug via load_jds_for_audit")
-    parser.add_argument("--ashby", type=str, help="Ashby board name via load_jds_for_audit")
-    parser.add_argument("--usajobs", type=str, help="USAJobs keyword query via load_jds_for_audit")
-    parser.add_argument("--location", type=str, default="", help="Optional location filter for USAJobs")
-    parser.add_argument("--cache-json", type=str, help="Optional path to cache fetched normalized jobs as JSON for offline reuse")
-    parser.add_argument("--title-filter", type=str, help="Optional regex to filter job titles when pulling full boards")
-    parser.add_argument("--jd-url", type=str, help="URL of an employer posting (Greenhouse, Lever, or a career page). LinkedIn, Indeed, ZipRecruiter, and Glassdoor links are not fetched; use --jd-text instead.")
-    parser.add_argument("--jd-record-out", type=str, help="Optional path to write full extracted JobPostingRecord JSON (company, salary, benefits, qualifications)")
-    parser.add_argument("--export-docx", type=str, help="Optional output .docx path to write an updated Word resume preserving layout")
-    parser.add_argument("--replacements-json", type=str, help="Optional JSON file mapping {old_bullet_text: new_bullet_text} for --export-docx")
+    parser.add_argument("--jd-text", "--jd-file", dest="jd_file", type=str,
+                        help="Path to local Job Description text or HTML file (100%% offline)")
+    parser.add_argument("--from-json", type=str,
+                        help="Path to cached normalized job JSON file from a prior API pull (100%% offline)")
+    parser.add_argument("--url", "--jd-url", dest="url", type=str,
+                        help="Job URL (Greenhouse, Lever, Ashby, or open career page; blocks restricted job boards)")
+    parser.add_argument("--greenhouse", type=str, help="Greenhouse board token (fetches public Job Board API)")
+    parser.add_argument("--lever", type=str, help="Lever company slug (fetches public Postings API)")
+    parser.add_argument("--ashby", type=str, help="Ashby board name (fetches public Job Postings API)")
+    parser.add_argument("--usajobs", type=str, help="USAJobs keyword query (requires USAJOBS_API_KEY + USAJOBS_USER_AGENT)")
+    parser.add_argument("--location", type=str, default="", help="Optional location filter for --usajobs")
+    parser.add_argument("--cache-json", type=str, help="Optional path to cache fetched normalized jobs as JSON")
+    parser.add_argument("--title-filter", type=str, help="Optional regex to filter job titles on multi-job pulls")
+    parser.add_argument("--top", type=int, default=0, help="Optional limit to surface only the top N highest-scoring job matches on multi-job pulls")
+    parser.add_argument("--jd-record-out", type=str, help="Optional path to write extracted JobPostingRecord JSON")
+    parser.add_argument("--export-docx", type=str, help="Optional output .docx path to write an updated Word resume")
+    parser.add_argument("--replacements-json", type=str, help="Optional JSON mapping {old_bullet: new_bullet} for --export-docx")
     parser.add_argument("--output", type=str, help="Path to write Markdown scorecard report")
     parser.add_argument("--json-out", type=str, help="Path to write raw JSON scorecard data")
-    parser.add_argument("--reference-date", type=str, help="Optional YYYY-MM-DD reference date for tenure/recency calculation")
+    parser.add_argument("--reference-date", type=str, help="Optional YYYY-MM-DD reference date for tenure/recency")
     parser.add_argument("--demo", action="store_true", help="Run built-in deterministic verification demo")
 
     args = parser.parse_args()
@@ -1227,128 +1295,124 @@ def main() -> None:
     if args.reference_date:
         ref_date = datetime.strptime(args.reference_date, "%Y-%m-%d")
 
-    has_audit_loader_src = any([args.jd_file, args.from_json, args.url, args.greenhouse, args.lever, args.ashby, args.usajobs])
-    if args.demo or (not args.resume and not args.jd_config and not args.jd_text and not args.jd_url and not has_audit_loader_src):
+    has_loader_src = any([
+        args.jd_file, args.from_json, args.url,
+        args.greenhouse, args.lever, args.ashby, args.usajobs,
+    ])
+
+    if args.demo or (not args.resume and not args.jd_config and not has_loader_src):
         resume_text, reqs, align_cfg = get_demo_fixture()
         if ref_date is None:
             ref_date = datetime(2026, 11, 1)
+        report = run_ats_audit(resume_text, reqs, align_cfg, reference_date=ref_date)
+        md_final = render_markdown_report(report)
+        json_payload: Any = dataclasses.asdict(report)
     else:
         if not args.resume:
             parser.error("Please provide --resume <path> or run with --demo.")
         resume_text = load_resume_file(args.resume)
 
+        if args.export_docx and args.resume.lower().endswith(".docx"):
+            repl_map: Dict[str, str] = {}
+            if args.replacements_json and os.path.exists(args.replacements_json):
+                with open(args.replacements_json, "r", encoding="utf-8") as rf:
+                    repl_map = json.load(rf)
+            export_updated_docx(args.resume, args.export_docx, repl_map)
+
         if args.jd_config:
             reqs, align_cfg = load_jd_config(args.jd_config)
-        elif has_audit_loader_src:
-            if args.export_docx and args.resume and args.resume.lower().endswith(".docx"):
-                repl_map_early: Dict[str, str] = {}
-                if args.replacements_json and os.path.exists(args.replacements_json):
-                    with open(args.replacements_json, "r", encoding="utf-8") as rf:
-                        repl_map_early = json.load(rf)
-                export_updated_docx(args.resume, args.export_docx, repl_map_early)
+            report = run_ats_audit(resume_text, reqs, align_cfg, reference_date=ref_date)
+            md_final = render_markdown_report(report)
+            json_payload = dataclasses.asdict(report)
+        elif has_loader_src:
+            try:
+                jobs = load_jds_for_audit(
+                    url=args.url,
+                    greenhouse=args.greenhouse,
+                    lever=args.lever,
+                    ashby=args.ashby,
+                    usajobs=args.usajobs,
+                    location=args.location,
+                    jd_file=args.jd_file,
+                    from_json=args.from_json,
+                    cache_json=args.cache_json,
+                    title_filter=args.title_filter,
+                )
+            except Exception as exc:
+                parser.error(str(exc))
 
-            jobs = load_jds_for_audit(
-                url=args.url,
-                greenhouse=args.greenhouse,
-                lever=args.lever,
-                ashby=args.ashby,
-                usajobs=args.usajobs,
-                location=args.location,
-                jd_file=args.jd_file,
-                from_json=args.from_json,
-                cache_json=args.cache_json,
-                title_filter=args.title_filter,
-            )
             if not jobs:
-                parser.error("No matching job postings found for the given source / title filter.")
+                parser.error("No matching job postings found for the given source / --title-filter.")
 
-            md_blocks: List[str] = []
-            json_reports: List[Dict[str, Any]] = []
+            single_mode = len(jobs) == 1
+            scored_entries: List[Tuple[float, str, Dict[str, Any]]] = []
+
             for job in jobs:
                 scorecard = audit_resume_against_jd(
                     resume_text=resume_text,
-                    jd_text=job["description_text"],  # Clean JD text only — excludes USAJobs disclaimer noise
+                    jd_text=job["description_text"],
+                    title=job.get("title", ""),
                     reference_date=ref_date,
+                    jd_record_out=args.jd_record_out if single_mode else None,
                 )
-                print(f"=== {job['title']} | {job['company']} ({job['source']}) ===")
+                rendered_sc = render_markdown_report(scorecard)
+
+                # Build clean metadata header for multi-job runs or live API pulls (kept out of scorer input)
+                header_lines: List[str] = []
+                if job.get("title") or job.get("company") not in ("", "Local"):
+                    header_lines.append(
+                        f"## {job.get('title') or 'Untitled Role'} — {job.get('company', '')} (`{job.get('source', '')}`)"
+                    )
                 if job.get("url"):
-                    print(f"URL: {job['url']}")
+                    header_lines.append(f"**Source URL:** {job['url']}")
                 if job.get("attribution"):
-                    print(f"Note: {job['attribution']}")
-                print_scorecard(scorecard)
-                md_blocks.append(render_markdown_report(scorecard))
-                json_reports.append(dataclasses.asdict(scorecard))
+                    header_lines.append(f"> {job['attribution']}")
 
-            if args.output:
-                os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-                with open(args.output, "w", encoding="utf-8") as f:
-                    f.write("\n\n---\n\n".join(md_blocks) + "\n")
-            if args.json_out:
-                os.makedirs(os.path.dirname(os.path.abspath(args.json_out)), exist_ok=True)
-                with open(args.json_out, "w", encoding="utf-8") as f:
-                    payload = json_reports[0] if len(json_reports) == 1 else json_reports
-                    json.dump(payload, f, indent=2, default=str)
-            return
-        elif args.jd_url:
-            import job_posting_collector as jpc
-            fetch_res = jpc.fetch_job_source(args.jd_url)
-            if not fetch_res.get("ok"):
-                parser.error("Could not fetch a job description from that URL (LinkedIn, Indeed, ZipRecruiter, and Glassdoor links are never fetched, and some pages block automated access). Paste the description into a text file and use --jd-text instead.")
-            rec = jpc.parse_from_fetch_result(fetch_res)
-            if args.jd_record_out:
-                os.makedirs(os.path.dirname(os.path.abspath(args.jd_record_out)), exist_ok=True)
-                with open(args.jd_record_out, "w", encoding="utf-8") as jf:
-                    json.dump(dataclasses.asdict(rec), jf, indent=2, default=str)
-            cfg_data = rec.ats_config
-            reqs = [JDRequirement(**item) for item in cfg_data.get("requirements", [])]
-            align_cfg = AlignmentConfig(**cfg_data.get("alignment", {}))
-        elif args.jd_text:
-            with open(args.jd_text, "r", encoding="utf-8") as f:
-                jd_raw = f.read()
-            try:
-                import job_posting_collector as jpc
-                if "<html" in jd_raw.lower() or "application/ld+json" in jd_raw.lower():
-                    jsonld = jpc.extract_jsonld_job_posting(jd_raw)
-                    plain = jpc.html_fragment_to_text(jd_raw)
-                    rec = jpc.parse_job_posting_text(plain, jsonld=jsonld)
+                full_block = ("\n".join(header_lines) + "\n\n" + rendered_sc) if header_lines else rendered_sc
+
+                sc_dict = dataclasses.asdict(scorecard)
+                if single_mode:
+                    json_entry: Dict[str, Any] = sc_dict  # Preserves exact existing JSON schema for 1-JD runs
                 else:
-                    rec = jpc.parse_job_posting_text(jd_raw)
-                if args.jd_record_out:
-                    os.makedirs(os.path.dirname(os.path.abspath(args.jd_record_out)), exist_ok=True)
-                    with open(args.jd_record_out, "w", encoding="utf-8") as jf:
-                        json.dump(dataclasses.asdict(rec), jf, indent=2, default=str)
-                cfg_data = rec.ats_config
-                if cfg_data.get("requirements"):
-                    reqs = [JDRequirement(**item) for item in cfg_data["requirements"]]
-                    align_cfg = AlignmentConfig(**cfg_data.get("alignment", {}))
-                else:
-                    reqs, align_cfg = extract_jd_from_text(jd_raw)
-            except ImportError:
-                reqs, align_cfg = extract_jd_from_text(jd_raw)
+                    json_entry = {
+                        "job_meta": {
+                            "source": job.get("source", ""),
+                            "job_id": job.get("job_id", ""),
+                            "company": job.get("company", ""),
+                            "title": job.get("title", ""),
+                            "location": job.get("location", ""),
+                            "compensation": job.get("compensation", ""),
+                            "url": job.get("url", ""),
+                            "attribution": job.get("attribution", ""),
+                        },
+                        "scorecard": sc_dict,
+                    }
+                scored_entries.append((scorecard.overall_score, full_block, json_entry))
+
+            if not single_mode:
+                scored_entries.sort(key=lambda item: item[0], reverse=True)
+                if args.top and args.top > 0:
+                    scored_entries = scored_entries[:args.top]
+
+            md_blocks = [item[1] for item in scored_entries]
+            json_reports = [item[2] for item in scored_entries]
+
+            md_final = "\n\n---\n\n".join(md_blocks)
+            json_payload = json_reports[0] if single_mode else json_reports
         else:
-            parser.error("Please provide --jd-config <json>, --jd-text <txt>, or --jd-url <url>.")
-
-    if args.export_docx and args.resume and args.resume.lower().endswith(".docx"):
-        repl_map: Dict[str, str] = {}
-        if args.replacements_json and os.path.exists(args.replacements_json):
-            with open(args.replacements_json, "r", encoding="utf-8") as rf:
-                repl_map = json.load(rf)
-        export_updated_docx(args.resume, args.export_docx, repl_map)
-
-    report = run_ats_audit(resume_text, reqs, align_cfg, reference_date=ref_date)
-    md_output = render_markdown_report(report)
+            parser.error("Provide --jd-config, --jd-text/--jd-file, --from-json, --url/--jd-url, or a board API flag.")
 
     if args.output:
         os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
         with open(args.output, "w", encoding="utf-8") as f:
-            f.write(md_output + "\n")
+            f.write(md_final + "\n")
 
     if args.json_out:
         os.makedirs(os.path.dirname(os.path.abspath(args.json_out)), exist_ok=True)
         with open(args.json_out, "w", encoding="utf-8") as f:
-            json.dump(dataclasses.asdict(report), f, indent=2, default=str)
+            json.dump(json_payload, f, indent=2, default=str)
 
-    print(md_output)
+    print(md_final)
 
 
 if __name__ == "__main__":
