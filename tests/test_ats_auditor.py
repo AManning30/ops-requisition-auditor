@@ -254,6 +254,55 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
             self.assertEqual(len(saved_json), 1)
             self.assertEqual(saved_json[0]["job_meta"]["job_id"], "USA-HIGH")
 
+    def test_ashby_url_collection_and_collector_file_flags(self):
+        sample_ashby_payload = json.dumps({
+            "jobs": [
+                {
+                    "id": "ashby-job-99",
+                    "title": "Staff Workforce Data Scientist",
+                    "location": "Remote - US",
+                    "workplaceType": "Remote",
+                    "publishedAt": "2026-11-01",
+                    "jobUrl": "https://jobs.ashbyhq.com/acme/ashby-job-99",
+                    "applyUrl": "https://jobs.ashbyhq.com/acme/ashby-job-99/application",
+                    "descriptionPlain": "Required:\n- Python\n- SQL\n- Snowflake\n- Capacity Planning\n",
+                    "compensation": {
+                        "scrapeableCompensationSalarySummary": "$160,000 - $190,000"
+                    }
+                }
+            ]
+        })
+        from unittest import mock
+        with mock.patch.object(jpc, "_http_get", return_value=(200, sample_ashby_payload)):
+            fetch_res = jpc.fetch_job_source("https://jobs.ashbyhq.com/acme/ashby-job-99")
+            rec = jpc.parse_from_fetch_result(fetch_res)
+            self.assertEqual(rec.source_platform, "Ashby ATS")
+            self.assertEqual(rec.job_id, "ashby-job-99")
+            self.assertEqual(rec.job_title, "Staff Workforce Data Scientist")
+            self.assertEqual(rec.company_name, "acme")
+            self.assertEqual(rec.workplace_type, "Remote")
+            self.assertIn("$160,000 - $190,000", rec.salary.raw_text)
+
+        with mock.patch.object(jpc, "_http_get_json", return_value=json.loads(sample_ashby_payload)):
+            norm_jobs = jpc.collect_from_url("https://jobs.ashbyhq.com/acme/ashby-job-99")
+            self.assertEqual(len(norm_jobs), 1)
+            self.assertEqual(norm_jobs[0].source, "ashby")
+            self.assertEqual(norm_jobs[0].job_id, "ashby-job-99")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jd_path = Path(tmpdir) / "sample_jd.txt"
+            jd_path.write_text("Job Title: Analytics Engineer\nCompany: Acme Corp\nRequired:\n- SQL\n- Python\n", encoding="utf-8")
+            for flag in ("--input-file", "--jd-file", "--jd-text"):
+                proc = subprocess.run(
+                    [sys.executable, "-B", os.path.join(ROOT_DIR, "scripts", "job_posting_collector.py"), flag, str(jd_path)],
+                    cwd=ROOT_DIR,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    check=True,
+                )
+                self.assertIn("Analytics Engineer", proc.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

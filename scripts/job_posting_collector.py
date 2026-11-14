@@ -359,7 +359,31 @@ def fetch_job_source(url: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 3. General direct HTML fetch (honest User-Agent; employer career pages)
+    # 3. Ashby Public Job Board API
+    ashby_match = re.search(r"jobs\.ashbyhq\.com/([^/?#]+)(?:/([^/?#]+))?", url, re.IGNORECASE)
+    if ashby_match:
+        board = urllib.parse.unquote(ashby_match.group(1))
+        jid = ashby_match.group(2) if (ashby_match.group(2) and ashby_match.group(2).lower() != "application") else None
+        api_url = f"https://api.ashbyhq.com/posting-api/job-board/{urllib.parse.quote(board)}?includeCompensation=true"
+        status, body = _http_get(api_url)
+        if status == 200:
+            try:
+                payload = json.loads(body)
+                jobs_list = payload.get("jobs") or []
+                matched_job = None
+                for item in jobs_list:
+                    item_id = str(item.get("id") or "")
+                    if jid and (item_id == jid or jid in str(item.get("jobUrl") or "")):
+                        matched_job = item
+                        break
+                if matched_job is None and not jid and jobs_list:
+                    matched_job = jobs_list[0]
+                if matched_job is not None:
+                    return {"ok": True, "platform": "Ashby ATS", "mode": "ashby_api", "data": matched_job, "board": board, "url": url}
+            except Exception:
+                pass
+
+    # 4. General direct HTML fetch (honest User-Agent; employer career pages)
     status, body = _http_get(url)
     is_blocked = (
         status in (401, 403, 429, 503)
@@ -1057,6 +1081,31 @@ def parse_from_fetch_result(fetch_res: Dict[str, Any]) -> JobPostingRecord:
             rec.salary.raw_text = f"${rec.salary.min_amount:,.0f} - ${rec.salary.max_amount:,.0f} ({rec.salary.period})"
         return rec
 
+    if mode == "ashby_api":
+        data = fetch_res["data"]
+        board = str(fetch_res.get("board") or data.get("departmentName") or "")
+        content_text = (str(data.get("descriptionPlain") or "")).strip() or html_fragment_to_text(str(data.get("descriptionHtml") or ""))
+        comp_obj = data.get("compensation") or {}
+        comp_summary = str(comp_obj.get("scrapeableCompensationSalarySummary") or comp_obj.get("compensationTierSummary") or "").strip()
+        header_block = (
+            f"Job Title: {data.get('title', '')}\n"
+            f"Company: {board}\n"
+            f"Location: {data.get('location', '')}\n"
+            f"Workplace Type: {data.get('workplaceType', '')}\n"
+            f"Job ID: {data.get('id', '')}\n"
+            + (f"Salary: {comp_summary}\n" if comp_summary else "")
+            + f"\n{content_text}"
+        )
+        rec = parse_job_posting_text(header_block, url=url, platform_hint="Ashby ATS")
+        rec.job_id = str(data.get("id") or rec.job_id)
+        rec.company_name = board or rec.company_name
+        rec.workplace_type = str(data.get("workplaceType") or rec.workplace_type)
+        rec.date_posted = str(data.get("publishedAt") or rec.date_posted)
+        rec.apply_url = str(data.get("applyUrl") or data.get("jobUrl") or url)
+        if comp_summary and not rec.salary.raw_text:
+            rec.salary.raw_text = comp_summary
+        return rec
+
     raw_html = str(fetch_res.get("html") or "")
     jsonld = extract_jsonld_job_posting(raw_html)
     plain_text = html_fragment_to_text(raw_html)
@@ -1582,7 +1631,7 @@ def load_manual_jd(text: str, title: str = "Manual Paste", company: str = "Manua
 def main() -> None:
     parser = argparse.ArgumentParser(description="Universal Job Posting Collector & Structured JD Parser")
     parser.add_argument("--url", type=str, help="Employer-published job posting URL (Greenhouse, Lever, Ashby, career page)")
-    parser.add_argument("--input-file", type=str, help="Path to saved HTML or plain-text job posting file")
+    parser.add_argument("--input-file", "--jd-file", "--jd-text", dest="input_file", type=str, help="Path to saved HTML or plain-text job posting file")
     parser.add_argument("--platform", type=str, default="", help="Optional source platform override (e.g., LinkedIn, Indeed, ZipRecruiter)")
     parser.add_argument("--output", type=str, help="Path to save Markdown summary report")
     parser.add_argument("--json-out", type=str, help="Path to save full structured JobPostingRecord JSON")
