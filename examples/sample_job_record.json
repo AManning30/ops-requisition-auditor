@@ -1,0 +1,323 @@
+{
+  "source_url": "https://www.linkedin.com/jobs/view/3988412026",
+  "source_platform": "LinkedIn",
+  "job_id": "REQ-2026-8841",
+  "job_title": "Senior Analytics Manager",
+  "company_name": "Apex Global Supply Chain Solutions",
+  "company_overview": "",
+  "location": "St. Louis, MO (Hybrid)",
+  "workplace_type": "Hybrid",
+  "employment_type": "Full-time",
+  "seniority_level": "Manager",
+  "department": "Enterprise Data & Supply Chain Analytics",
+  "industry": "",
+  "date_posted": "",
+  "valid_through": "",
+  "apply_url": "",
+  "salary": {
+    "raw_text": "$135,000 - $165,000 per year",
+    "currency": "USD",
+    "min_amount": 135000.0,
+    "max_amount": 165000.0,
+    "period": "year",
+    "additional_comp": [
+      "Bonus Eligible",
+      "Equity / Stock / RSUs"
+    ]
+  },
+  "benefits": [
+    "401(k) / Retirement Plan",
+    "Medical / Dental / Vision Insurance",
+    "Paid Time Off (PTO) / Vacation",
+    "Parental Leave",
+    "Tuition / Continuing Education Assistance",
+    "Equity / Stock Options / RSU",
+    "Performance / Annual Bonus",
+    "Comprehensive medical, dental, and vision insurance from day one.",
+    "401(k) retirement plan with 6% company match.",
+    "Paid time off (PTO), 12 paid holidays, and paid parental leave.",
+    "$5,000 annual tuition reimbursement and professional development stipend."
+  ],
+  "role_summary": "Apex Global Supply Chain Solutions is seeking a Senior Analytics Manager to lead inventory optimization, executive KPI reporting, and cloud data engineering across our North American distribution network. Base salary range is $135,000 - $165,000 per year plus a 15% annual bonus and equity (RSUs).",
+  "responsibilities": [
+    "Spearhead enterprise demand forecasting and inventory optimization models across 400+ distribution centers.",
+    "Architect automated ELT data pipelines in Snowflake and build executive dashboards in Power BI.",
+    "Partner with VP/Director stakeholders on workforce capacity modeling and P&L ownership ($50M+ operating budget).",
+    "Mentor a team of 6 supply chain data analysts and analytics engineers."
+  ],
+  "required_qualifications": [
+    "B.S. degree in Industrial Engineering, Computer Science, Data Science, Statistics, or related quantitative field.",
+    "6+ years of progressive experience in data analytics, supply chain analytics, or business intelligence.",
+    "Advanced proficiency in Python and SQL for large-scale data modeling and automation.",
+    "Hands-on experience with Snowflake cloud data warehousing and SAP S/4HANA ERP data structures.",
+    "Proven track record building executive KPI reporting suites in Power BI.",
+    "Demonstrated experience in Workforce Capacity Modeling, Demand Forecasting, and P&L Ownership.",
+    "Strong Cross-Functional Leadership and Stakeholder Management skills.",
+    "Must be authorized to work in the United States without visa sponsorship."
+  ],
+  "preferred_qualifications": [
+    "Master's degree (M.S. or MBA) in Supply Chain or Business Analytics.",
+    "Experience with Kubernetes, Docker, or Airflow container orchestration.",
+    "Six Sigma Black Belt or Lean Six Sigma certification."
+  ],
+  "education_requirements": [
+    "B.S. degree in Industrial Engineering, Computer Science, Data Science, Statistics, or related quantitative field.",
+    "Master's degree (M.S. or MBA) in Supply Chain or Business Analytics."
+  ],
+  "certifications_licenses": [
+    "Six Sigma Black Belt",
+    "Lean Six Sigma"
+  ],
+  "min_years_experience": 6.0,
+  "max_years_experience": null,
+  "hard_skills": [
+    "Python",
+    "SQL",
+    "Docker",
+    "Kubernetes",
+    "Snowflake",
+    "Airflow",
+    "ELT",
+    "Data Warehousing",
+    "Data Modeling",
+    "Power BI",
+    "SAP",
+    "SAP S/4HANA",
+    "Forecasting",
+    "Demand Forecasting",
+    "Workforce Capacity Modeling",
+    "Inventory Optimization",
+    "P&L Ownership",
+    "Lean Six Sigma",
+    "Six Sigma"
+  ],
+  "soft_skills": [
+    "Cross-Functional Leadership",
+    "Stakeholder Management"
+  ],
+  "security_clearance": "",
+  "work_authorization": "- Must be authorized to work in the United States without visa sponsorship.",
+  "travel_requirement": "",
+  "full_description_text": "Job Title: Senior Analytics Manager\nCompany: Apex Global Supply Chain Solutions\nLocation: St. Louis, MO (Hybrid)\nJob ID: REQ-2026-8841\nDepartment: Enterprise Data & Supply Chain Analytics\nAbout the Role\nApex Global Supply Chain Solutions is seeking a Senior Analytics Manager to lead inventory optimization, executive KPI reporting, and cloud data engineering across our North American distribution network. Base salary range is $135,000 - $165,000 per year plus a 15% annual bonus and equity (RSUs).\nKey Responsibilities\n- Spearhead enterprise demand forecasting and inventory optimization models across 400+ distribution centers.\n- Architect automated ELT data pipelines in Snowflake and build executive dashboards in Power BI.\n- Partner with VP/Director stakeholders on workforce capacity modeling and P&L ownership ($50M+ operating budget).\n- Mentor a team of 6 supply chain data analysts and analytics engineers.\nRequired Qualifications\n- B.S. degree in Industrial Engineering, Computer Science, Data Science, Statistics, or related quantitative field.\n- 6+ years of progressive experience in data analytics, supply chain analytics, or business intelligence.\n- Advanced proficiency in Python and SQL for large-scale data modeling and automation.\n- Hands-on experience with Snowflake cloud data warehousing and SAP S/4HANA ERP data structures.\n- Proven track record building executive KPI reporting suites in Power BI.\n- Demonstrated experience in Workforce Capacity Modeling, Demand Forecasting, and P&L Ownership.\n- Strong Cross-Functional Leadership and Stakeholder Management skills.\n- Must be authorized to work in the United States without visa sponsorship.\nPreferred Qualifications\n- Master's degree (M.S. or MBA) in Supply Chain or Business Analytics.\n- Experience with Kubernetes, Docker, or Airflow container orchestration.\n- Six Sigma Black Belt or Lean Six Sigma certification.\nBenefits & Perks\n- Comprehensive medical, dental, and vision insurance from day one.\n- 401(k) retirement plan with 6% company match.\n- Paid time off (PTO), 12 paid holidays, and paid parental leave.\n- $5,000 annual tuition reimbursement and professional development stipend.",
+  "ats_config": {
+    "alignment": {
+      "target_title": "Senior Analytics Manager",
+      "title_synonyms": [],
+      "min_years_required": 6.0
+    },
+    "requirements": [
+      {
+        "name": "Python",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "PySpark",
+          "Pandas"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "SQL",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "PostgreSQL",
+          "T-SQL",
+          "MySQL",
+          "PL/SQL"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Docker",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Kubernetes",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [
+          "EKS",
+          "GKE",
+          "AKS",
+          "Docker"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Snowflake",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "BigQuery",
+          "Redshift",
+          "Databricks"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Airflow",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "ELT",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Data Warehousing",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Data Modeling",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Power BI",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "Tableau",
+          "Looker",
+          "Qlik"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "SAP",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "SAP S/4HANA",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "SAP ERP",
+          "SAP",
+          "Oracle NetSuite"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Forecasting",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Demand Forecasting",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "demand planning",
+          "inventory forecasting",
+          "call volume forecasting"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Workforce Capacity Modeling",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "capacity planning",
+          "resource modeling",
+          "staffing models",
+          "capacity & workforce planning"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Inventory Optimization",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "P&L Ownership",
+        "category": "title_scope",
+        "tier": "required",
+        "synonyms": [
+          "operating budget",
+          "P&L management"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Lean Six Sigma",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Six Sigma",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Six Sigma Black Belt",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [
+          "Lean Six Sigma",
+          "Six Sigma Green Belt"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Cross-Functional Leadership",
+        "category": "soft_skill",
+        "tier": "required",
+        "synonyms": [
+          "cross-functional",
+          "stakeholder management",
+          "cross-functional collaboration"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Stakeholder Management",
+        "category": "soft_skill",
+        "tier": "required",
+        "synonyms": [],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "B.S.",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "Bachelor",
+          "Bachelor's",
+          "B.A.",
+          "Master's",
+          "M.S.",
+          "MBA"
+        ],
+        "is_knockout_gate": true
+      }
+    ]
+  }
+}

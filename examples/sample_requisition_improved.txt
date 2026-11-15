@@ -1,0 +1,28 @@
+Job Title: Workforce Management Analyst II
+Company: Northstar Contact Solutions
+Location: St. Louis, MO (Hybrid)
+Job ID: REQ-20431
+Pay range: $62,000 - $74,000 per year
+
+About the Role
+Northstar's Workforce Management (WFM) team plans staffing for a 24/7 contact center that handles about 40,000 voice and chat contacts per week across three sites. You will own forecasts and schedules for two of those sites and partner with operations leaders on staffing decisions.
+
+Responsibilities
+- Build weekly and intraday forecasts for inbound voice and chat queues.
+- Create agent schedules and monitor real-time adherence (RTA) across all sites.
+- Report average handle time (AHT), average speed of answer (ASA), shrinkage, and occupancy trends to operations leaders.
+- Recommend staffing changes when volume or handle time moves outside the forecast range.
+
+Required Qualifications
+- 3+ years of workforce management or contact-center planning experience.
+- Experience with any one WFM platform, such as NICE IEX, Verint, or Genesys Cloud.
+- Dashboard development in Power BI or Tableau.
+- Working knowledge of SQL.
+- Bachelor's degree in a quantitative field, or an equivalent combination of education and experience.
+
+Preferred Qualifications
+- Python or R for forecasting.
+- Erlang C staffing models and capacity planning.
+- Six Sigma Green Belt or Black Belt.
+
+We are an equal opportunity employer and provide reasonable accommodations to qualified applicants with disabilities upon request.

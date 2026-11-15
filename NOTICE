@@ -1,0 +1,24 @@
+ops-requisition-auditor
+Copyright (C) 2026 Alexandru Manning
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, version 3 (AGPL-3.0-only).
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+A copy is provided in the LICENSE file.
+
+Commercial licenses that remove the AGPL obligations are available from the
+copyright holder. See COMMERCIAL-LICENSE.md.
+
+Versions 1.4.0 and earlier were released under the MIT License; those releases
+remain available under MIT to anyone who received them.
+
+Product, platform, and company names mentioned in this repository (for example
+Greenhouse, Lever, Ashby, USAJOBS, NICE, Verint, Genesys, UKG, Power BI, Tableau,
+Snowflake, SAP) are trademarks of their respective owners. They are used only
+to describe compatibility or job-requirement terms. This project is not
+affiliated with or endorsed by any of them, and it does not reproduce or
+predict any vendor's proprietary screening algorithm.

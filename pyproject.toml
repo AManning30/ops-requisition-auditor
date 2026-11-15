@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ops-requisition-auditor"
+version = "1.5.0"
+description = "ops-requisition-auditor: deterministic, explainable JD Alignment scoring with quoted evidence and zero-fabrication rewrites for operations, WFM, and BI requisitions"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-only OR LicenseRef-Commercial" }
+authors = [{ name = "Alexandru Manning" }]
+keywords = ["requisition", "jd-alignment", "resume", "explainable-ai", "workforce-management", "recruiting", "skills-based-hiring"]
+classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+]
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "scripts"}
+py-modules = ["offline_ats_auditor", "job_posting_collector", "tos_compliant_collector", "requisition_quality_auditor", "explainable_screening_assistant", "internal_mobility_matcher"]
+
+[project.scripts]
+ops-req-audit = "offline_ats_auditor:main"
+ops-req-collect = "job_posting_collector:main"
+ops-req-api-collect = "tos_compliant_collector:main"
+ops-req-jd-audit = "requisition_quality_auditor:main"
+ops-req-screen = "explainable_screening_assistant:main"
+ops-req-mobility = "internal_mobility_matcher:main"
