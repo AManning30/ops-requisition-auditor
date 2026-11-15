@@ -980,7 +980,7 @@ def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
     writer.writerow([
-        "job_id", "title", "company", "location", "inferred_level",
+        "input_sha256", "title", "company", "location", "inferred_level",
         "score", "projected_score", "band", "gates_score", "load_score",
         "clarity_score", "title_score", "language_score", "findings_count", "top_issue",
     ])
@@ -988,11 +988,11 @@ def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
         c_map = {c.key: c.earned for c in a.components}
         top_issue = a.findings[0].title if a.findings else ""
         writer.writerow([
-            a.job_id or "",
+            a.input_sha256[:16] if a.input_sha256 else "",
             a.title or "",
             a.company or "",
             a.location or "",
-            a.inferred_level or "",
+            str(a.stats.get("inferred_level") or ""),
             f"{a.score:.1f}",
             f"{a.projected_score:.1f}" if a.projected_score is not None else f"{a.score:.1f}",
             a.band,
