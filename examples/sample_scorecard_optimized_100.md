@@ -13,7 +13,7 @@
 
 ## 2. 5-Component Breakdown Table
 
-| ATS Component | Max Points | Underlying Formula / Fraction Math | Earned Points |
+| Component | Max Points | Underlying Formula / Fraction Math | Earned Points |
 | :--- | :---: | :--- | :---: |
 | **1. Weighted Keyword & Taxonomy** | 45.0 | `45 * (60.00 / 60.00)` *(Literal: `60.00/60.00`)* | **45.00** |
 | **2. Contextual Placement & Recency** | 20.0 | `20 * (60.00 / 60.00)` | **20.00** |
@@ -45,5 +45,5 @@
 
 ## 4. Highest-ROI Point Recovery Plan
 
-| Rank | JD Requirement | Fix Strategy Tier | Recoverable ATS Points | Actionable Instruction |
+| Rank | JD Requirement | Fix Strategy Tier | Recoverable Points | Actionable Instruction |
 | :---: | :--- | :--- | :---: | :--- |

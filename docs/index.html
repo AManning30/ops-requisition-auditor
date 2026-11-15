@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hermes Agent — Interactive Capability Workbench</title>
+<title>ops-requisition-auditor — Candidate JD Alignment &amp; Employer Requisition Quality Workbench</title>
+<meta name="description" content="Deterministic, explainable Candidate JD Alignment scoring and Employer Requisition Quality Auditing (RQS) with quoted evidence and zero-fabrication rewrites.">
 <style>
   :root {
     --bg-base: #090b0f;
@@ -104,7 +105,7 @@
   /* Main Workspace Layout */
   .workspace {
     display: grid;
-    grid-template-columns: 250px 1fr 360px;
+    grid-template-columns: 265px 1fr 360px;
     flex: 1;
     overflow: hidden;
   }
@@ -182,6 +183,7 @@
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
     padding-bottom: 14px;
+    gap: 16px;
   }
   .pane-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   .pane-desc { color: var(--text-secondary); font-size: 13px; margin-top: 3px; }
@@ -234,10 +236,12 @@
     justify-content: space-between;
     font-weight: 600;
     font-size: 13px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .panel-body { padding: 16px; }
 
-  /* Interactive ATS Simulator Table */
+  /* Interactive Simulator Table */
   table.data-table {
     width: 100%;
     border-collapse: collapse;
@@ -267,6 +271,7 @@
   .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
   .tag-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
   .tag-red { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+  .tag-violet { background: rgba(167, 139, 250, 0.15); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.3); }
 
   .sim-toggle {
     background: var(--bg-elevated);
@@ -278,12 +283,37 @@
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.12s;
+    white-space: nowrap;
   }
   .sim-toggle:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.12); }
   .sim-toggle.applied {
     background: rgba(16, 185, 129, 0.18);
     border-color: var(--accent-emerald);
     color: #34d399;
+  }
+
+  /* Live JD Textarea Sandbox */
+  .sandbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  textarea.jd-editor {
+    width: 100%;
+    min-height: 220px;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.45;
+    resize: vertical;
+  }
+  textarea.jd-editor:focus {
+    outline: none;
+    border-color: var(--accent-blue);
   }
 
   /* Skill Explorer Grid */
@@ -419,68 +449,77 @@
 
 <header class="topbar">
   <div class="brand">
-    <div class="brand-badge">H</div>
-    <span class="brand-title">Hermes Agent Workbench</span>
-    <span class="brand-sub">Live System Telemetry &bull; Profile: default</span>
+    <div class="brand-badge">OR</div>
+    <span class="brand-title">ops-requisition-auditor</span>
+    <span class="brand-sub">Candidate JD Alignment &amp; Employer Requisition Quality Workbench</span>
   </div>
   <div class="telemetry-pills">
-    <div class="pill"><span class="dot"></span> Host: <strong>Windows 11 (MSYS Bash)</strong></div>
-    <div class="pill">Python: <strong>3.14.9</strong></div>
-    <div class="pill">Active Repo: <strong>enterprise-ats-auditor (99 files)</strong></div>
-    <div class="pill">Installed Skills: <strong>45 Ready</strong></div>
+    <div class="pill"><span class="dot"></span> Engine: <strong>Deterministic (no LLM)</strong></div>
+    <div class="pill">Rubric: <strong>rqs-0.2</strong></div>
+    <div class="pill">Version: <strong>1.5.0</strong></div>
+    <div class="pill">License: <strong>AGPL-3.0 | Commercial</strong></div>
   </div>
 </header>
 
 <div class="workspace">
   <nav class="rail">
-    <div class="rail-label">Interactive Demos</div>
-    <button class="nav-btn active" onclick="switchTab('ats', this)">
-      <span>1. Live ATS Score Simulator</span>
-      <span class="badge">88.3</span>
+    <div class="rail-label">Interactive Auditors</div>
+    <button class="nav-btn active" onclick="switchTab('sim', this)">
+      <span>1. Candidate JD Alignment</span>
+      <span class="badge" id="nav-score">88.3</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('repo', this)">
-      <span>2. Project &amp; Vercel Ops</span>
-      <span class="badge">99 files</span>
+    <button class="nav-btn" onclick="switchTab('rqs', this)">
+      <span>2. Employer JD Auditor (RQS)</span>
+      <span class="badge" id="nav-rqs-score">36.0</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('skills', this)">
-      <span>3. Skill Library Explorer</span>
-      <span class="badge">45</span>
+    <button class="nav-btn" onclick="switchTab('screen', this)">
+      <span>3. Explainable Screening</span>
+      <span class="badge" id="nav-screen-badge">3/4 Adv</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('swarm', this)">
-      <span>4. Multi-Agent &amp; Code Kernel</span>
-      <span class="badge">Parallel</span>
+    <button class="nav-btn" onclick="switchTab('mobility', this)">
+      <span>4. Mobility &amp; Reskilling</span>
+      <span class="badge" id="nav-mobility-badge">3 Roles</span>
+    </button>
+    <div class="rail-label" style="margin-top:8px">Reference &amp; CLI</div>
+    <button class="nav-btn" onclick="switchTab('cli', this)">
+      <span>5. CLI Workflows</span>
+      <span class="badge">15</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('method', this)">
+      <span>6. Method &amp; Compliance</span>
+      <span class="badge">4 Modules</span>
     </button>
   </nav>
 
   <main class="stage">
-    <!-- TAB 1: ATS SIMULATOR -->
-    <section id="tab-ats" class="view-pane active">
+    <!-- TAB 1: CANDIDATE JD ALIGNMENT SIMULATOR -->
+    <section id="tab-sim" class="view-pane active">
       <div class="pane-header">
         <div>
-          <div class="pane-title">Deterministic Enterprise ATS Auditor (Live Sandbox)</div>
-          <div class="pane-desc">Real output from your newly patched <code>ats-auditor-recruiter</code> skill. Toggle Tier 1/Tier 2 rewrites below to see real-time 100-point math updates.</div>
+          <div class="pane-title">Candidate Edition: JD Alignment Score Simulator</div>
+          <div class="pane-desc">A synthetic candidate scored against a 12-requirement <em>Senior Analytics Manager</em> requisition, using the exact math in <code>scripts/offline_ats_auditor.py</code>. Toggle the recovery fixes to see the 100-point score update. The score is a transparent heuristic for finding fixable gaps. It is not any ATS vendor's algorithm and does not predict a hiring decision.</div>
         </div>
-        <button class="sim-toggle" onclick="resetAtsSim()">Reset Baseline (88.3)</button>
+        <button class="sim-toggle" onclick="resetSim()">Reset Baseline (88.3)</button>
       </div>
 
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-label">Composite ATS Score</div>
+          <div class="kpi-label">JD Alignment Score</div>
           <div class="kpi-val" id="kpi-composite">88.3 <span style="font-size:14px;color:var(--text-muted)">/ 100</span></div>
-          <div class="kpi-delta" id="kpi-verdict">Verdict: Strong Advance (+0.00 pts)</div>
+          <div class="kpi-delta" id="kpi-verdict">Verdict: Strong match (baseline)</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Legacy Literal (Taleo/iCIMS)</div>
+          <div class="kpi-label">Literal-Only View</div>
           <div class="kpi-val" id="kpi-literal">82.9%</div>
-          <div class="kpi-delta" id="kpi-lit-delta">Comp 1 Lit (35.25) + Comp 2 Lit (12.67)</div>
+          <div class="kpi-delta" id="kpi-lit-delta">Exact terms only; synonyms earn no credit</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Keyword &amp; Context (65 pts)</div>
+          <div class="kpi-label">Coverage + Placement (65 pts)</div>
           <div class="kpi-val" id="kpi-kwctx">53.33</div>
-          <div class="kpi-delta" id="kpi-kwctx-sub">Comp 1 (39.00) + Comp 2 (14.33)</div>
+          <div class="kpi-delta" id="kpi-kwctx-sub">C1 (39.00/45) + C2 (14.33/20)</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Alignment + Gates + Schema</div>
+          <div class="kpi-label">Title/Tenure + Gates + Hygiene</div>
           <div class="kpi-val">35.0 <span style="font-size:14px;color:var(--text-muted)">/ 35</span></div>
           <div class="kpi-delta">C3: 15/15 &bull; C4: 10/10 &bull; C5: 10/10</div>
         </div>
@@ -489,13 +528,13 @@
       <div class="panel">
         <div class="panel-head">
           <div style="display:flex;align-items:center;gap:10px">
-            <span>12-Item Deterministic ATS Audit Ledger (<code>offline_ats_auditor.py</code>)</span>
+            <span>12-Requirement Audit Ledger</span>
             <button class="chip active" id="btn-filter-all" onclick="setLedgerFilter('all')" style="padding:2px 8px;font-size:11px">All 12 Rows</button>
-            <button class="chip" id="btn-filter-fixes" onclick="setLedgerFilter('fixes')" style="padding:2px 8px;font-size:11px">6 Actionable Fixes</button>
+            <button class="chip" id="btn-filter-fixes" onclick="setLedgerFilter('fixes')" style="padding:2px 8px;font-size:11px">6 Recoverable Gaps</button>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
-            <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px" id="ledger-weight-summary">Denominator: 60.0 Max Weight Units</span>
-            <button class="sim-toggle" onclick="applyAllAtsFixes()">+ Apply All 6 Fixes (100.0)</button>
+            <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px" id="ledger-weight-summary">Denominator: 60.0 max weight units</span>
+            <button class="sim-toggle" onclick="applyAllFixes()">+ Apply All 6 Fixes (100.0)</button>
           </div>
         </div>
         <div class="panel-body" style="padding:0">
@@ -503,98 +542,411 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>JD Requirement</th>
-                <th>Category &amp; Tier (Max Wt)</th>
-                <th>Current Match &amp; Placement</th>
-                <th>Resume Evidence / Grounded Fix Rewrite</th>
+                <th>Requirement</th>
+                <th>Tier (Max Wt)</th>
+                <th>Match &amp; Placement</th>
+                <th>Resume Evidence / Grounded Fix</th>
                 <th>Gain</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="ats-sim-rows"></tbody>
+            <tbody id="sim-rows"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- TAB 2: MULTI-BOARD JOB COLLECTOR -->
-    <section id="tab-repo" class="view-pane">
+    <!-- TAB 2: EMPLOYER REQUISITION QUALITY AUDITOR (RQS) -->
+    <section id="tab-rqs" class="view-pane">
       <div class="pane-header">
         <div>
-          <div class="pane-title">Compliant Universal Job Posting Collector &amp; Batch Ranker</div>
-          <div class="pane-desc">Extracts structured <code>JobPostingRecord</code> schemas and ranks candidate resumes across live job boards without bypassing anti-bot or CAPTCHA gates.</div>
+          <div class="pane-title">Employer Edition (Module 1): Requisition Quality Auditor (<code>ops-req-jd-audit</code>)</div>
+          <div class="pane-desc">Scores the <strong>job requisition itself</strong> (not a candidate) on a deterministic 100-point <strong>Requisition Quality Score (RQS)</strong> using rubric <code>rqs-0.2</code>, calibrated across 113 live public postings. Identifies degree gates without equivalency, inflated experience years, competing tool demands (NICE <em>and</em> Verint <em>and</em> Genesys), and missing pay ranges.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="sim-toggle" onclick="applyRqsAutoEdits()">Apply 5 Auto-Edits (56.0)</button>
+          <button class="sim-toggle" onclick="applyAllRqsFixes()">+ All 13 Remediations (100.0)</button>
+          <button class="sim-toggle" onclick="resetRqsSim()">Reset Unicorn JD (36.0)</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Requisition Quality Score</div>
+          <div class="kpi-val" id="rqs-kpi-score">36.0 <span style="font-size:14px;color:var(--text-muted)">/ 100</span></div>
+          <div class="kpi-delta" id="rqs-kpi-band" style="color:var(--accent-rose)">Band: High hidden-worker risk</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Hidden-Worker Risk Flags</div>
+          <div class="kpi-val" id="rqs-kpi-hw">8 <span style="font-size:14px;color:var(--text-muted)">flags</span></div>
+          <div class="kpi-delta" id="rqs-kpi-hw-sub">HBS "Hidden Workers" pool-narrowing gates</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Gates (25) + Load (20)</div>
+          <div class="kpi-val" id="rqs-kpi-gl">2.0 <span style="font-size:14px;color:var(--text-muted)">/ 45</span></div>
+          <div class="kpi-delta" id="rqs-kpi-gl-sub">Gates: 0.0/25 &bull; Load: 2.0/20</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Clarity + Title + Language</div>
+          <div class="kpi-val" id="rqs-kpi-ctl">34.0 <span style="font-size:14px;color:var(--text-muted)">/ 55</span></div>
+          <div class="kpi-delta" id="rqs-kpi-ctl-sub">Clarity: 15/20 &bull; Title: 12/15 &bull; Lang: 7/20</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span>Unicorn WFM Requisition Findings Ledger (<code>examples/sample_requisition_unicorn.txt</code>)</span>
+            <button class="chip active" id="btn-rqs-all" onclick="setRqsFilter('all')" style="padding:2px 8px;font-size:11px">All 13 Findings</button>
+            <button class="chip" id="btn-rqs-auto" onclick="setRqsFilter('auto')" style="padding:2px 8px;font-size:11px">5 Auto-Edits</button>
+            <button class="chip" id="btn-rqs-hw" onclick="setRqsFilter('hw')" style="padding:2px 8px;font-size:11px">8 Hidden-Worker Risks</button>
+          </div>
+          <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px" id="rqs-component-summary">Role: Workforce Management Analyst II (Level II benchmark: 4 yrs)</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Component</th>
+                <th>Finding &amp; Risk</th>
+                <th>Quoted Requisition Line &amp; Remediation</th>
+                <th>Deduction</th>
+                <th>Mode</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rqs-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIVE PASTE-ANY-JD SANDBOX -->
+      <div class="panel">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span>Live Browser Requisition Sandbox (Paste Any Job Description)</span>
+            <button class="chip" onclick="loadLivePreset('unicorn')" style="padding:2px 8px;font-size:11px">Preset: Unicorn WFM JD (36.0)</button>
+            <button class="chip" onclick="loadLivePreset('improved')" style="padding:2px 8px;font-size:11px">Preset: Calibrated WFM JD (100.0)</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="sim-toggle" onclick="runLiveJdAudit()">Audit Pasted JD</button>
+            <button class="sim-toggle" onclick="applyLiveAutoEdits()">Apply Auto-Edits to Draft</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="sandbox-grid">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary);margin-bottom:6px">INPUT REQUISITION TEXT (EDIT OR PASTE ANY JD):</div>
+              <textarea id="live-jd-input" class="jd-editor" oninput="runLiveJdAudit()"></textarea>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary)">LIVE AUDIT RESULT (<span id="live-jd-score-inline">36.0 / 100</span>):</span>
+                <span class="status-tag tag-red" id="live-jd-band-inline">High hidden-worker risk</span>
+              </div>
+              <div id="live-jd-findings" style="background:var(--bg-base);border:1px solid var(--border);border-radius:6px;padding:12px;min-height:220px;max-height:260px;overflow-y:auto;font-size:12.5px;display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: EXPLAINABLE SCREENING ASSISTANT (MODULE 2) -->
+    <section id="tab-screen" class="view-pane">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Employer Edition (Module 2): Explainable Screening &amp; Compliance Workbench (<code>ops-req-screen</code>)</div>
+          <div class="pane-desc">Ranks a 4-candidate synthetic batch against the confirmed <em>Senior Analytics Manager</em> config. Enforces blind-mode PII/ZIP/graduation-year redaction with <strong>100% score parity</strong>, human-in-the-loop dispositions (never auto-rejects), live <strong>EEOC Four-Fifths (80%) Selection-Rate Tables</strong>, and <strong>Colorado SB 24-205 / NYC LL144 Candidate Factor Disclosure Notices</strong>.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="sim-toggle applied" id="btn-blind-toggle" onclick="toggleBlindMode()">&#10003; Blind Mode: ON (Parity Verified)</button>
+          <button class="sim-toggle" onclick="resetScreeningSim()">Reset Default Dispositions</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Blind-Mode Score Parity</div>
+          <div class="kpi-val" id="screen-kpi-parity" style="color:var(--accent-emerald)">100% <span style="font-size:14px;color:var(--text-muted)">Identical</span></div>
+          <div class="kpi-delta" id="screen-kpi-blind-sub">6 PII/ZIP/Grad-year fields stripped; 0.0 pt drift</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Human Reviewer Shortlist</div>
+          <div class="kpi-val" id="screen-kpi-adv">3 <span style="font-size:14px;color:var(--text-muted)">/ 4 Advanced</span></div>
+          <div class="kpi-delta" id="screen-kpi-adv-sub">0 auto-rejected &bull; 1 human override</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">EEOC 4/5ths (80%) Monitor</div>
+          <div class="kpi-val" id="screen-kpi-eeoc">2 <span style="font-size:14px;color:var(--text-muted)">cohort flags</span></div>
+          <div class="kpi-delta" id="screen-kpi-eeoc-sub">Post-scoring self-ID impact ratio check</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Factor Notice</div>
+          <div class="kpi-val" id="screen-kpi-notice" style="font-size:20px;margin-top:6px">CAND-003</div>
+          <div class="kpi-delta">Colorado SB 24-205 / NYC LL144 / IL HB 3773</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>Ranked Candidate Shortlist (Human-in-the-Loop &mdash; Never Auto-Rejects)</span>
+          <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px">Config SHA-256: 41e6c538dacece73&hellip; &bull; Advisory Threshold: 80.0</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Candidate &amp; Blind Redaction Preview</th>
+                <th>Score (Blind == Raw)</th>
+                <th>Gates</th>
+                <th>Verified / Partial / Unverified</th>
+                <th>Recommendation Band</th>
+                <th>Human Reviewer Decision</th>
+                <th>Factor Notice</th>
+              </tr>
+            </thead>
+            <tbody id="screen-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sandbox-grid">
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-head">
+            <span>EEOC Four-Fifths (<code>0.80</code>) Selection-Rate Table</span>
+            <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px">Segregated Self-ID</span>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Dimension</th>
+                  <th>Group</th>
+                  <th>Selected</th>
+                  <th>Rate</th>
+                  <th>Impact Ratio</th>
+                  <th>4/5ths Status</th>
+                </tr>
+              </thead>
+              <tbody id="screen-eeoc-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-head">
+            <span id="notice-panel-title">Candidate Factor &amp; Gap Disclosure Notice: CAND-003</span>
+            <span class="status-tag tag-violet">Right to Clarify</span>
+          </div>
+          <div class="panel-body" id="screen-notice-box" style="font-size:12px;line-height:1.5;max-height:285px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: INTERNAL MOBILITY & 30/60/90-DAY RESKILLING (MODULE 3) -->
+    <section id="tab-mobility" class="view-pane">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Employer &amp; Outplacement Edition (Module 3): Internal Mobility &amp; 30/60/90-Day Reskilling (<code>ops-req-mobility</code>)</div>
+          <div class="pane-desc">Matches a single employee or displaced worker profile across a 3-role WFM/Analytics career ladder (<code>examples/sample_mobility_career_ladder.json</code>). Separates <strong>Days 1&ndash;30 Honest Profile Alignment</strong> (Tier 1/2 only &mdash; zero fabrication) from <strong>Days 31&ndash;60 WFM/BI Catalog Upskilling &amp; Shadowing</strong>.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="sim-toggle applied" id="btn-mob-privacy" onclick="toggleMobilityPrivacy()">&#10003; Employee-Private (share_with_manager: false)</button>
+          <button class="sim-toggle" onclick="applyMobility30d()">+ Simulate Days 1&ndash;30 Alignment</button>
+          <button class="sim-toggle" onclick="resetMobilitySim()">Reset Ladder</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Selected Career Role</div>
+          <div class="kpi-val" id="mob-kpi-role" style="font-size:17px;margin-top:6px">INT-WFM-108</div>
+          <div class="kpi-delta" id="mob-kpi-role-title">Forecasting &amp; Capacity Planning Lead</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Current vs. Simulated Score</div>
+          <div class="kpi-val" id="mob-kpi-score">81.4 <span style="font-size:14px;color:var(--text-muted)">/ 100</span></div>
+          <div class="kpi-delta" id="mob-kpi-band">Ready Now (Immediate Transfer)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">30-Day Honest Projection</div>
+          <div class="kpi-val" id="mob-kpi-proj">85.6 <span style="font-size:14px;color:var(--text-muted)">/ 100</span></div>
+          <div class="kpi-delta">Tier 1/2 only (no missing skills invented)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Privacy &amp; Channel Mode</div>
+          <div class="kpi-val" id="mob-kpi-mode" style="font-size:16px;margin-top:6px;color:var(--accent-emerald)">Employee-Private</div>
+          <div class="kpi-delta" id="mob-kpi-mode-sub">share_with_manager: false &bull; Opt-in</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>Ranked Career-Path &amp; Internal Requisition Portfolio (Click Any Role to Inspect 30/60/90-Day Plan)</span>
+          <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px">2 Ready Now (&ge;80) &bull; 1 Near-Ready Bridge (65&ndash;79.9)</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Role ID &amp; Title</th>
+                <th>Location</th>
+                <th>Current Score</th>
+                <th>Projected (30d Honest)</th>
+                <th>Simulated Score</th>
+                <th>Matched / Partial / Missing</th>
+                <th>Readiness Band</th>
+                <th>Inspect Plan</th>
+              </tr>
+            </thead>
+            <tbody id="mob-role-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span id="mob-plan-header">30 / 60 / 90-Day Reskilling &amp; Transition Roadmap: Forecasting &amp; Capacity Planning Lead (INT-WFM-108)</span>
+          <span class="status-tag tag-green" id="mob-plan-gates">Gates: PASS</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Horizon</th>
+                <th>Requirement</th>
+                <th>Gap Type &amp; Catalog Domain</th>
+                <th>Score Impact</th>
+                <th>Concrete Learning / Alignment Action</th>
+                <th>Verification / Shadowing Milestone</th>
+                <th>Simulate</th>
+              </tr>
+            </thead>
+            <tbody id="mob-step-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-head">
+          <span>Honest Gap-Confirmation Questions (Ask Before Rewriting or Applying)</span>
+          <span class="status-tag tag-violet">Zero Fabrication</span>
+        </div>
+        <div class="panel-body" id="mob-questions-box" style="font-size:12.5px;line-height:1.55"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: CLI WORKFLOWS -->
+    <section id="tab-cli" class="view-pane">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">CLI Workflows (<code>ops-req-audit</code> &bull; <code>ops-req-jd-audit</code> &bull; <code>ops-req-collect</code>)</div>
+          <div class="pane-desc">Click a card to load its command into the panel on the right. Everything runs on the Python 3 standard library, with nothing to install.</div>
         </div>
       </div>
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-label">Supported ATS &amp; Boards</div>
-          <div class="kpi-val" style="font-size:16px;margin-top:8px">9 Platforms</div>
-          <div class="kpi-delta">LinkedIn &bull; Greenhouse &bull; Lever &bull; Workday</div>
+          <div class="kpi-label">Requisition Sources</div>
+          <div class="kpi-val" style="font-size:15px;margin-top:8px">Pasted text &bull; 4 public APIs</div>
+          <div class="kpi-delta">Greenhouse &bull; Lever &bull; Ashby &bull; USAJobs &bull; JSON-LD career pages</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Taxonomy Dictionary</div>
-          <div class="kpi-val">120+</div>
-          <div class="kpi-delta">Hard/Soft Skills + Bidirectional Synonyms</div>
+          <div class="kpi-label">Restricted Boards</div>
+          <div class="kpi-val" style="font-size:15px;margin-top:8px">Paste-only</div>
+          <div class="kpi-delta">10 boards whose terms restrict automated access are never fetched</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Native Resume I/O</div>
-          <div class="kpi-val" style="font-size:15px;margin-top:8px">.docx &bull; .pdf &bull; .txt</div>
-          <div class="kpi-delta">Preserves Word XML Formatting on Export</div>
+          <div class="kpi-label">Employer JD Audit</div>
+          <div class="kpi-val" style="font-size:15px;margin-top:8px">ops-req-jd-audit</div>
+          <div class="kpi-delta">Single JD or full Greenhouse/Lever/Ashby board portfolio</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Runtime Footprint</div>
-          <div class="kpi-val" style="font-size:15px;margin-top:8px">Zero Pip Deps</div>
-          <div class="kpi-delta">100% Python 3 Standard Library</div>
+          <div class="kpi-label">Reproducibility</div>
+          <div class="kpi-val" style="font-size:15px;margin-top:8px">--reference-date</div>
+          <div class="kpi-delta">Identical scores on any machine, any day</div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head">Click Any CLI Workflow to Load Command into the Inspector</div>
-        <div class="panel-body skills-grid">
-          <div class="skill-card" onclick="setPrompt('python scripts/offline_ats_auditor.py --resume examples/sample_resume.txt --jd-config examples/sample_ats_config.json --output scorecard.md')">
-            <div class="skill-cat">Deterministic Audit</div>
-            <div class="skill-name">100-Point Resume Audit</div>
-            <div class="skill-desc">Runs the 5-component mathematical audit on sample_resume.txt (88.3 / 100 baseline) and generates a 3-Tier Point Recovery Plan.</div>
-          </div>
-          <div class="skill-card" onclick="setPrompt('python scripts/job_posting_collector.py --search "Workforce Management Analyst" --location "United States" --limit 5 --resume examples/sample_resume.txt --output leaderboard.md')">
-            <div class="skill-cat">Live Job Discovery</div>
-            <div class="skill-name">Multi-Job Batch Leaderboard</div>
-            <div class="skill-desc">Queries live public job postings, audits the candidate resume against every JD, and outputs a ranked match leaderboard.</div>
-          </div>
-          <div class="skill-card" onclick="setPrompt('python scripts/offline_ats_auditor.py --resume Resume.docx --jd-config examples/sample_ats_config.json --replacements-json examples/sample_replacements.json --export-docx Resume_Optimized.docx')">
-            <div class="skill-cat">Word XML Export</div>
-            <div class="skill-name">Format-Preserving .docx Optimizer</div>
-            <div class="skill-desc">Applies verified synonym-to-literal swaps directly inside .docx XML runs while preserving fonts, margins, and layout.</div>
-          </div>
-        </div>
+        <div class="panel-head">Workflows</div>
+        <div class="panel-body skills-grid" id="cli-container"></div>
       </div>
     </section>
 
-    <!-- TAB 3: SKILL EXPLORER -->
-    <section id="tab-skills" class="view-pane">
+    <!-- TAB 4: METHOD & COMPLIANCE -->
+    <section id="tab-method" class="view-pane">
       <div class="pane-header">
         <div>
-          <div class="pane-title">Procedural Skill Library (45 Installed Skills)</div>
-          <div class="pane-desc">Click any category to filter, or click a skill card to load its exact trigger prompt into the launcher on the right.</div>
-        </div>
-      </div>
-      <div class="filter-bar" id="skill-filters"></div>
-      <div class="skills-grid" id="skills-container"></div>
-    </section>
-
-    <!-- TAB 4: MULTI-AGENT & KERNEL -->
-    <section id="tab-swarm" class="view-pane">
-      <div class="pane-header">
-        <div>
-          <div class="pane-title">Programmatic Tool Kernel &amp; Parallel Subagent Delegation</div>
-          <div class="pane-desc">Hermes doesn't just chat—it runs persistent Python tool kernels (<code>execute_code</code>) and spawns up to 10 isolated parallel subagents (<code>delegate_task</code>).</div>
+          <div class="pane-title">Method &amp; Compliance</div>
+          <div class="pane-desc">How both 100-point scorecards (Candidate JD Alignment &amp; Employer Requisition Quality) are computed, and the rules that keep them honest.</div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head">How This Demo Was Built (Real Execution Trace)</div>
-        <div class="panel-body" style="font-family:var(--font-mono);font-size:12.5px;display:flex;flex-direction:column;gap:12px">
-          <div>1. <strong>Skill Inspection &amp; Bug Discovery:</strong> Extracted <code>ats-auditor-recruiter.zip.crdownload</code>, ran <code>pygount</code> LOC analysis, and identified 3 critical scoring bugs (including 0.5x synonyms overwriting 1.0x literal skills and candidate names triggering false acronym penalties).</div>
-          <div>2. <strong>Self-Updating Procedural Memory (<code>skill_manage</code>):</strong> Patched <code>offline_ats_auditor.py</code> and installed <code>ats-auditor-recruiter</code> directly into your permanent Hermes skills library.</div>
-          <div>3. <strong>Persistent Python Tool Kernel (<code>execute_code</code>):</strong> Ran a single Python script that queried your workspace files (99 files in <code>enterprise-ats-auditor</code>), executed the deterministic ATS engine, and parsed the resulting JSON scorecard in one turn.</div>
+        <div class="panel-head">Candidate Side: The 100-Point JD Alignment Score (<code>ops-req-audit</code>)</div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead><tr><th>#</th><th>Component</th><th>Max</th><th>How it is computed</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Requirement coverage</strong></td><td>45</td><td>Max weight = base (hard skill/tool/method/cert 3, title/scope 2, soft skill 1) &times; tier (Required 2.0x, Preferred 1.0x). Match: exact or JD-offered alternative 1.0, same-capability synonym 0.5, missing 0.0</td></tr>
+              <tr><td>2</td><td><strong>Placement &amp; recency</strong></td><td>20</td><td>Recent role (&le;5 yrs) 1.0x, older/undated role 0.8x, Skills list or Summary only 0.4x</td></tr>
+              <tr><td>3</td><td><strong>Title, tenure &amp; operational scale</strong></td><td>15</td><td>Title match 5, net tenure after merging overlapping dates 5, quantified operational scope 5</td></tr>
+              <tr><td>4</td><td><strong>Knockout gates</strong></td><td>10</td><td>Required degree, license, certification, or clearance verified. A missing gate is reported as <em>not verified</em>, never as an auto-rejection</td></tr>
+              <tr><td>5</td><td><strong>Document &amp; parse hygiene</strong></td><td>10</td><td>Deductions for non-standard headers, missing/irregular dates, unexpanded obscure acronyms</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">Employer Side: The 100-Point Requisition Quality Score (<code>ops-req-jd-audit</code>, Rubric <code>rqs-0.2</code>)</div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead><tr><th>#</th><th>Component</th><th>Max</th><th>What it checks</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Gate necessity</strong></td><td>25</td><td>Degree required with no equivalency path (<code>G1</code>, -10), advanced degree gate (<code>G2</code>, -4), required years above level benchmark (<code>G3</code>, -5/-8 or -3 if level is ambiguous), non-licensure cert required (<code>G4</code>, -3), GPA/prestige screen (<code>G5</code>, -3), employment-gap screen (<code>G6</code>, -6)</td></tr>
+              <tr><td>2</td><td><strong>Requirement load</strong></td><td>20</td><td>More than 10 / 14 required items (<code>L1</code>, -4/-8), more than 6 / 8 required tools (<code>L2</code>, -3/-6), competing products from the same family all required instead of offered as alternatives (<code>L3</code>, -4 per family), no Preferred section (<code>L4</code>, -2)</td></tr>
+              <tr><td>3</td><td><strong>Clarity &amp; tiering</strong></td><td>20</td><td>No Required/Preferred split (<code>C1</code>, -8), vague clichés like rockstar/ninja/fast-paced (<code>C2</code>, -1 each), >40-word compound requirement lines (<code>C3</code>, -1 each), missing responsibilities section (<code>C4</code>, -4)</td></tr>
+              <tr><td>4</td><td><strong>Title / level / scope</strong></td><td>15</td><td>Missing job title (<code>T1</code>, -5), internal level/req codes in title (<code>T2</code>, -3), manager/director title with no team/budget/scope stated (<code>T3</code>, -5)</td></tr>
+              <tr><td>5</td><td><strong>Language &amp; transparency</strong></td><td>20</td><td>Missing pay range (<code>P1</code>, -8), unexpanded acronyms outside domain allowlists (<code>P2</code>, -2/-4), potentially exclusionary wording (<code>P3</code>, -3 each), missing EEO/accommodation statement on standalone text (<code>P4</code>, -2), extreme length (<code>P5</code>, -2/-3)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">Employer Side (Module 2): Explainable Screening Governance (<code>ops-req-screen</code>)</div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead><tr><th>#</th><th>Guardrail</th><th>Regulatory Context</th><th>Deterministic Implementation</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Never Auto-Rejects</strong></td><td>Human-in-the-Loop AI Governance</td><td>Every candidate defaults to <code>PENDING_HUMAN_REVIEW</code> until a human reviewer records a disposition via <code>--decisions-json</code>.</td></tr>
+              <tr><td>2</td><td><strong>Blind-Mode Score Parity</strong></td><td>Illinois HB 3773 (ZIP proxy) &amp; ADEA (Grad Year)</td><td>Strips name headers, emails (<code>redacted@redacted.invalid</code>), phones, URLs, 5/9-digit ZIP codes, and education graduation years with <strong>0.0 pt score drift</strong>.</td></tr>
+              <tr><td>3</td><td><strong>Candidate Factor Notices</strong></td><td>Colorado SB 24-205 &amp; NYC Local Law 144</td><td>Emits plain-language per-candidate notices detailing the 5 scoring components, quoted <code>1.0x</code>/<code>0.5x</code>/<code>0.4x</code> evidence, and a Right-to-Clarify checklist.</td></tr>
+              <tr><td>4</td><td><strong>Segregated 4/5ths Tables</strong></td><td>EEOC Uniform Guidelines (29 CFR &sect; 1607.4D)</td><td>Computes group selection rates and 80% impact ratios post-scoring from separately stored voluntary self-ID JSON (<code>--demographics-json</code>).</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">Employer &amp; Outplacement Side (Module 3): Internal Mobility &amp; 30/60/90-Day Reskilling (<code>ops-req-mobility</code>)</div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead><tr><th>Horizon</th><th>Gap Category</th><th>How It Is Computed &amp; Verified</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Days 1&ndash;30</strong></td><td>Tier 1 Synonym &amp; Tier 2 Placement Alignment</td><td>Surfaces same-capability synonyms (<code>0.5x &rarr; 1.0x</code>) and Skills-list items (<code>0.4x &rarr; 1.0x</code>) already supported by the employee's profile. Computes the <strong>Projected 30-Day Score</strong> with zero fabrication.</td></tr>
+              <tr><td><strong>Days 31&ndash;60</strong></td><td>Targeted WFM / BI / Ops Upskilling (<code>RESKILLING_CATALOG</code>)</td><td>Maps missing tools and methods (Erlang C, NICE IEX, Verint, Genesys Cloud, Power BI, Tableau, SQL, Python, Six Sigma) to concrete coursework and parallel operational shadowing milestones.</td></tr>
+              <tr><td><strong>Days 61&ndash;90</strong></td><td>Required Gate &amp; Credential Verification</td><td>Tracks degree equivalency or professional certification milestones and defaults to <code>share_with_manager: false</code> so internal exploration remains private to the employee.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">Grounding Rules &amp; Requisition Sources</div>
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+          <div><strong>Zero fabrication.</strong> Rewrites never invent metrics, tools, titles, team sizes, pay ranges, or seniority. Missing facts become <code>[INSERT: ...]</code> prompts.</div>
+          <div><strong>Competing products are never synonyms.</strong> Tableau does not earn Power BI credit; NICE does not earn Verint credit. On the employer side, requiring NICE <em>and</em> Verint <em>and</em> Genesys simultaneously triggers rule <code>L3</code>.</div>
+          <div><span class="status-tag tag-green">Fetched</span> Greenhouse, Lever (US + EU), Ashby public job-board APIs; USAJobs official API; employer career pages with <code>Schema.org/JobPosting</code> data (after a <code>robots.txt</code> check).</div>
+          <div><span class="status-tag tag-red">Paste-only</span> LinkedIn, Indeed, SimplyHired, ZipRecruiter, Glassdoor, Monster, CareerBuilder, Dice, Built In, Wellfound/AngelList. Their terms restrict automated access, so these URLs are declined before any network request (exit code <code>2</code>).</div>
         </div>
       </div>
     </section>
@@ -603,303 +955,1140 @@
   <!-- Right Inspector -->
   <aside class="inspector">
     <div class="inspector-head">
-      <span>LIVE SESSION EXECUTION LOG</span>
-      <span style="color:var(--accent-emerald)">● ONLINE</span>
+      <span>SESSION LOG</span>
+      <span style="color:var(--accent-emerald)">&#9679; LOCAL</span>
     </div>
     <div class="terminal-stream" id="term-log">
       <div class="log-entry tool">
-        <div class="log-time">19:00:28 CST &bull; skill_view</div>
-        <div class="log-cmd">Loaded: claude-design, codebase-inspection</div>
-        <div class="log-out">Surface archetype locked: Command / Monitor Workbench</div>
-      </div>
-      <div class="log-entry ok">
-        <div class="log-time">19:00:55 CST &bull; skill_manage(create)</div>
-        <div class="log-cmd">Installed: productivity/ats-auditor-recruiter</div>
-        <div class="log-out">Patched evaluate_requirement() &amp; acronym scanner.</div>
-      </div>
-      <div class="log-entry ok">
-        <div class="log-time">19:01:18 CST &bull; execute_code (Python 3.14.9)</div>
-        <div class="log-cmd">Ran 3 tool calls in persistent kernel</div>
-        <div class="log-out">enterprise-ats-auditor: 99 files
-ATS Demo Composite: 88.3 / 100 (Strong Advance)
-Legacy Literal Score: 82.9% (+5.3% vs unpatched)</div>
+        <div class="log-time">start &bull; dual workbench</div>
+        <div class="log-cmd">Loaded Candidate (88.3) &amp; Employer RQS (36.0) fixtures</div>
+        <div class="log-out">Candidate JD Alignment: 88.3 / 100 (Strong match)
+Employer Unicorn JD RQS: 36.0 / 100 (High hidden-worker risk)
+Projected RQS (auto-edits only): 56.0 / 100</div>
       </div>
     </div>
     <div class="prompt-launcher">
-      <div style="font-size:11.5px;font-weight:600;color:var(--text-secondary)">READY-TO-PASTE HERMES PROMPT:</div>
-      <div class="prompt-box" id="active-prompt">Audit my resume against a job description using the ats-auditor-recruiter skill and give me a Tier 1/2 rewrite table.</div>
-      <button class="copy-btn" onclick="copyPrompt()" id="copy-btn">Copy Prompt to Clipboard</button>
+      <div style="font-size:11.5px;font-weight:600;color:var(--text-secondary)">COMMAND / AGENT PROMPT:</div>
+      <div class="prompt-box" id="active-prompt">python scripts/requisition_quality_auditor.py --jd-file examples/sample_requisition_unicorn.txt --output rqs_report.md --improved-out requisition_draft.txt</div>
+      <button class="copy-btn" onclick="copyPrompt()" id="copy-btn">Copy to Clipboard</button>
     </div>
   </aside>
 </div>
 
 <script>
-  const atsItems = [
-    {
-      id: 1, name: 'Python', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
-      state: '1.0x Exact / 1.0x Recent Exp',
+  // =========================================================================
+  // TAB 1: CANDIDATE JD ALIGNMENT SIMULATOR DATA & LOGIC
+  // =========================================================================
+  const items = [
+    { id: 1, name: 'Python', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0 exact / 1.0x recent role',
       quote: 'Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers...',
-      fixable: false, applied: false
-    },
-    {
-      id: 2, name: 'SQL', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
-      state: '1.0x Exact / 1.0x Recent Exp',
+      fixable: false, applied: false },
+    { id: 2, name: 'SQL', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0 exact / 1.0x recent role',
       quote: 'Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.',
-      fixable: false, applied: false
-    },
-    {
-      id: 3, name: 'Snowflake', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
-      state: '1.0x Exact / 1.0x Recent Exp',
+      fixable: false, applied: false },
+    { id: 3, name: 'Snowflake', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0 exact / 1.0x recent role',
       quote: 'Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.',
-      fixable: false, applied: false
-    },
-    {
-      id: 4, name: 'SAP S/4HANA', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
-      state: '1.0x Match / 0.4x Skills-Only',
-      quote: 'Skills Section: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes',
-      fix: 'Tier 2 Contextual Elevation (0.4x -> 1.0x): Integrate SAP S/4HANA into recent role bullet alongside Snowflake ERP ingestion.',
-      rewrittenQuote: 'Engineered automated ERP data ingestion pipelines from SAP S/4HANA into Snowflake, tracking SLA compliance for 1,200+ global vendors.',
-      fixable: true, applied: false
-    },
-    {
-      id: 5, name: 'Power BI', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
-      state: '1.0x Match / 0.4x Skills-Only',
-      quote: 'Skills Section: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes (0.5x Tableau in recent role)',
-      fix: 'Tier 2 Contextual Elevation (0.4x -> 1.0x): Elevate Power BI from Skills list into recent executive KPI dashboard bullet.',
-      rewrittenQuote: 'Built automated data pipelines in Snowflake and executive KPI dashboards in Power BI & Tableau for 1,200+ global vendors.',
-      fixable: true, applied: false
-    },
-    {
-      id: 6, name: 'Workforce Capacity Modeling', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 0.5, baseMult: 1.0, baseLitMult: 0.0,
-      state: '0.5x Synonym (capacity planning)',
+      fixable: false, applied: false },
+    { id: 4, name: 'SAP S/4HANA', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
+      state: '1.0 match / 0.4x Skills list only',
+      quote: 'Skills: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership',
+      fix: 'Tier 2: contextual elevation (0.4x to 1.0x). Ask where SAP S/4HANA was actually used, then describe that use in the matching role.',
+      rewrittenQuote: 'Built automated data pipelines from SAP S/4HANA into Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors. (Use only if the candidate confirms SAP was the source.)',
+      fixable: true, applied: false },
+    { id: 5, name: 'Power BI', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
+      state: '1.0 match / 0.4x Skills list only',
+      quote: 'Skills: SQL, Python, Snowflake, Power BI, ... (Tableau, a different product, appears in a recent role and earns no Power BI credit)',
+      fix: 'Tier 2: contextual elevation (0.4x to 1.0x). Ask what the candidate built in Power BI; never swap Tableau for Power BI.',
+      rewrittenQuote: 'Built [INSERT: dashboards/reports] in Power BI for [INSERT: audience], alongside the Snowflake and Tableau SLA pipelines.',
+      fixable: true, applied: false },
+    { id: 6, name: 'Workforce Capacity Modeling', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 0.5, baseMult: 1.0, baseLitMult: 0.0,
+      state: '0.5 synonym ("capacity planning")',
       quote: 'Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.',
-      fix: 'Tier 1 Lexical Swap (0.5x -> 1.0x): Replace synonym "capacity planning" with exact JD phrase "Workforce Capacity Modeling".',
-      rewrittenQuote: 'Partnered with cross-functional leadership on Workforce Capacity Modeling and annual P&L Ownership ($50M+ operating budget).',
-      fixable: true, applied: false
-    },
-    {
-      id: 7, name: 'Demand Forecasting', cat: 'hard_skill', tier: 'Required (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
-      state: '1.0x Exact / 1.0x Recent Exp',
+      fix: 'Tier 1: synonym to requisition term (0.5 to 1.0). Swap only if the capacity planning covered workforce/labor capacity.',
+      rewrittenQuote: 'Partnered with cross-functional leadership on Workforce Capacity Modeling and annual operating budget reviews.',
+      fixable: true, applied: false },
+    { id: 7, name: 'Demand Forecasting', tier: 'Required (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0 exact / 1.0x recent role',
       quote: 'Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers...',
-      fixable: false, applied: false
-    },
-    {
-      id: 8, name: 'P&L Ownership', cat: 'title_scope', tier: 'Required (2.0x)', maxWeight: 4.0,
-      baseCredit: 0.5, baseMult: 1.0, baseLitMult: 0.0,
-      state: '0.5x Synonym (operating budget)',
+      fixable: false, applied: false },
+    { id: 8, name: 'P&L Ownership', tier: 'Required (2.0x)', maxWeight: 4.0, baseCredit: 0.5, baseMult: 1.0, baseLitMult: 0.0,
+      state: '0.5 synonym ("operating budget")',
       quote: 'Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.',
-      fix: 'Tier 1 Lexical Swap (0.5x -> 1.0x): Align "operating budget" to exact JD scope term "P&L Ownership".',
-      rewrittenQuote: 'Directed Workforce Capacity Modeling and end-to-end P&L Ownership across annual operating budget reviews.',
-      fixable: true, applied: false
-    },
-    {
-      id: 9, name: 'Kubernetes', cat: 'hard_skill', tier: 'Preferred (1.0x)', maxWeight: 3.0,
-      baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
-      state: '1.0x Match / 0.4x Skills-Only',
-      quote: 'Skills Section: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes',
-      fix: 'Tier 2 Contextual Elevation (0.4x -> 1.0x): Anchor Kubernetes container orchestration in recent Python/Snowflake pipeline bullet.',
-      rewrittenQuote: 'Deployed containerized Python forecasting microservices on Kubernetes, reducing stockout rates by 18.4% across 420 centers.',
-      fixable: true, applied: false
-    },
-    {
-      id: 10, name: 'Six Sigma Black Belt', cat: 'hard_skill', tier: 'Preferred (1.0x)', maxWeight: 3.0,
-      baseCredit: 0.0, baseMult: 0.0, baseLitMult: 0.0,
-      state: '0.0x Missing (True Gap)',
-      quote: 'MISSING from resume (Requires human confirmation before adding)',
-      fix: 'Tier 3 Verified Addition (0.0x -> 1.0x): Candidate confirms Six Sigma Black Belt certification and adds to Certifications/Experience.',
-      rewrittenQuote: 'Certifications: Six Sigma Black Belt (ASQ) — Applied DMAIC variance reduction across 420 distribution centers.',
-      fixable: true, applied: false
-    },
-    {
-      id: 11, name: 'Cross-Functional Leadership', cat: 'soft_skill', tier: 'Required (2.0x)', maxWeight: 2.0,
-      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
-      state: '1.0x Exact / 1.0x Recent Exp',
+      fix: 'Tier 1: synonym to requisition term (0.5 to 1.0). Use "P&L ownership" only if the candidate actually owned the P&L; keep the real budget figure.',
+      rewrittenQuote: '...and annual P&L Ownership reviews ([INSERT: $ budget the candidate owned]).',
+      fixable: true, applied: false },
+    { id: 9, name: 'Kubernetes', tier: 'Preferred (1.0x)', maxWeight: 3.0, baseCredit: 1.0, baseMult: 0.4, baseLitMult: 0.4,
+      state: '1.0 match / 0.4x Skills list only',
+      quote: 'Skills: SQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership',
+      fix: 'Tier 2: contextual elevation (0.4x to 1.0x). Ask how Kubernetes was used before writing any bullet.',
+      rewrittenQuote: '[INSERT: what the candidate ran on Kubernetes and the result], written into the role where it happened.',
+      fixable: true, applied: false },
+    { id: 10, name: 'Six Sigma Black Belt', tier: 'Preferred (1.0x)', maxWeight: 3.0, baseCredit: 0.0, baseMult: 0.0, baseLitMult: 0.0,
+      state: '0.0 missing (true gap)',
+      quote: 'MISSING from resume',
+      fix: 'Tier 3: true gap. Ask: "Do you hold a Six Sigma Black Belt?" Add it only if the answer is yes.',
+      rewrittenQuote: 'Certifications: Six Sigma Black Belt ([INSERT: issuing body, year]). Added after the candidate confirmed it.',
+      fixable: true, applied: false },
+    { id: 11, name: 'Cross-Functional Leadership', tier: 'Required (2.0x)', maxWeight: 2.0, baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0 exact / 1.0x recent role',
       quote: 'Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.',
-      fixable: false, applied: false
-    },
-    {
-      id: 12, name: 'B.S. (Knockout Gate)', cat: 'hard_skill', tier: 'Required Gate (2.0x)', maxWeight: 6.0,
-      baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
-      state: '1.0x Gate Passed (Education)',
+      fixable: false, applied: false },
+    { id: 12, name: 'B.S. (knockout gate)', tier: 'Required gate (2.0x)', maxWeight: 6.0, baseCredit: 1.0, baseMult: 1.0, baseLitMult: 1.0,
+      state: '1.0 gate verified (Education)',
       quote: 'B.S. in Industrial Engineering - University of Missouri (05/2018)',
-      fixable: false, applied: false
-    }
+      fixable: false, applied: false }
+  ];
+
+  // =========================================================================
+  // TAB 2: EMPLOYER REQUISITION QUALITY AUDITOR (RQS) DATA & LOGIC
+  // Mirrors scripts/requisition_quality_auditor.py on sample_requisition_unicorn.txt
+  // =========================================================================
+  const RQS_CAPS = { gates: 25.0, load: 20.0, clarity: 20.0, title: 15.0, language: 20.0 };
+  const rqsFindings = [
+    { id: 1, rule: 'G1', comp: 'gates', compLabel: 'Gate necessity', pts: 10.0, auto: true, hw: true,
+      title: 'Degree required with no equivalency path',
+      quote: "- Bachelor's degree in Mathematics, Statistics, or Business required.",
+      suggestion: 'Add an equivalency path, or move the degree to Preferred if it is not essential.',
+      fixedText: "- Bachelor's degree in Mathematics, Statistics, or Business required, or an equivalent combination of education and experience.",
+      applied: false },
+    { id: 2, rule: 'G3', comp: 'gates', compLabel: 'Gate necessity', pts: 8.0, auto: false, hw: true,
+      title: '7+ years required for a level II title (benchmark: 4 yrs)',
+      quote: '- 7+ years of workforce management experience in a contact center.',
+      suggestion: "Use the years from your leveling guide ('[INSERT: N]+ years') or calibrate to 2-4 years for an Analyst II role.",
+      fixedText: '- 2+ years of workforce management experience in a contact center (calibrated to Level II leveling guide).',
+      applied: false },
+    { id: 3, rule: 'G6', comp: 'gates', compLabel: 'Gate necessity', pts: 6.0, auto: true, hw: true,
+      title: 'Employment-gap screen',
+      quote: '- Must have no gaps in employment history.',
+      suggestion: 'Remove this requirement; it screens out caregivers, veterans, and returning workers.',
+      fixedText: '[Line removed by deterministic auto-edit]',
+      applied: false },
+    { id: 4, rule: 'G4', comp: 'gates', compLabel: 'Gate necessity', pts: 3.0, auto: false, hw: true,
+      title: 'Non-licensure certification required: Six Sigma Black Belt',
+      quote: '- Six Sigma Black Belt certification required.',
+      suggestion: "Move 'Six Sigma Black Belt' to Preferred, or allow obtaining within [INSERT: N] months.",
+      fixedText: 'Moved to Preferred Qualifications: Six Sigma certification or continuous-improvement project experience.',
+      applied: false },
+    { id: 5, rule: 'L2', comp: 'load', compLabel: 'Requirement load', pts: 6.0, auto: false, hw: true,
+      title: '13 named tools/skills required simultaneously',
+      quote: 'Capacity Planning, Erlang C, Forecasting, Genesys Cloud, NICE IEX, Power BI, Python, SQL, Salesforce, Six Sigma, Tableau, Verint, Workforce Management',
+      suggestion: "Require the 3-5 core tools used daily; list the rest as Preferred or offer 'or similar' alternatives.",
+      fixedText: 'Core required tools narrowed to WFM platform (any one), BI tool (any one), and SQL/Excel; Python/R and CRM moved to Preferred.',
+      applied: false },
+    { id: 6, rule: 'L1', comp: 'load', compLabel: 'Requirement load', pts: 4.0, auto: false, hw: true,
+      title: '12 required items (exceeds 10-item threshold)',
+      quote: 'Required list: 12 items (Preferred list: 0 items)',
+      suggestion: 'Keep 6-10 true must-haves in Required; move nice-to-haves into a Preferred Qualifications section.',
+      fixedText: 'Split into 6 Required Qualifications and 3 Preferred Qualifications.',
+      applied: false },
+    { id: 7, rule: 'L3', comp: 'load', compLabel: 'Requirement load', pts: 4.0, auto: true, hw: true,
+      title: 'Competing Contact-center WFM platforms all required: NICE IEX, Verint, Genesys Cloud',
+      quote: '- Expert in NICE IEX, Verint, and Genesys Cloud.',
+      suggestion: "Offer competing platforms as alternatives: 'experience with any one of NICE IEX, Verint, or Genesys Cloud'.",
+      fixedText: '- Hands-on experience with NICE IEX, Verint, or Genesys Cloud (experience with any one of these is sufficient).',
+      applied: false },
+    { id: 8, rule: 'L3', comp: 'load', compLabel: 'Requirement load', pts: 4.0, auto: true, hw: true,
+      title: 'Competing BI / dashboard tools all required: Power BI, Tableau',
+      quote: '- Advanced Power BI and Tableau dashboard development.',
+      suggestion: "Offer competing tools as alternatives: 'experience with any one of Power BI or Tableau'.",
+      fixedText: '- Ability to build recurring operational reports in Power BI or Tableau (experience with any one of these is sufficient).',
+      applied: false },
+    { id: 9, rule: 'C2', comp: 'clarity', compLabel: 'Clarity & tiering', pts: 5.0, auto: false, hw: false,
+      title: "5 vague clichés ('rockstar', 'wear many hats', 'hit the ground running', 'fast-paced', 'self-starter')",
+      quote: "We're looking for a WFM rockstar who can hit the ground running in a fast-paced contact center. You will wear many hats...",
+      suggestion: 'Replace clichés with concrete operational scope (e.g., 450 agents across 3 sites, intraday interval re-forecasting).',
+      fixedText: 'You will build weekly and intraday forecasts and manage real-time adherence for a 450-agent customer support operation across three sites.',
+      applied: false },
+    { id: 10, rule: 'T2', comp: 'title', compLabel: 'Title / level / scope', pts: 3.0, auto: false, hw: false,
+      title: 'Internal level code in job title (L4)',
+      quote: 'Job Title: Workforce Management Analyst II - WFM Ops - L4',
+      suggestion: "Use a clean searchable title ('Workforce Management Analyst II') and move internal codes to HRIS fields.",
+      fixedText: 'Job Title: Workforce Management Analyst II',
+      applied: false },
+    { id: 11, rule: 'P1', comp: 'language', compLabel: 'Language & transparency', pts: 8.0, auto: false, hw: false,
+      title: 'No pay range stated',
+      quote: 'Location: St. Louis, MO (no salary or hourly range found)',
+      suggestion: "Add 'Pay range: $[INSERT: min] - $[INSERT: max] per [year/hour]' (never auto-invented).",
+      fixedText: 'Pay Range: $68,000 - $82,000 per year plus annual bonus eligibility.',
+      applied: false },
+    { id: 12, rule: 'P3', comp: 'language', compLabel: 'Language & transparency', pts: 3.0, auto: false, hw: false,
+      title: "Potentially exclusionary age-coded wording: 'digital native'",
+      quote: '- Digital native who is comfortable with new tools.',
+      suggestion: 'Name the specific software or analytical workflows instead of age-coded phrasing.',
+      fixedText: '[Removed age-coded phrase; specific WFM and BI tools are already named above]',
+      applied: false },
+    { id: 13, rule: 'P4', comp: 'language', compLabel: 'Language & transparency', pts: 2.0, auto: true, hw: false,
+      title: 'No equal-opportunity or reasonable-accommodation statement',
+      quote: '(not found in standalone requisition text)',
+      suggestion: 'Append a standard EEO and disability-accommodation statement (review wording with counsel).',
+      fixedText: 'We are an equal opportunity employer and provide reasonable accommodations to qualified applicants with disabilities upon request.',
+      applied: false }
+  ];
+
+  const PRESET_UNICORN_JD = `Job Title: Workforce Management Analyst II - WFM Ops - L4
+Company: Northstar Contact Solutions
+Location: St. Louis, MO
+Job ID: REQ-20431
+
+About the Role
+We're looking for a WFM rockstar who can hit the ground running in a fast-paced contact center. You will wear many hats supporting our 24/7 operation.
+
+Responsibilities
+- Build weekly and intraday forecasts for inbound voice and chat queues.
+- Create agent schedules and monitor RTA across all sites.
+- Report AHT, ASA, shrinkage, and occupancy trends to operations leaders.
+
+Requirements
+- Bachelor's degree in Mathematics, Statistics, or Business required.
+- 7+ years of workforce management experience in a contact center.
+- Expert in NICE IEX, Verint, and Genesys Cloud.
+- Advanced Power BI and Tableau dashboard development.
+- SQL, Python, and R for forecasting.
+- Six Sigma Black Belt certification required.
+- Erlang C and capacity planning expertise.
+- Experience with Salesforce and Microsoft Dynamics.
+- Must have no gaps in employment history.
+- Strong communication and stakeholder management skills.
+- Digital native who is comfortable with new tools.
+- Self-starter able to work independently with minimal supervision across multiple sites and time zones while managing competing priorities and stakeholder expectations in a rapidly changing environment.`;
+
+  const PRESET_IMPROVED_JD = `Job Title: Workforce Management Analyst II
+Company: Northstar Contact Solutions
+Location: St. Louis, MO (Hybrid)
+Job ID: REQ-20431
+Pay Range: $68,000 - $82,000 per year
+
+About the Role
+You will build weekly and intraday forecasts, publish agent schedules, and manage real-time adherence (RTA) for a 450-agent customer support operation across three sites. You are expected to run weekly scheduling cycles independently within 60 days.
+
+Responsibilities
+- Build weekly and 30-minute interval forecasts for inbound voice, chat, and email queues.
+- Create and maintain shift schedules and manage intraday schedule changes.
+- Track average handle time (AHT), average speed of answer (ASA), shrinkage, and occupancy, and share weekly findings with operations leaders.
+- Partner with team leads on staffing trade-offs during peak volume.
+
+Required Qualifications
+- Bachelor's degree in a quantitative or business field, or an equivalent combination of education and experience.
+- 2+ years of workforce management, capacity planning, or contact-center scheduling experience.
+- Hands-on experience with a contact-center WFM platform such as NICE IEX, Verint, or Genesys Cloud.
+- Working knowledge of capacity planning and queueing concepts (such as Erlang C).
+- Ability to build recurring operational reports in Power BI or Tableau, and query data with SQL or Excel.
+- Clear written and verbal communication with operations stakeholders.
+
+Preferred Qualifications
+- Experience with Python or R for time-series forecasting.
+- Familiarity with CRM ticket data (for example Salesforce or Microsoft Dynamics).
+- Six Sigma certification or comparable process-improvement project experience.
+
+Equal Opportunity
+Northstar Contact Solutions is an equal opportunity employer and provides reasonable accommodations to qualified applicants with disabilities upon request.`;
+
+  const cliWorkflows = [
+    { cat: 'Employer RQS', name: 'Audit a job requisition', desc: 'Scores a JD on the 100-point RQS rubric and writes an auto-edited draft.',
+      cmd: 'python scripts/requisition_quality_auditor.py --jd-file examples/sample_requisition_unicorn.txt --output rqs_report.md --json-out rqs_report.json --improved-out requisition_draft.txt' },
+    { cat: 'Employer RQS', name: 'Audit a full public board', desc: 'Audits all open roles on a Greenhouse, Lever, or Ashby board (lowest RQS first).',
+      cmd: 'python scripts/requisition_quality_auditor.py --greenhouse <board_token> --title-filter "analyst|planner|operations" --output portfolio_rqs.md' },
+    { cat: 'Employer RQS', name: 'Custom leveling benchmarks', desc: 'Replaces default experience-year ceilings with your own leveling guide JSON.',
+      cmd: 'python scripts/requisition_quality_auditor.py --jd-file req.txt --level-benchmarks my_levels.json' },
+    { cat: 'Employer Screen', name: 'Explainable batch screening demo', desc: 'Blind-mode shortlist, Colorado/NYC candidate factor notices, and 4/5ths selection-rate table.',
+      cmd: 'python scripts/explainable_screening_assistant.py --demo' },
+    { cat: 'Employer Screen', name: 'Screen a resume folder + notices', desc: 'Scores a folder of resumes in blind mode and outputs per-candidate disclosure notices.',
+      cmd: 'python scripts/explainable_screening_assistant.py --resumes-dir path/to/resumes --jd-config examples/sample_ats_config.json --notices-dir out/notices --output batch_report.md' },
+    { cat: 'Mobility & Reskill', name: 'Internal mobility 30/60/90-day demo', desc: 'Ranks a profile across a 3-role WFM/Analytics career ladder with 30/60/90-day reskilling steps.',
+      cmd: 'python scripts/internal_mobility_matcher.py --demo' },
+    { cat: 'Mobility & Reskill', name: 'Outplacement transition pack', desc: 'Generates an employee-private outplacement & reskilling pack across a folder or public board.',
+      cmd: 'python scripts/internal_mobility_matcher.py --resume examples/sample_resume.txt --reqs-dir path/to/open_reqs --outplacement-pack --output outplacement_pack.md' },
+    { cat: 'Verify', name: 'Built-in candidate demo', desc: 'Runs the deterministic candidate alignment engine on built-in fixtures.',
+      cmd: 'python scripts/offline_ats_auditor.py --demo' },
+    { cat: 'Candidate Audit', name: 'Audit vs confirmed config', desc: 'Scores a resume against a requirement list you approved, with a fixed reference date.',
+      cmd: 'python scripts/offline_ats_auditor.py --resume examples/sample_resume.txt --jd-config examples/sample_ats_config.json --reference-date 2026-11-01 --output scorecard.md --json-out scorecard.json' },
+    { cat: 'Candidate Audit', name: 'Audit vs pasted JD', desc: 'Works for any source, including paste-only boards.',
+      cmd: 'python scripts/offline_ats_auditor.py --resume Resume.docx --jd-file job_description.txt --output audit_report.md' },
+    { cat: 'Candidate Audit', name: 'Audit vs employer posting', desc: 'Greenhouse, Lever, Ashby, or a career page with JobPosting metadata.',
+      cmd: 'python scripts/offline_ats_auditor.py --resume Resume.docx --jd-url "https://boards.greenhouse.io/<board>/jobs/<id>" --output audit_report.md' },
+    { cat: 'Rank', name: 'Rank across a public board', desc: 'Scores one resume against a board\'s open roles and keeps the top N.',
+      cmd: 'python scripts/offline_ats_auditor.py --resume Resume.docx --greenhouse <board_token> --title-filter "analyst|planner" --top 5 --output matches.md' },
+    { cat: 'Collect', name: 'Posting to structured config', desc: 'Parses a posting into fields and a reusable jd_config.json.',
+      cmd: 'python scripts/job_posting_collector.py --input-file job_description.txt --output posting.md --ats-config-out jd_config.json' },
+    { cat: 'Export', name: 'Export accepted rewrites', desc: 'Writes confirmed rewrites into a .docx that keeps paragraph styles.',
+      cmd: 'python scripts/offline_ats_auditor.py --resume Resume.docx --jd-config jd_config.json --replacements-json replacements.json --export-docx Resume_Updated.docx' },
+    { cat: 'Test', name: 'Run the 47-test suite', desc: 'Runs candidate alignment, employer RQS, explainable screening, and mobility unit tests offline.',
+      cmd: 'python -m unittest discover -s tests -v' }
   ];
 
   let ledgerFilter = 'all';
+  let rqsFilter = 'all';
   const TOTAL_MAX_WEIGHT = 60.0;
-  const COMP3_4_5_FIXED = 35.0; // Comp3 (15.0) + Comp4 (10.0) + Comp5 (10.0)
+  const FIXED_C3_C4_C5 = 35.0;
+  const BASELINE = 88.3333;
 
-  function itemGainPts(item) {
-    const baseKw = item.maxWeight * item.baseCredit;
-    const baseCtx = item.maxWeight * (item.baseCredit * item.baseMult);
-    const newKw = item.maxWeight * 1.0;
-    const newCtx = item.maxWeight * 1.0;
-    return ((newKw - baseKw) / TOTAL_MAX_WEIGHT) * 45.0 + ((newCtx - baseCtx) / TOTAL_MAX_WEIGHT) * 20.0;
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function itemLitGainPts(item) {
+  function verdictFor(score) {
+    if (score >= 80) return 'Strong match';
+    if (score >= 65) return 'Borderline';
+    return 'Weak match';
+  }
+
+  function rqsBandFor(score) {
+    if (score >= 85) return 'Clear & inclusive';
+    if (score >= 70) return 'Needs tuning';
+    return 'High hidden-worker risk';
+  }
+
+  function itemGain(item) {
+    const baseKw = item.maxWeight * item.baseCredit;
+    const baseCtx = item.maxWeight * item.baseCredit * item.baseMult;
+    return ((item.maxWeight - baseKw) / TOTAL_MAX_WEIGHT) * 45.0 + ((item.maxWeight - baseCtx) / TOTAL_MAX_WEIGHT) * 20.0;
+  }
+
+  function itemLitGain(item) {
     const baseLitKw = item.baseCredit === 1.0 ? item.maxWeight : 0.0;
     const baseLitCtx = item.maxWeight * item.baseLitMult;
-    const newLitKw = item.maxWeight;
-    const newLitCtx = item.maxWeight;
-    return ((newLitKw - baseLitKw) / TOTAL_MAX_WEIGHT) * 45.0 + ((newLitCtx - baseLitCtx) / TOTAL_MAX_WEIGHT) * 20.0;
+    return ((item.maxWeight - baseLitKw) / TOTAL_MAX_WEIGHT) * 45.0 + ((item.maxWeight - baseLitCtx) / TOTAL_MAX_WEIGHT) * 20.0;
   }
 
   function computeTotals() {
     let sumKw = 0, sumCtx = 0, sumLitKw = 0, sumLitCtx = 0;
-    atsItems.forEach(it => {
+    items.forEach(it => {
       const credit = it.applied ? 1.0 : it.baseCredit;
       const mult = it.applied ? 1.0 : it.baseMult;
       const litMult = it.applied ? 1.0 : it.baseLitMult;
       sumKw += it.maxWeight * credit;
-      sumCtx += it.maxWeight * (credit * mult);
+      sumCtx += it.maxWeight * credit * mult;
       sumLitKw += (credit === 1.0 ? it.maxWeight : 0.0);
       sumLitCtx += it.maxWeight * litMult;
     });
-    const comp1 = 45.0 * (sumKw / TOTAL_MAX_WEIGHT);
-    const comp2 = 20.0 * (sumCtx / TOTAL_MAX_WEIGHT);
-    const comp1Lit = 45.0 * (sumLitKw / TOTAL_MAX_WEIGHT);
-    const comp2Lit = 20.0 * (sumLitCtx / TOTAL_MAX_WEIGHT);
-    const composite = comp1 + comp2 + COMP3_4_5_FIXED;
-    const literal = comp1Lit + comp2Lit + COMP3_4_5_FIXED;
-    return { comp1, comp2, comp1Lit, comp2Lit, composite, literal, sumKw, sumCtx };
+    const c1 = 45.0 * (sumKw / TOTAL_MAX_WEIGHT);
+    const c2 = 20.0 * (sumCtx / TOTAL_MAX_WEIGHT);
+    const c1Lit = 45.0 * (sumLitKw / TOTAL_MAX_WEIGHT);
+    const c2Lit = 20.0 * (sumLitCtx / TOTAL_MAX_WEIGHT);
+    return { c1, c2, c1Lit, c2Lit, composite: c1 + c2 + FIXED_C3_C4_C5, literal: c1Lit + c2Lit + FIXED_C3_C4_C5, sumKw, sumCtx };
   }
 
   function setLedgerFilter(mode) {
     ledgerFilter = mode;
     document.getElementById('btn-filter-all').className = 'chip ' + (mode === 'all' ? 'active' : '');
     document.getElementById('btn-filter-fixes').className = 'chip ' + (mode === 'fixes' ? 'active' : '');
-    renderAtsTable();
+    renderTable();
   }
 
-  function renderAtsTable() {
-    const tbody = document.getElementById('ats-sim-rows');
+  function renderTable() {
+    const tbody = document.getElementById('sim-rows');
     tbody.innerHTML = '';
-    const totals = computeTotals();
-    const deltaFromBase = totals.composite - 88.3333;
+    const t = computeTotals();
+    const delta = t.composite - BASELINE;
 
-    const rowsToShow = atsItems.filter(it => ledgerFilter === 'all' || it.fixable);
-    rowsToShow.forEach(item => {
+    items.filter(it => ledgerFilter === 'all' || it.fixable).forEach(item => {
       const tr = document.createElement('tr');
-      const gain = itemGainPts(item);
-      const litGain = itemLitGainPts(item);
+      const gain = itemGain(item);
+      const litGain = itemLitGain(item);
       let tagClass = 'tag-green';
-      if (!item.applied && item.fixable) {
-        tagClass = item.baseCredit === 0.0 ? 'tag-red' : 'tag-amber';
-      }
-      const statusLabel = item.applied ? '1.0x Exact / 1.0x Recent Exp (Fixed)' : item.state;
-      const evidenceHtml = item.fixable
+      if (!item.applied && item.fixable) tagClass = item.baseCredit === 0.0 ? 'tag-red' : 'tag-amber';
+      const statusLabel = item.applied ? '1.0 / 1.0x (fixed)' : item.state;
+      const evidence = item.fixable
         ? (item.applied
-            ? `<div style="color:var(--accent-emerald);font-weight:500">✓ Rewritten: &ldquo;${item.rewrittenQuote}&rdquo;</div>`
-            : `<div style="color:var(--text-secondary)">${item.fix}</div><div style="color:var(--text-muted);font-size:11px;margin-top:2px">Current: &ldquo;${item.quote}&rdquo;</div>`)
-        : `<div style="color:var(--text-muted);font-size:11.5px">&ldquo;${item.quote}&rdquo;</div>`;
+            ? `<div style="color:var(--accent-emerald);font-weight:500">&#10003; ${escapeHtml(item.rewrittenQuote)}</div>`
+            : `<div style="color:var(--text-secondary)">${escapeHtml(item.fix)}</div><div style="color:var(--text-muted);font-size:11px;margin-top:2px">Current: &ldquo;${escapeHtml(item.quote)}&rdquo;</div>`)
+        : `<div style="color:var(--text-muted);font-size:11.5px">&ldquo;${escapeHtml(item.quote)}&rdquo;</div>`;
 
       tr.innerHTML = `
         <td style="font-family:var(--font-mono);color:var(--text-muted)">${item.id}</td>
-        <td><strong>${item.name}</strong></td>
-        <td style="font-family:var(--font-mono);color:var(--text-secondary);font-size:11.5px">${item.tier} &bull; ${item.maxWeight.toFixed(1)}w</td>
-        <td><span class="status-tag ${tagClass}">${statusLabel}</span></td>
-        <td>${evidenceHtml}</td>
+        <td><strong>${escapeHtml(item.name)}</strong></td>
+        <td style="font-family:var(--font-mono);color:var(--text-secondary);font-size:11.5px">${escapeHtml(item.tier)} &bull; ${item.maxWeight.toFixed(1)}w</td>
+        <td><span class="status-tag ${tagClass}">${escapeHtml(statusLabel)}</span></td>
+        <td>${evidence}</td>
         <td style="font-family:var(--font-mono);color:${item.fixable ? 'var(--accent-emerald)' : 'var(--text-muted)'};font-weight:600">
-          ${item.fixable ? `+${gain.toFixed(2)} pts<div style="font-size:10px;color:var(--text-muted)">+${litGain.toFixed(2)}% lit</div>` : 'Maxed'}
+          ${item.fixable ? `+${gain.toFixed(2)} pts<div style="font-size:10px;color:var(--text-muted)">+${litGain.toFixed(2)}% literal</div>` : 'Maxed'}
         </td>
         <td>
-          ${item.fixable ? `
-            <button class="sim-toggle ${item.applied ? 'applied' : ''}" onclick="toggleAtsItem(${item.id})">
-              ${item.applied ? '✓ Simulated' : '+ Simulate Fix'}
-            </button>` : `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">✓ Locked</span>`}
-        </td>
-      `;
+          ${item.fixable
+            ? `<button class="sim-toggle ${item.applied ? 'applied' : ''}" onclick="toggleItem(${item.id})">${item.applied ? '&#10003; Simulated' : '+ Simulate Fix'}</button>`
+            : `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">&#10003; Met</span>`}
+        </td>`;
       tbody.appendChild(tr);
     });
 
-    document.getElementById('kpi-composite').innerHTML = `${totals.composite.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
-    document.getElementById('kpi-verdict').textContent = `Verdict: Strong Advance (${deltaFromBase >= 0.01 ? '+' + deltaFromBase.toFixed(2) + ' pts recovered' : 'Baseline 88.3'})`;
-    document.getElementById('kpi-literal').textContent = `${totals.literal.toFixed(1)}%`;
-    document.getElementById('kpi-lit-delta').textContent = `Comp 1 Lit (${totals.comp1Lit.toFixed(2)}) + Comp 2 Lit (${totals.comp2Lit.toFixed(2)})`;
-    document.getElementById('kpi-kwctx').textContent = (totals.comp1 + totals.comp2).toFixed(2);
-    document.getElementById('kpi-kwctx-sub').textContent = `Comp 1 (${totals.comp1.toFixed(2)}/45) + Comp 2 (${totals.comp2.toFixed(2)}/20)`;
-    document.getElementById('ledger-weight-summary').textContent = `Matched: ${totals.sumKw.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} Kw Wt | ${totals.sumCtx.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} Ctx Wt`;
-    const navBadge = document.querySelector('.nav-btn .badge');
-    if (navBadge) navBadge.textContent = totals.composite.toFixed(1);
+    document.getElementById('kpi-composite').innerHTML = `${t.composite.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
+    document.getElementById('kpi-verdict').textContent = `Verdict: ${verdictFor(t.composite)} (${delta >= 0.01 ? '+' + delta.toFixed(2) + ' pts recovered' : 'baseline'})`;
+    document.getElementById('kpi-literal').textContent = `${t.literal.toFixed(1)}%`;
+    document.getElementById('kpi-lit-delta').textContent = `C1 literal (${t.c1Lit.toFixed(2)}) + C2 literal (${t.c2Lit.toFixed(2)}) + 35.00`;
+    document.getElementById('kpi-kwctx').textContent = (t.c1 + t.c2).toFixed(2);
+    document.getElementById('kpi-kwctx-sub').textContent = `C1 (${t.c1.toFixed(2)}/45) + C2 (${t.c2.toFixed(2)}/20)`;
+    document.getElementById('ledger-weight-summary').textContent = `Matched: ${t.sumKw.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} coverage wt | ${t.sumCtx.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} placement wt`;
+    document.getElementById('nav-score').textContent = t.composite.toFixed(1);
   }
 
-  function toggleAtsItem(id) {
-    const it = atsItems.find(x => x.id === id);
+  function toggleItem(id) {
+    const it = items.find(x => x.id === id);
     if (!it || !it.fixable) return;
     it.applied = !it.applied;
-    renderAtsTable();
-    const totals = computeTotals();
-    const gain = itemGainPts(it).toFixed(2);
-    const litGain = itemLitGainPts(it).toFixed(2);
-    appendLog(
-      'sim',
-      `${it.applied ? 'Simulated Fix (+' + gain + ' pts)' : 'Reverted Fix (-' + gain + ' pts)'}: ${it.name}`,
-      `Composite: ${totals.composite.toFixed(2)} / 100 | Legacy Literal: ${totals.literal.toFixed(2)}% (Δ ${it.applied ? '+' : '-'}${litGain}%)
-${it.applied ? 'Bullet: ' + it.rewrittenQuote : 'Restored baseline state: ' + it.state}`
-    );
+    renderTable();
+    const t = computeTotals();
+    appendLog(it.applied ? 'ok' : 'tool',
+      `${it.applied ? 'Simulated fix' : 'Reverted fix'} (${it.applied ? '+' : '-'}${itemGain(it).toFixed(2)} pts): ${it.name}`,
+      `JD Alignment Score: ${t.composite.toFixed(2)} / 100 | Literal-only: ${t.literal.toFixed(2)}%`);
   }
 
-  function applyAllAtsFixes() {
-    atsItems.forEach(x => { if (x.fixable) x.applied = true; });
-    renderAtsTable();
-    const totals = computeTotals();
-    appendLog('sim', 'Applied All 6 Actionable ATS Fixes', `Composite Score: ${totals.composite.toFixed(1)} / 100 | Legacy Literal: ${totals.literal.toFixed(1)}% (All 60.0 / 60.0 weight units maxed).`);
+  function applyAllFixes() {
+    items.forEach(x => { if (x.fixable) x.applied = true; });
+    renderTable();
+    const t = computeTotals();
+    appendLog('ok', 'Simulated all 6 recoverable gaps', `JD Alignment Score: ${t.composite.toFixed(1)} / 100 | Literal-only: ${t.literal.toFixed(1)}%. In real use, Tier 2 and 3 fixes require the candidate's confirmation.`);
   }
 
-  function resetAtsSim() {
-    atsItems.forEach(x => x.applied = false);
-    renderAtsTable();
-    appendLog('tool', 'Reset ATS Simulator to Baseline', 'Composite: 88.3 / 100 | Legacy Literal: 82.9%');
+  function resetSim() {
+    items.forEach(x => x.applied = false);
+    renderTable();
+    appendLog('tool', 'Reset candidate simulator to baseline', 'JD Alignment Score: 88.3 / 100 | Literal-only: 82.9%');
   }
 
-  const skillsData = [
-    { cat: 'Productivity', name: 'ats-auditor-recruiter', desc: 'Deterministic 100-pt enterprise ATS resume auditor & bullet optimizer.', prompt: 'Audit my resume against a job description using ats-auditor-recruiter.' },
-    { cat: 'Software Dev', name: 'codebase-inspection', desc: 'Inspect codebases with pygount: LOC, languages, comment ratios.', prompt: 'Run codebase-inspection on ./enterprise-ats-auditor and summarize LOC by language.' },
-    { cat: 'Software Dev', name: 'dogfood', desc: 'Exploratory QA of web apps: find bugs, capture evidence & reports.', prompt: 'Use the dogfood skill to test http://localhost:8000/demo.html and report any UI or console bugs.' },
-    { cat: 'Software Dev', name: 'systematic-debugging', desc: '4-phase root cause debugging: trace and reproduce before fixing.', prompt: 'Use systematic-debugging to investigate an issue in my project.' },
-    { cat: 'Software Dev', name: 'simplify-code', desc: 'Parallel 4-agent cleanup of recent code changes for clarity & speed.', prompt: 'Run simplify-code on my latest git changes.' },
-    { cat: 'Creative', name: 'claude-design', desc: 'Design bespoke interactive HTML prototypes, dashboards, and decks.', prompt: 'Use claude-design to prototype an interactive ATS analytics dashboard.' },
-    { cat: 'Creative', name: 'architecture-diagram', desc: 'Dark-themed SVG architecture, cloud, and system diagrams as HTML.', prompt: 'Create an architecture-diagram showing the multi-board job collector and ATS scoring pipeline.' },
-    { cat: 'Creative', name: 'manim-video', desc: '3Blue1Brown-style mathematical and algorithmic animations.', prompt: 'Create a manim-video animation explaining how deterministic ATS scoring works.' },
-    { cat: 'Deploy & Cloud', name: 'deploy-to-vercel', desc: 'Deploy and verify full-stack web apps on Vercel.', prompt: 'Check the deployment status of enterprise-ats-auditor on Vercel.' },
-    { cat: 'Productivity', name: 'pdf', desc: 'Create, read, merge, fill, OCR, and extract tables from PDF files.', prompt: 'Extract the text from my PDF resume and run an ATS audit on it.' },
-    { cat: 'Productivity', name: 'microsoft-office', desc: 'Create, read, and edit Word (.docx), PowerPoint (.pptx), and Excel (.xlsx).', prompt: 'Export the ATS audit ledger into a formatted Excel spreadsheet.' },
-    { cat: 'Research', name: 'competitor-news-monitor', desc: 'Watch named companies or markets for material updates with citations.', prompt: 'Run a competitor analysis for custom art & commission studios in St. Louis.' }
-  ];
+  // =========================================================================
+  // TAB 2: EMPLOYER RQS LEDGER & LIVE BROWSER SANDBOX FUNCTIONS
+  // =========================================================================
+  function computeRqsTotals() {
+    const earned = {};
+    Object.keys(RQS_CAPS).forEach(k => {
+      const cap = RQS_CAPS[k];
+      const ded = Math.min(cap, rqsFindings.filter(f => f.comp === k && !f.applied).reduce((acc, f) => acc + f.pts, 0));
+      earned[k] = cap - ded;
+    });
+    const total = Object.values(earned).reduce((a, b) => a + b, 0);
+    const activeHw = rqsFindings.filter(f => f.hw && !f.applied).length;
+    return { earned, total, activeHw };
+  }
 
-  let currentCat = 'All';
-  function renderSkills() {
-    const cats = ['All', ...new Set(skillsData.map(s => s.cat))];
-    const fbar = document.getElementById('skill-filters');
-    fbar.innerHTML = '';
-    cats.forEach(c => {
-      const btn = document.createElement('button');
-      btn.className = 'chip ' + (c === currentCat ? 'active' : '');
-      btn.textContent = c;
-      btn.onclick = () => { currentCat = c; renderSkills(); };
-      fbar.appendChild(btn);
+  function setRqsFilter(mode) {
+    rqsFilter = mode;
+    document.getElementById('btn-rqs-all').className = 'chip ' + (mode === 'all' ? 'active' : '');
+    document.getElementById('btn-rqs-auto').className = 'chip ' + (mode === 'auto' ? 'active' : '');
+    document.getElementById('btn-rqs-hw').className = 'chip ' + (mode === 'hw' ? 'active' : '');
+    renderRqsTable();
+  }
+
+  function renderRqsTable() {
+    const tbody = document.getElementById('rqs-rows');
+    tbody.innerHTML = '';
+    const r = computeRqsTotals();
+    const band = rqsBandFor(r.total);
+
+    rqsFindings.filter(f => {
+      if (rqsFilter === 'auto') return f.auto;
+      if (rqsFilter === 'hw') return f.hw;
+      return true;
+    }).forEach(f => {
+      const tr = document.createElement('tr');
+      const tagClass = f.applied ? 'tag-green' : (f.pts >= 6 ? 'tag-red' : 'tag-amber');
+      const hwBadge = f.hw ? `<span class="status-tag tag-violet" style="margin-left:6px">Hidden-Worker Risk</span>` : '';
+      const modeBadge = f.auto
+        ? `<span class="status-tag tag-green">Auto-edit</span>`
+        : `<span class="status-tag tag-amber">Human decision</span>`;
+      const detailHtml = f.applied
+        ? `<div style="color:var(--accent-emerald);font-weight:500">&#10003; ${escapeHtml(f.fixedText)}</div>`
+        : `<div style="color:var(--text-secondary)">${escapeHtml(f.suggestion)}</div><div style="color:var(--text-muted);font-size:11px;margin-top:2px">Quote: &ldquo;${escapeHtml(f.quote)}&rdquo;</div>`;
+
+      tr.innerHTML = `
+        <td style="font-family:var(--font-mono);font-weight:700;color:var(--accent-blue)">${escapeHtml(f.rule)}</td>
+        <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary)">${escapeHtml(f.compLabel)}</td>
+        <td><strong>${escapeHtml(f.title)}</strong>${hwBadge}</td>
+        <td>${detailHtml}</td>
+        <td><span class="status-tag ${tagClass}">${f.applied ? '0.0 pts' : '-' + f.pts.toFixed(1) + ' pts'}</span></td>
+        <td>${modeBadge}</td>
+        <td>
+          <button class="sim-toggle ${f.applied ? 'applied' : ''}" onclick="toggleRqsFinding(${f.id})">
+            ${f.applied ? '&#10003; Remediated' : '+ Remediate'}
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
     });
 
-    const grid = document.getElementById('skills-container');
+    document.getElementById('rqs-kpi-score').innerHTML = `${r.total.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
+    const bandEl = document.getElementById('rqs-kpi-band');
+    bandEl.textContent = `Band: ${band}`;
+    bandEl.style.color = r.total >= 85 ? 'var(--accent-emerald)' : (r.total >= 70 ? 'var(--accent-amber)' : 'var(--accent-rose)');
+
+    document.getElementById('rqs-kpi-hw').innerHTML = `${r.activeHw} <span style="font-size:14px;color:var(--text-muted)">flags</span>`;
+    document.getElementById('rqs-kpi-gl').innerHTML = `${(r.earned.gates + r.earned.load).toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 45</span>`;
+    document.getElementById('rqs-kpi-gl-sub').textContent = `Gates: ${r.earned.gates.toFixed(1)}/25 \u2022 Load: ${r.earned.load.toFixed(1)}/20`;
+    document.getElementById('rqs-kpi-ctl').innerHTML = `${(r.earned.clarity + r.earned.title + r.earned.language).toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 55</span>`;
+    document.getElementById('rqs-kpi-ctl-sub').textContent = `Clarity: ${r.earned.clarity.toFixed(0)}/20 \u2022 Title: ${r.earned.title.toFixed(0)}/15 \u2022 Lang: ${r.earned.language.toFixed(0)}/20`;
+    document.getElementById('nav-rqs-score').textContent = r.total.toFixed(1);
+  }
+
+  function toggleRqsFinding(id) {
+    const f = rqsFindings.find(x => x.id === id);
+    if (!f) return;
+    f.applied = !f.applied;
+    renderRqsTable();
+    const r = computeRqsTotals();
+    appendLog(f.applied ? 'ok' : 'tool',
+      `${f.applied ? 'Remediated RQS finding' : 'Reverted RQS finding'} [${f.rule}]: ${f.title}`,
+      `Requisition Quality Score: ${r.total.toFixed(1)} / 100 (${rqsBandFor(r.total)}) | Hidden-worker flags: ${r.activeHw}`);
+  }
+
+  function applyRqsAutoEdits() {
+    rqsFindings.forEach(f => { f.applied = f.auto; });
+    renderRqsTable();
+    const r = computeRqsTotals();
+    appendLog('ok', 'Applied 5 deterministic auto-edits (G1, G6, 2x L3, P4)',
+      `Projected RQS: ${r.total.toFixed(1)} / 100 (${rqsBandFor(r.total)}). Placeholder edits (pay range, level years, tool pruning) remain for human review.`);
+  }
+
+  function applyAllRqsFixes() {
+    rqsFindings.forEach(f => { f.applied = true; });
+    renderRqsTable();
+    const r = computeRqsTotals();
+    appendLog('ok', 'Simulated all 13 requisition remediations',
+      `Requisition Quality Score: ${r.total.toFixed(1)} / 100 (${rqsBandFor(r.total)}) | Hidden-worker flags: 0`);
+  }
+
+  function resetRqsSim() {
+    rqsFindings.forEach(f => { f.applied = false; });
+    renderRqsTable();
+    appendLog('tool', 'Reset Employer RQS simulator to Unicorn baseline',
+      'Requisition Quality Score: 36.0 / 100 (High hidden-worker risk) | Hidden-worker flags: 8');
+  }
+
+  // Client-side Live Requisition Quality Auditor (mirrors rubric rqs-0.2)
+  function auditJdTextClient(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const findings = [];
+    const titleLine = lines.find(l => /^(?:job\s+title|title|role|position)\s*[:\-]/i.test(l)) || lines[0] || '';
+    const title = titleLine.replace(/^(?:job\s+title|title|role|position)\s*[:\-]\s*/i, '').trim();
+
+    // Section split
+    let bucket = 'summary';
+    const reqLines = [], prefLines = [], respLines = [];
+    lines.forEach(l => {
+      const cleanH = l.replace(/^[#*\-\s]+|[#*?:_\s]+$/g, '');
+      if (/^(?:preferred|desired|nice[-\s]to[-\s]have|bonus)/i.test(cleanH) || /\(preferred/i.test(cleanH)) { bucket = 'preferred'; return; }
+      if (/^(?:required|minimum|qualifications|requirements|what\s+you\s+bring|what\s+skills)/i.test(cleanH) || /\((?:requirements|minimum)/i.test(cleanH)) { bucket = 'required'; return; }
+      if (/^(?:responsibilities|key\s+responsibilities|what\s+you'll\s+do|a\s+day\s+in\s+the\s+life)/i.test(cleanH) || /\(responsibilities\)/i.test(cleanH)) { bucket = 'responsibilities'; return; }
+      if (/^(?:equal\s+opportunity|benefits|compensation|pay\s+range|about\s+the\s+role)/i.test(cleanH)) { bucket = 'other'; return; }
+      if (/^(?:[-*•]|\d+[.)])\s+/.test(l)) {
+        if (bucket === 'required') reqLines.push(l);
+        else if (bucket === 'preferred') prefLines.push(l);
+        else if (bucket === 'responsibilities') respLines.push(l);
+      }
+    });
+
+    const degRe = /\b(?:bachelor|master)(?:'?s)?\b|\bMBA\b|\bPh\.?D\b|\bB\.S\.|\bB\.A\.|\bdegree\s+(?:in|from|required)\b/i;
+    const eqRe = /or\s+(?:an?\s+)?equivalent|equivalent\s+combination|in\s+lieu\s+of|degree\s+preferred/i;
+    const hasEqAnywhere = lines.some(l => degRe.test(l) && eqRe.test(l));
+    const scan = reqLines.length ? reqLines : lines;
+
+    for (const l of scan) {
+      if (degRe.test(l) && !eqRe.test(l) && !hasEqAnywhere) {
+        findings.push({ rule: 'G1', comp: 'gates', pts: 10, hw: true, auto: true, title: 'Degree required with no equivalency path', quote: l });
+        break;
+      }
+    }
+
+    let maxYrs = null, yrsLine = '';
+    scan.forEach(l => {
+      if (/years?\s+(?:of\s+age|old|or\s+older|ago)|ideally|preferably/i.test(l)) return;
+      const m = l.match(/\b(\d{1,2})\s*\+?\s*years?\b/i);
+      if (m && Number(m[1]) <= 25 && (maxYrs === null || Number(m[1]) > maxYrs)) {
+        maxYrs = Number(m[1]);
+        yrsLine = l;
+      }
+    });
+    const bench = /\b(?:II|2)\b/.test(title) ? 4 : (/\b(?:senior|sr\.?|manager)\b/i.test(title) ? 8 : 5);
+    if (maxYrs !== null && maxYrs > bench) {
+      findings.push({ rule: 'G3', comp: 'gates', pts: maxYrs - bench >= 3 ? 8 : 5, hw: true, auto: false, title: `${maxYrs}+ years required (benchmark: ${bench} yrs)`, quote: yrsLine });
+    }
+
+    const certLine = scan.find(l => /\bSix\s+Sigma\s+Black\s+Belt\b|\bPMP\b/i.test(l));
+    if (certLine) {
+      findings.push({ rule: 'G4', comp: 'gates', pts: 3, hw: true, auto: false, title: 'Certification required up front', quote: certLine });
+    }
+
+    const gapLine = lines.find(l => /no\s+(?:employment\s+|work\s+)?gaps|gap[-\s]free|continuous\s+employment/i.test(l));
+    if (gapLine) {
+      findings.push({ rule: 'G6', comp: 'gates', pts: 6, hw: true, auto: true, title: 'Employment-gap screen', quote: gapLine });
+    }
+
+    if (reqLines.length > 14) findings.push({ rule: 'L1', comp: 'load', pts: 8, hw: true, auto: false, title: `${reqLines.length} required items (>14)`, quote: `Required bullets: ${reqLines.length}` });
+    else if (reqLines.length > 10) findings.push({ rule: 'L1', comp: 'load', pts: 4, hw: true, auto: false, title: `${reqLines.length} required items (>10)`, quote: `Required bullets: ${reqLines.length}` });
+
+    const reqText = reqLines.join('\n');
+    const wfmLine = reqLines.find(l => /NICE\s+IEX/i.test(l) && /Verint/i.test(l));
+    if (wfmLine && !/\bor\b|any\s+one\s+of|such\s+as/i.test(wfmLine)) {
+      findings.push({ rule: 'L3', comp: 'load', pts: 4, hw: true, auto: true, title: 'Competing WFM platforms all required', quote: wfmLine });
+    }
+    const biLine = reqLines.find(l => /Power\s+BI/i.test(l) && /Tableau/i.test(l));
+    if (biLine && !/\bor\b|any\s+one\s+of|such\s+as/i.test(biLine)) {
+      findings.push({ rule: 'L3', comp: 'load', pts: 4, hw: true, auto: true, title: 'Competing BI tools all required', quote: biLine });
+    }
+
+    const toolMatches = ['NICE IEX', 'Verint', 'Genesys Cloud', 'Power BI', 'Tableau', 'SQL', 'Python', 'Erlang C', 'Salesforce', 'Microsoft Dynamics', 'Six Sigma', 'Capacity Planning', 'Forecasting'].filter(t => new RegExp(t.replace(/\s+/g, '\\s+'), 'i').test(reqText));
+    if (toolMatches.length > 8 && ((wfmLine && !/\bor\b|any\s+one/i.test(wfmLine)) || (biLine && !/\bor\b|any\s+one/i.test(biLine)))) {
+      findings.push({ rule: 'L2', comp: 'load', pts: 6, hw: true, auto: false, title: `${toolMatches.length} named tools/skills in Required`, quote: toolMatches.join(', ') });
+    }
+
+    const cliches = ['rockstar', 'wear many hats', 'hit the ground running', 'fast-paced', 'self-starter'].filter(c => new RegExp(c.replace(/\s+/g, '[\\s-]+'), 'i').test(text));
+    cliches.forEach(c => findings.push({ rule: 'C2', comp: 'clarity', pts: 1, hw: false, auto: false, title: `Vague cliché: '${c}'`, quote: c }));
+
+    if (!reqLines.length && !prefLines.length) findings.push({ rule: 'C1', comp: 'clarity', pts: 8, hw: false, auto: false, title: 'Requirements are not tiered', quote: 'No Required/Preferred headings' });
+    if (!respLines.length) findings.push({ rule: 'C4', comp: 'clarity', pts: 4, hw: false, auto: false, title: 'No responsibilities listed', quote: 'No Responsibilities section' });
+
+    if (/\b(?:L\d|IC\d|Band\s*\d+|REQ-\d+)\b/.test(title)) {
+      findings.push({ rule: 'T2', comp: 'title', pts: 3, hw: false, auto: false, title: 'Internal code in title', quote: title });
+    }
+
+    const hasPay = /(?:[$€£]|\b(?:USD|EUR|GBP|CAD)\s?)\s?\d[\d,. ]*(?:k|K)?\s*(?:[-–—]|to)\s*(?:[$€£]|\b(?:USD|EUR|GBP|CAD)\s?)?\s?\d/.test(text);
+    if (!hasPay) findings.push({ rule: 'P1', comp: 'language', pts: 8, hw: false, auto: false, title: 'No pay range stated', quote: 'Pay range not detected' });
+
+    const dnLine = lines.find(l => /digital\s+native/i.test(l));
+    if (dnLine) findings.push({ rule: 'P3', comp: 'language', pts: 3, hw: false, auto: false, title: "Exclusionary age-coded phrase: 'digital native'", quote: dnLine });
+
+    if (!/equal\s+opportunity|\bEEO\b|reasonable\s+accommodation/i.test(text)) {
+      findings.push({ rule: 'P4', comp: 'language', pts: 2, hw: false, auto: true, title: 'No equal-opportunity / accommodation statement', quote: '(not found)' });
+    }
+
+    let score = 0;
+    Object.keys(RQS_CAPS).forEach(k => {
+      const ded = Math.min(RQS_CAPS[k], findings.filter(f => f.comp === k).reduce((a, b) => a + b.pts, 0));
+      score += (RQS_CAPS[k] - ded);
+    });
+    return { score, band: rqsBandFor(score), findings };
+  }
+
+  function loadLivePreset(which) {
+    const el = document.getElementById('live-jd-input');
+    el.value = which === 'improved' ? PRESET_IMPROVED_JD : PRESET_UNICORN_JD;
+    runLiveJdAudit();
+    appendLog('tool', `Loaded ${which === 'improved' ? 'Calibrated (100.0)' : 'Unicorn (36.0)'} JD preset into sandbox`, 'Live RQS audit updated.');
+  }
+
+  function runLiveJdAudit() {
+    const text = document.getElementById('live-jd-input').value;
+    const res = auditJdTextClient(text);
+    document.getElementById('live-jd-score-inline').textContent = `${res.score.toFixed(1)} / 100`;
+    const bandEl = document.getElementById('live-jd-band-inline');
+    bandEl.textContent = res.band;
+    bandEl.className = 'status-tag ' + (res.score >= 85 ? 'tag-green' : (res.score >= 70 ? 'tag-amber' : 'tag-red'));
+
+    const box = document.getElementById('live-jd-findings');
+    if (!res.findings.length) {
+      box.innerHTML = `<div style="color:var(--accent-emerald);font-weight:600">&#10003; No point-deducting findings! Requisition scores 100.0 / 100 (Clear &amp; inclusive).</div>`;
+      return;
+    }
+    box.innerHTML = res.findings.map(f => `
+      <div style="border-left:2px solid ${f.pts >= 6 ? 'var(--accent-rose)' : 'var(--accent-amber)'};padding-left:8px">
+        <div><strong style="font-family:var(--font-mono);color:var(--accent-blue)">[${escapeHtml(f.rule)}]</strong> <strong>${escapeHtml(f.title)}</strong> <span style="font-family:var(--font-mono);color:var(--text-muted)">(-${f.pts} pts)</span></div>
+        <div style="color:var(--text-muted);font-size:11.5px">&ldquo;${escapeHtml(f.quote)}&rdquo;</div>
+      </div>
+    `).join('');
+  }
+
+  function applyLiveAutoEdits() {
+    let text = document.getElementById('live-jd-input').value;
+    text = text.replace(/(- Bachelor's degree[^\n.]+)\./i, '$1, or an equivalent combination of education and experience.');
+    text = text.split(/\r?\n/).filter(l => !/no\s+gaps\s+in\s+employment/i.test(l)).join('\n');
+    text = text.replace(/(- Expert in NICE IEX, Verint, and Genesys Cloud)\./i, '$1 (experience with any one of these is sufficient).');
+    text = text.replace(/(- Advanced Power BI and Tableau dashboard development)\./i, '$1 (experience with any one of these is sufficient).');
+    if (!/equal\s+opportunity\s+employer/i.test(text)) {
+      text = text.trim() + '\n\nWe are an equal opportunity employer and provide reasonable accommodations to qualified applicants with disabilities upon request.\n';
+    }
+    document.getElementById('live-jd-input').value = text;
+    runLiveJdAudit();
+    const res = auditJdTextClient(text);
+    appendLog('ok', 'Applied deterministic auto-edits in sandbox', `Live RQS updated to ${res.score.toFixed(1)} / 100 (${res.band}).`);
+  }
+
+  // =========================================================================
+  // TAB 3: EXPLAINABLE SCREENING ASSISTANT (MODULE 2) FUNCTIONS
+  // =========================================================================
+  let blindModeActive = true;
+  let activeNoticeId = 'CAND-003';
+
+  const screenCandidates = [
+    {
+      id: 'CAND-001',
+      rank: 1,
+      rawHeader: 'JORDAN VANCE | St. Louis, MO 63101 | jordan.vance@example.com | B.S. (05/2016)',
+      blindHeader: '[redacted-name] | St. Louis, MO [redacted-zip] | redacted@redacted.invalid | B.S. ([redacted-grad-date])',
+      score: 100.0,
+      literal: 100.0,
+      gates: 'PASS',
+      counts: '12 / 0 / 0',
+      band: 'Recommended for human interview review',
+      status: 'ADVANCE',
+      defaultStatus: 'ADVANCE',
+      reviewer: 'recruiter_j_smith',
+      override: '',
+      gender: 'Female',
+      race: 'Hispanic/Latino',
+      comps: [45.0, 20.0, 15.0, 10.0, 10.0],
+      verified: ['Python (required, 1.0x)', 'SQL (required, 1.0x)', 'Snowflake (required, 1.0x)', 'SAP S/4HANA (required, 1.0x)', 'Power BI (required, 1.0x)', 'Workforce Capacity Modeling (required, 1.0x)', 'Demand Forecasting (required, 1.0x)', 'P&L Ownership (required, 1.0x)', 'Kubernetes (preferred, 1.0x)', 'Six Sigma Black Belt (preferred, 1.0x)', 'Cross-Functional Leadership (required, 1.0x)', 'B.S. (required gate, 1.0x)'],
+      partial: [],
+      unverified: []
+    },
+    {
+      id: 'CAND-002',
+      rank: 2,
+      rawHeader: 'ALEXANDER MERCER | St. Louis, MO 63108 | a.mercer@example.com | B.S. (05/2016)',
+      blindHeader: '[redacted-name] | St. Louis, MO [redacted-zip] | redacted@redacted.invalid | B.S. ([redacted-grad-date])',
+      score: 88.3,
+      literal: 82.9,
+      gates: 'PASS',
+      counts: '6 / 5 / 1',
+      band: 'Recommended for human interview review',
+      status: 'ADVANCE',
+      defaultStatus: 'ADVANCE',
+      reviewer: 'recruiter_j_smith',
+      override: '',
+      gender: 'Male',
+      race: 'White',
+      comps: [39.0, 14.33, 15.0, 10.0, 10.0],
+      verified: ['Python (required, 1.0x)', 'SQL (required, 1.0x)', 'Snowflake (required, 1.0x)', 'Demand Forecasting (required, 1.0x)', 'Cross-Functional Leadership (required, 1.0x)', 'B.S. (required gate, 1.0x)'],
+      partial: ['SAP S/4HANA (Skills list only, 0.4x)', 'Power BI (Skills list only, 0.4x)', 'Workforce Capacity Modeling (synonym "capacity planning", 0.5x)', 'P&L Ownership (synonym "operating budget", 0.5x)', 'Kubernetes (Skills list only, 0.4x)'],
+      unverified: ['Six Sigma Black Belt (preferred)']
+    },
+    {
+      id: 'CAND-003',
+      rank: 3,
+      rawHeader: 'MORGAN CHEN | Chicago, IL 60601 | morgan.chen@example.com | B.S. (05/2019)',
+      blindHeader: '[redacted-name] | Chicago, IL [redacted-zip] | redacted@redacted.invalid | B.S. ([redacted-grad-date])',
+      score: 76.4,
+      literal: 71.0,
+      gates: 'PASS',
+      counts: '6 / 3 / 3',
+      band: 'Borderline \u2014 human review recommended',
+      status: 'ADVANCE',
+      defaultStatus: 'ADVANCE',
+      reviewer: 'recruiter_j_smith',
+      override: 'Human override: strong Python/SQL/Snowflake/Demand Forecasting in recent role; verify Power BI and SAP in phone screen.',
+      gender: 'Female',
+      race: 'Asian',
+      comps: [32.25, 13.13, 11.0, 10.0, 10.0],
+      verified: ['Python (required, 1.0x)', 'SQL (required, 1.0x)', 'Snowflake (required, 1.0x)', 'Demand Forecasting (required, 1.0x)', 'Cross-Functional Leadership (required, 1.0x)', 'B.S. (required gate, 1.0x)'],
+      partial: ['Power BI (Skills list only, 0.4x)', 'Workforce Capacity Modeling (synonym "capacity planning", 0.5x)', 'P&L Ownership (synonym "operating budget", 0.5x)'],
+      unverified: ['SAP S/4HANA (required)', 'Kubernetes (preferred)', 'Six Sigma Black Belt (preferred)']
+    },
+    {
+      id: 'CAND-004',
+      rank: 4,
+      rawHeader: 'TAYLOR BROOKS | Denver, CO 80202 | taylor.brooks@example.com | 90 credits completed',
+      blindHeader: '[redacted-name] | Denver, CO [redacted-zip] | redacted@redacted.invalid | 90 credits completed',
+      score: 33.0,
+      literal: 29.8,
+      gates: 'NOT VERIFIED (B.S.)',
+      counts: '2 / 2 / 8',
+      band: 'Below threshold \u2014 human review required',
+      status: 'PENDING_HUMAN_REVIEW',
+      defaultStatus: 'PENDING_HUMAN_REVIEW',
+      reviewer: '',
+      override: '',
+      gender: 'Male',
+      race: 'Black/African American',
+      comps: [12.75, 5.27, 5.0, 0.0, 10.0],
+      verified: ['SQL (required, 1.0x)', 'Power BI (required, 1.0x)'],
+      partial: ['Workforce Capacity Modeling (synonym "capacity planning", 0.5x)', 'Cross-Functional Leadership (Skills list only, 0.4x)'],
+      unverified: ['B.S. [Required Knockout Gate]', 'Python (required)', 'Snowflake (required)', 'SAP S/4HANA (required)', 'Demand Forecasting (required)', 'P&L Ownership (required)', 'Kubernetes (preferred)', 'Six Sigma Black Belt (preferred)']
+    }
+  ];
+
+  function toggleBlindMode() {
+    blindModeActive = !blindModeActive;
+    const btn = document.getElementById('btn-blind-toggle');
+    btn.className = 'sim-toggle ' + (blindModeActive ? 'applied' : '');
+    btn.innerHTML = blindModeActive ? '&#10003; Blind Mode: ON (Parity Verified)' : 'Blind Mode: OFF (Raw PII Shown)';
+    document.getElementById('screen-kpi-blind-sub').textContent = blindModeActive
+      ? '6 PII/ZIP/Grad-year fields stripped; 0.0 pt drift'
+      : 'Raw PII shown; scores identical to blind mode';
+    renderScreeningTab();
+    appendLog(blindModeActive ? 'ok' : 'tool',
+      `Blind-mode redaction ${blindModeActive ? 'ENABLED' : 'DISABLED'}`,
+      'All 4 candidate scores remain 100% identical (100.0, 88.3, 76.4, 33.0).');
+  }
+
+  function toggleCandidateDecision(id) {
+    const c = screenCandidates.find(x => x.id === id);
+    if (!c) return;
+    c.status = (c.status === 'ADVANCE') ? 'PENDING_HUMAN_REVIEW' : 'ADVANCE';
+    if (c.status === 'ADVANCE' && !c.reviewer) {
+      c.reviewer = 'recruiter_interactive';
+      if (c.score < 80) c.override = 'Human reviewer override: advanced for structured skills interview.';
+    }
+    activeNoticeId = c.id;
+    renderScreeningTab();
+    appendLog('ok', `Updated human decision for ${c.id} -> ${c.status}`,
+      'Recomputed EEOC Four-Fifths (80%) selection rates and impact ratios.');
+  }
+
+  function selectNoticeCandidate(id) {
+    activeNoticeId = id;
+    renderScreeningTab();
+    appendLog('tool', `Loaded Candidate Factor Disclosure Notice for ${id}`,
+      'Colorado SB 24-205 / NYC LL144 factor breakdown & Right-to-Clarify checklist.');
+  }
+
+  function resetScreeningSim() {
+    blindModeActive = true;
+    activeNoticeId = 'CAND-003';
+    screenCandidates.forEach(c => {
+      c.status = c.defaultStatus;
+      c.reviewer = c.defaultStatus === 'ADVANCE' ? 'recruiter_j_smith' : '';
+    });
+    const btn = document.getElementById('btn-blind-toggle');
+    btn.className = 'sim-toggle applied';
+    btn.innerHTML = '&#10003; Blind Mode: ON (Parity Verified)';
+    renderScreeningTab();
+    appendLog('tool', 'Reset Explainable Screening workbench', 'Restored default human decisions (3/4 Advanced) and Blind Mode ON.');
+  }
+
+  function renderScreeningTab() {
+    const tbody = document.getElementById('screen-rows');
+    tbody.innerHTML = '';
+    let advCount = 0;
+
+    screenCandidates.forEach(c => {
+      if (c.status === 'ADVANCE') advCount++;
+      const tr = document.createElement('tr');
+      const hdr = blindModeActive ? c.blindHeader : c.rawHeader;
+      const gateTag = c.gates === 'PASS'
+        ? `<span class="status-tag tag-green">PASS</span>`
+        : `<span class="status-tag tag-amber">${escapeHtml(c.gates)}</span>`;
+      const statusTag = c.status === 'ADVANCE'
+        ? `<span class="status-tag tag-green">ADVANCE</span>`
+        : `<span class="status-tag tag-amber">PENDING_HUMAN_REVIEW</span>`;
+      const overrideNote = (c.status === 'ADVANCE' && c.override)
+        ? `<div style="color:var(--text-muted);font-size:11px;margin-top:3px">${escapeHtml(c.override)}</div>`
+        : '';
+
+      tr.innerHTML = `
+        <td style="font-family:var(--font-mono);color:var(--text-muted)">${c.rank}</td>
+        <td>
+          <strong>${escapeHtml(c.id)}</strong>
+          <div style="font-family:var(--font-mono);font-size:11px;color:${blindModeActive ? 'var(--accent-blue)' : 'var(--accent-amber)'};margin-top:2px">${escapeHtml(hdr)}</div>
+        </td>
+        <td>
+          <strong style="font-family:var(--font-mono);font-size:14px">${c.score.toFixed(1)}</strong>
+          <div style="font-size:10.5px;color:var(--text-muted);font-family:var(--font-mono)">Literal: ${c.literal.toFixed(1)}%</div>
+        </td>
+        <td>${gateTag}</td>
+        <td style="font-family:var(--font-mono);font-size:12px">${escapeHtml(c.counts)}</td>
+        <td style="font-size:12px;color:var(--text-secondary)">${escapeHtml(c.band)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            ${statusTag}
+            <button class="sim-toggle ${c.status === 'ADVANCE' ? 'applied' : ''}" onclick="toggleCandidateDecision('${c.id}')" style="padding:3px 8px;font-size:11px">
+              ${c.status === 'ADVANCE' ? '&#10003; Advanced' : '+ Advance'}
+            </button>
+          </div>
+          ${overrideNote}
+        </td>
+        <td>
+          <button class="sim-toggle ${activeNoticeId === c.id ? 'applied' : ''}" onclick="selectNoticeCandidate('${c.id}')" style="padding:4px 8px;font-size:11px">
+            View Notice
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Compute EEOC 4/5ths table
+    const eeocBody = document.getElementById('screen-eeoc-rows');
+    eeocBody.innerHTML = '';
+    let flagCount = 0;
+
+    [
+      { dim: 'gender', key: 'gender', groups: ['Female', 'Male'] },
+      { dim: 'race_ethnicity', key: 'race', groups: ['Asian', 'Black/African American', 'Hispanic/Latino', 'White'] }
+    ].forEach(d => {
+      const stats = d.groups.map(g => {
+        const apps = screenCandidates.filter(c => c[d.key] === g);
+        const sel = apps.filter(c => c.status === 'ADVANCE').length;
+        const rate = apps.length > 0 ? sel / apps.length : 0;
+        return { dim: d.dim, group: g, apps: apps.length, sel, rate };
+      });
+      const maxRate = Math.max(...stats.map(s => s.rate), 0);
+      stats.forEach(s => {
+        const ratio = maxRate > 0 ? s.rate / maxRate : null;
+        const flagged = ratio !== null && ratio < 0.80;
+        if (flagged) flagCount++;
+        const tr = document.createElement('tr');
+        const statusHtml = ratio === null
+          ? `<span class="status-tag tag-amber">NO SELECTIONS</span>`
+          : (flagged
+              ? `<span class="status-tag tag-red">FLAG (&lt;0.80) (n=${s.apps})</span>`
+              : `<span class="status-tag tag-green">PASS (n=${s.apps})</span>`);
+        tr.innerHTML = `
+          <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary)">${escapeHtml(s.dim)}</td>
+          <td><strong>${escapeHtml(s.group)}</strong></td>
+          <td style="font-family:var(--font-mono)">${s.sel} / ${s.apps}</td>
+          <td style="font-family:var(--font-mono)">${(s.rate * 100).toFixed(1)}%</td>
+          <td style="font-family:var(--font-mono);font-weight:600">${ratio !== null ? ratio.toFixed(2) : '&mdash;'}</td>
+          <td>${statusHtml}</td>`;
+        eeocBody.appendChild(tr);
+      });
+    });
+
+    document.getElementById('screen-kpi-adv').innerHTML = `${advCount} <span style="font-size:14px;color:var(--text-muted)">/ 4 Advanced</span>`;
+    document.getElementById('nav-screen-badge').textContent = `${advCount}/4 Adv`;
+    document.getElementById('screen-kpi-eeoc').innerHTML = `${flagCount} <span style="font-size:14px;color:var(--text-muted)">cohort flags</span>`;
+    document.getElementById('screen-kpi-notice').textContent = activeNoticeId;
+
+    // Render active candidate notice
+    const cand = screenCandidates.find(c => c.id === activeNoticeId) || screenCandidates[2];
+    document.getElementById('notice-panel-title').textContent = `Candidate Factor & Gap Disclosure Notice: ${cand.id}`;
+    const noticeBox = document.getElementById('screen-notice-box');
+    noticeBox.innerHTML = `
+      <div style="margin-bottom:8px;color:var(--text-secondary)">
+        <strong>Requisition:</strong> Senior Analytics Manager &bull; <strong>Score:</strong> <code>${cand.score.toFixed(1)} / 100</code> &bull; <strong>Status:</strong> <code>${cand.status}</code>
+      </div>
+      <div style="margin-bottom:8px;font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">
+        Components: C1 Coverage ${cand.comps[0].toFixed(2)}/45 &bull; C2 Placement ${cand.comps[1].toFixed(2)}/20 &bull; C3 Scope ${cand.comps[2].toFixed(1)}/15 &bull; C4 Gates ${cand.comps[3].toFixed(1)}/10 &bull; C5 Hygiene ${cand.comps[4].toFixed(1)}/10
+      </div>
+      <div style="margin-bottom:6px"><strong style="color:var(--accent-emerald)">&#10003; Verified at 1.0x (${cand.verified.length}):</strong> ${escapeHtml(cand.verified.join(', '))}</div>
+      <div style="margin-bottom:6px"><strong style="color:var(--accent-amber)">&#9679; Partially Verified (${cand.partial.length}):</strong> ${cand.partial.length ? escapeHtml(cand.partial.join('; ')) : 'None'}</div>
+      <div><strong style="color:var(--accent-rose)">&#10007; Unverified &mdash; Right to Clarify (${cand.unverified.length}):</strong> ${cand.unverified.length ? escapeHtml(cand.unverified.join(', ')) : 'All requirements verified.'}</div>
+    `;
+  }
+
+  // =========================================================================
+  // TAB 4: INTERNAL MOBILITY & 30/60/90-DAY RESKILLING (MODULE 3) FUNCTIONS
+  // =========================================================================
+  let activeMobRoleId = 'INT-WFM-108';
+  let mobPrivateMode = true;
+
+  const mobilityRoles = [
+    {
+      rank: 1,
+      id: 'INT-WFM-204',
+      title: 'Senior Analytics Manager',
+      location: 'St. Louis, MO (Hybrid)',
+      currentScore: 88.33,
+      proj30d: 96.75,
+      counts: '6 / 5 / 1',
+      steps: [
+        { idx: 0, horizon: 'Days 1-30', req: 'Workforce Capacity Modeling (required)', type: 'Tier 1 Synonym Alignment', pts: 3.25, applied: false,
+          action: 'Your profile shows "capacity planning" in Recent Work Experience. Align terminology to Workforce Capacity Modeling.',
+          milestone: 'Updated bullet reviewed against source quote: "- Partnered with cross-functional leadership on capacity planning..."' },
+        { idx: 1, horizon: 'Days 1-30', req: 'P&L Ownership (required)', type: 'Tier 1 Synonym Alignment', pts: 2.17, applied: false,
+          action: 'Your profile shows "operating budget" in Recent Work Experience. Align terminology to P&L Ownership.',
+          milestone: 'Updated bullet reviewed against source quote: "...and annual operating budget reviews."' },
+        { idx: 2, horizon: 'Days 1-30', req: 'Power BI (required)', type: 'Tier 2 Contextual Elevation', pts: 1.20, applied: false,
+          action: 'Power BI appears in Skills Section Only (0.4x). Document where and how you used Power BI in a recent role.',
+          milestone: 'Experience bullet added for Power BI in a recent role.' },
+        { idx: 3, horizon: 'Days 1-30', req: 'SAP S/4HANA (required)', type: 'Tier 2 Contextual Elevation', pts: 1.20, applied: false,
+          action: 'SAP S/4HANA appears in Skills Section Only (0.4x). Document where and how you used SAP S/4HANA in a recent role.',
+          milestone: 'Experience bullet added for SAP S/4HANA in a recent role.' },
+        { idx: 4, horizon: 'Days 1-30', req: 'Kubernetes (preferred)', type: 'Tier 2 Contextual Elevation', pts: 0.60, applied: false,
+          action: 'Kubernetes appears in Skills Section Only (0.4x). Document where and how you used Kubernetes in a recent role.',
+          milestone: 'Experience bullet added for Kubernetes in a recent role.' },
+        { idx: 5, horizon: 'Days 31-60', req: 'Six Sigma Black Belt (preferred)', type: 'Upskilling (Process Improvement)', pts: 3.25, applied: false,
+          action: 'Complete Lean Six Sigma DMAIC project methodology and root-cause analysis coursework.',
+          milestone: 'Lead a scoped DMAIC continuous-improvement project targeting shrinkage, AHT, or reporting cycle time.' }
+      ],
+      questions: [
+        "The 'Senior Analytics Manager' role weights Six Sigma Black Belt (preferred) at 3 weight units (+3.25 pts). Have you used Six Sigma Black Belt (or Lean Six Sigma) in a prior role or project?"
+      ]
+    },
+    {
+      rank: 2,
+      id: 'INT-WFM-108',
+      title: 'Forecasting & Capacity Planning Lead',
+      location: 'Remote - US',
+      currentScore: 81.40,
+      proj30d: 85.55,
+      counts: '6 / 1 / 2',
+      steps: [
+        { idx: 0, horizon: 'Days 1-30', req: 'Workforce Capacity Modeling (required)', type: 'Tier 1 Synonym Alignment', pts: 4.15, applied: false,
+          action: 'Your profile shows "capacity planning" in Recent Work Experience. Align terminology to Workforce Capacity Modeling.',
+          milestone: 'Updated bullet reviewed against source quote: "- Partnered with cross-functional leadership on capacity planning..."' },
+        { idx: 1, horizon: 'Days 31-60', req: 'Erlang C (required)', type: 'Upskilling (WFM Staffing Math)', pts: 8.30, applied: false,
+          action: 'Complete queueing theory & Erlang C staffing module (arrival rate, AHT, occupancy cap, shrinkage, and 80/20 SLA trade-offs).',
+          milestone: 'Build a parallel Erlang C interval staffing workbook for one inbound queue and compare against actuals for 2 weeks.' },
+        { idx: 2, horizon: 'Days 31-60', req: 'NICE IEX (or Verint, Genesys Cloud) (preferred)', type: 'Upskilling (Contact-Center WFM Platform)', pts: 4.15, applied: false,
+          action: 'Complete NICE IEX administrator/scheduler training (forecaster, schedule bidding, exception codes, and intraday RTA views).',
+          milestone: 'Shadow a WFM scheduler on NICE IEX shift generation and intraday exception management for two scheduling cycles.' }
+      ],
+      questions: [
+        "The 'Forecasting & Capacity Planning Lead' role weights Erlang C (required) at 6 weight units (+8.30 pts). Have you used Erlang C in a prior role or project?",
+        "The 'Forecasting & Capacity Planning Lead' role weights NICE IEX (or Verint, Genesys Cloud) (preferred) at 3 weight units (+4.15 pts). Have you used any of these WFM platforms?"
+      ]
+    },
+    {
+      rank: 3,
+      id: 'INT-WFM-310',
+      title: 'Director, Contact-Center Workforce Management',
+      location: 'St. Louis, MO',
+      currentScore: 67.00,
+      proj30d: 74.74,
+      counts: '4 / 2 / 3',
+      steps: [
+        { idx: 0, horizon: 'Days 1-30', req: 'Workforce Capacity Modeling (required)', type: 'Tier 1 Synonym Alignment', pts: 4.64, applied: false,
+          action: 'Your profile shows "capacity planning" in Recent Work Experience. Align terminology to Workforce Capacity Modeling.',
+          milestone: 'Updated bullet reviewed against source quote: "- Partnered with cross-functional leadership on capacity planning..."' },
+        { idx: 1, horizon: 'Days 1-30', req: 'P&L Ownership (required)', type: 'Tier 1 Synonym Alignment', pts: 3.10, applied: false,
+          action: 'Your profile shows "operating budget" in Recent Work Experience. Align terminology to P&L Ownership.',
+          milestone: 'Updated bullet reviewed against source quote: "...and annual operating budget reviews."' },
+        { idx: 2, horizon: 'Days 31-60', req: 'Erlang C (required)', type: 'Upskilling (WFM Staffing Math)', pts: 9.29, applied: false,
+          action: 'Complete queueing theory & Erlang C staffing module (arrival rate, AHT, occupancy cap, shrinkage, and 80/20 SLA trade-offs).',
+          milestone: 'Build a parallel Erlang C interval staffing workbook for one inbound queue and compare against actuals for 2 weeks.' },
+        { idx: 3, horizon: 'Days 31-60', req: 'NICE IEX (or Verint, Genesys Cloud) (required)', type: 'Upskilling (Contact-Center WFM Platform)', pts: 9.29, applied: false,
+          action: 'Complete NICE IEX administrator/scheduler training (forecaster, schedule bidding, exception codes, and intraday RTA views).',
+          milestone: 'Shadow a WFM scheduler on NICE IEX shift generation and intraday exception management for two scheduling cycles.' },
+        { idx: 4, horizon: 'Days 31-60', req: 'Six Sigma Black Belt (preferred)', type: 'Upskilling (Process Improvement)', pts: 4.64, applied: false,
+          action: 'Complete Lean Six Sigma DMAIC project methodology and root-cause analysis coursework.',
+          milestone: 'Lead a scoped DMAIC continuous-improvement project targeting shrinkage, AHT, or reporting cycle time.' }
+      ],
+      questions: [
+        "The 'Director, Workforce Management' role weights NICE IEX (or Verint, Genesys Cloud) (required) at 6 weight units (+9.29 pts). Have you used any of these WFM platforms?",
+        "The 'Director, Workforce Management' role weights Erlang C (required) at 6 weight units (+9.29 pts). Have you used Erlang C in a prior role or project?",
+        "The 'Director, Workforce Management' role weights Six Sigma Black Belt (preferred) at 3 weight units (+4.64 pts). Have you used Six Sigma Black Belt in a prior role or project?"
+      ]
+    }
+  ];
+
+  function mobBandFor(score) {
+    if (score >= 80) return 'Ready Now (Immediate Transfer)';
+    if (score >= 65) return 'Near-Ready (30-to-60-Day Bridge)';
+    return 'Stretch Role (90-Day Reskilling)';
+  }
+
+  function mobSimScore(role) {
+    const gain = role.steps.filter(s => s.applied).reduce((acc, s) => acc + s.pts, 0);
+    return Math.min(100.0, role.currentScore + gain);
+  }
+
+  function selectMobilityRole(id) {
+    activeMobRoleId = id;
+    renderMobilityTab();
+    const r = mobilityRoles.find(x => x.id === id);
+    if (r) appendLog('tool', `Selected career-ladder role ${r.id}: ${r.title}`, `Current: ${r.currentScore.toFixed(1)} | 30d Honest Projection: ${r.proj30d.toFixed(1)}`);
+  }
+
+  function toggleMobilityStep(roleId, idx) {
+    const r = mobilityRoles.find(x => x.id === roleId);
+    if (!r) return;
+    const s = r.steps.find(x => x.idx === idx);
+    if (!s) return;
+    s.applied = !s.applied;
+    renderMobilityTab();
+    const sim = mobSimScore(r);
+    appendLog(s.applied ? 'ok' : 'tool',
+      `${s.applied ? 'Simulated' : 'Reverted'} [${s.horizon}] ${s.req} (+${s.pts.toFixed(2)} pts)`,
+      `${r.title}: ${sim.toFixed(1)} / 100 (${mobBandFor(sim)})`);
+  }
+
+  function applyMobility30d() {
+    mobilityRoles.forEach(r => {
+      r.steps.forEach(s => { s.applied = (s.horizon === 'Days 1-30'); });
+    });
+    renderMobilityTab();
+    appendLog('ok', 'Simulated Days 1-30 Honest Profile Alignment across all 3 roles',
+      'Applied only Tier 1 synonym swaps and Tier 2 Skills-to-Experience elevations (0 missing skills fabricated).');
+  }
+
+  function toggleMobilityPrivacy() {
+    mobPrivateMode = !mobPrivateMode;
+    const btn = document.getElementById('btn-mob-privacy');
+    btn.className = 'sim-toggle ' + (mobPrivateMode ? 'applied' : '');
+    btn.innerHTML = mobPrivateMode
+      ? '&#10003; Employee-Private (share_with_manager: false)'
+      : 'Outplacement / Shared Pack (share_with_manager: true)';
+    document.getElementById('mob-kpi-mode').textContent = mobPrivateMode ? 'Employee-Private' : 'Outplacement Pack';
+    document.getElementById('mob-kpi-mode-sub').textContent = mobPrivateMode
+      ? 'share_with_manager: false \u2022 Opt-in'
+      : 'outplacement-pack \u2022 Portable transition plan';
+    appendLog('tool', `Switched Mobility mode to ${mobPrivateMode ? 'Employee-Private' : 'Outplacement Transition Pack'}`,
+      `share_with_manager: ${!mobPrivateMode}`);
+  }
+
+  function resetMobilitySim() {
+    mobPrivateMode = true;
+    activeMobRoleId = 'INT-WFM-108';
+    mobilityRoles.forEach(r => r.steps.forEach(s => { s.applied = false; }));
+    const btn = document.getElementById('btn-mob-privacy');
+    btn.className = 'sim-toggle applied';
+    btn.innerHTML = '&#10003; Employee-Private (share_with_manager: false)';
+    document.getElementById('mob-kpi-mode').textContent = 'Employee-Private';
+    document.getElementById('mob-kpi-mode-sub').textContent = 'share_with_manager: false \u2022 Opt-in';
+    renderMobilityTab();
+    appendLog('tool', 'Reset Internal Mobility & Reskilling workbench', 'Restored baseline scores (88.3, 81.4, 67.0).');
+  }
+
+  function renderMobilityTab() {
+    const roleBody = document.getElementById('mob-role-rows');
+    roleBody.innerHTML = '';
+
+    mobilityRoles.forEach(r => {
+      const sim = mobSimScore(r);
+      const band = mobBandFor(sim);
+      const bandClass = sim >= 80 ? 'tag-green' : (sim >= 65 ? 'tag-amber' : 'tag-red');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:var(--font-mono);color:var(--text-muted)">${r.rank}</td>
+        <td>
+          <strong>${escapeHtml(r.title)}</strong>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent-blue)">${escapeHtml(r.id)}</div>
+        </td>
+        <td style="font-size:12px;color:var(--text-secondary)">${escapeHtml(r.location)}</td>
+        <td style="font-family:var(--font-mono)">${r.currentScore.toFixed(1)}</td>
+        <td style="font-family:var(--font-mono);color:var(--accent-emerald)">${r.proj30d.toFixed(1)}</td>
+        <td style="font-family:var(--font-mono);font-weight:700">${sim.toFixed(1)}</td>
+        <td style="font-family:var(--font-mono);font-size:12px">${escapeHtml(r.counts)}</td>
+        <td><span class="status-tag ${bandClass}">${escapeHtml(band)}</span></td>
+        <td>
+          <button class="sim-toggle ${activeMobRoleId === r.id ? 'applied' : ''}" onclick="selectMobilityRole('${r.id}')" style="padding:4px 8px;font-size:11px">
+            ${activeMobRoleId === r.id ? '&#10003; Active' : 'Inspect Plan'}
+          </button>
+        </td>`;
+      roleBody.appendChild(tr);
+    });
+
+    const active = mobilityRoles.find(r => r.id === activeMobRoleId) || mobilityRoles[1];
+    const activeSim = mobSimScore(active);
+    document.getElementById('mob-kpi-role').textContent = active.id;
+    document.getElementById('mob-kpi-role-title').textContent = active.title;
+    document.getElementById('mob-kpi-score').innerHTML = `${activeSim.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
+    document.getElementById('mob-kpi-band').textContent = mobBandFor(activeSim);
+    document.getElementById('mob-kpi-proj').innerHTML = `${active.proj30d.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
+    document.getElementById('mob-plan-header').textContent = `30 / 60 / 90-Day Reskilling & Transition Roadmap: ${active.title} (${active.id})`;
+
+    const stepBody = document.getElementById('mob-step-rows');
+    stepBody.innerHTML = '';
+    active.steps.forEach(s => {
+      const hClass = s.horizon === 'Days 1-30' ? 'tag-green' : 'tag-violet';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="status-tag ${hClass}">${escapeHtml(s.horizon)}</span></td>
+        <td><strong>${escapeHtml(s.req)}</strong></td>
+        <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary)">${escapeHtml(s.type)}</td>
+        <td style="font-family:var(--font-mono);color:var(--accent-emerald);font-weight:600">+${s.pts.toFixed(2)} pts</td>
+        <td style="font-size:12px;color:var(--text-secondary)">${escapeHtml(s.action)}</td>
+        <td style="font-size:11.5px;color:var(--text-muted)">${escapeHtml(s.milestone)}</td>
+        <td>
+          <button class="sim-toggle ${s.applied ? 'applied' : ''}" onclick="toggleMobilityStep('${active.id}', ${s.idx})" style="padding:4px 8px;font-size:11px">
+            ${s.applied ? '&#10003; Completed' : '+ Simulate'}
+          </button>
+        </td>`;
+      stepBody.appendChild(tr);
+    });
+
+    const qBox = document.getElementById('mob-questions-box');
+    qBox.innerHTML = active.questions.map(q => `<div style="margin-bottom:4px">&bull; ${escapeHtml(q)}</div>`).join('');
+  }
+
+  function renderCli() {
+    const grid = document.getElementById('cli-container');
     grid.innerHTML = '';
-    skillsData.filter(s => currentCat === 'All' || s.cat === currentCat).forEach(s => {
+    cliWorkflows.forEach(w => {
       const card = document.createElement('div');
       card.className = 'skill-card';
-      card.onclick = () => setPrompt(s.prompt);
+      card.onclick = () => setPrompt(w.cmd);
       card.innerHTML = `
-        <div class="skill-cat">${s.cat}</div>
-        <div class="skill-name">${s.name}</div>
-        <div class="skill-desc">${s.desc}</div>
-      `;
+        <div class="skill-cat">${escapeHtml(w.cat)}</div>
+        <div class="skill-name">${escapeHtml(w.name)}</div>
+        <div class="skill-desc">${escapeHtml(w.desc)}</div>`;
       grid.appendChild(card);
     });
   }
@@ -913,29 +2102,37 @@ ${it.applied ? 'Bullet: ' + it.rewrittenQuote : 'Restored baseline state: ' + it
 
   function setPrompt(text) {
     document.getElementById('active-prompt').textContent = text;
-    appendLog('tool', 'Prompt staged in launcher', text);
+    appendLog('tool', 'Command loaded', text);
   }
 
   function copyPrompt() {
     const text = document.getElementById('active-prompt').textContent;
-    navigator.clipboard.writeText(text);
     const btn = document.getElementById('copy-btn');
-    btn.textContent = '✓ Copied! Paste into Hermes CLI';
-    setTimeout(() => { btn.textContent = 'Copy Prompt to Clipboard'; }, 1800);
+    const done = () => { btn.textContent = '\u2713 Copied'; setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => { btn.textContent = 'Select and copy manually'; });
+    } else {
+      btn.textContent = 'Select and copy manually';
+    }
   }
 
   function appendLog(type, title, detail) {
     const stream = document.getElementById('term-log');
     const div = document.createElement('div');
-    div.className = 'log-entry ' + (type === 'sim' ? 'ok' : 'tool');
+    div.className = 'log-entry ' + (type === 'ok' ? 'ok' : 'tool');
     const now = new Date().toLocaleTimeString();
-    div.innerHTML = `<div class="log-time">${now} &bull; interactive</div><div class="log-cmd">${title}</div><div class="log-out">${detail}</div>`;
+    div.innerHTML = `<div class="log-time">${now} &bull; interactive</div><div class="log-cmd">${escapeHtml(title)}</div><div class="log-out">${escapeHtml(detail)}</div>`;
     stream.appendChild(div);
     stream.scrollTop = stream.scrollHeight;
   }
 
-  renderAtsTable();
-  renderSkills();
+  renderTable();
+  renderRqsTable();
+  renderScreeningTab();
+  renderMobilityTab();
+  renderCli();
+  document.getElementById('live-jd-input').value = PRESET_UNICORN_JD;
+  runLiveJdAudit();
 </script>
 </body>
 </html>

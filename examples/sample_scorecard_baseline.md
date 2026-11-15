@@ -13,7 +13,7 @@
 
 ## 2. 5-Component Breakdown Table
 
-| ATS Component | Max Points | Underlying Formula / Fraction Math | Earned Points |
+| Component | Max Points | Underlying Formula / Fraction Math | Earned Points |
 | :--- | :---: | :--- | :---: |
 | **1. Weighted Keyword & Taxonomy** | 45.0 | `45 * (52.00 / 60.00)` *(Literal: `47.00/60.00`)* | **39.00** |
 | **2. Contextual Placement & Recency** | 20.0 | `20 * (43.00 / 60.00)` | **14.33** |
@@ -45,7 +45,7 @@
 
 ## 4. Highest-ROI Point Recovery Plan
 
-| Rank | JD Requirement | Fix Strategy Tier | Recoverable ATS Points | Actionable Instruction |
+| Rank | JD Requirement | Fix Strategy Tier | Recoverable Points | Actionable Instruction |
 | :---: | :--- | :--- | :---: | :--- |
 | 1 | **Workforce Capacity Modeling** (Required (2.0x)) | Tier 1: Synonym-to-Literal Swap (0.5x -> 1.0x Match Credit) | **`+3.25 pts`** | If 'capacity planning' and 'Workforce Capacity Modeling' name the same capability, use the JD's exact term; if they are different tools or methods, do not swap - ask the candidate. |
 | 2 | **Six Sigma Black Belt** (Preferred (1.0x)) | Tier 3: True Gap Interrogation (0.0x Missing Requirement) | **`+3.25 pts`** | Ask whether the candidate has hands-on experience with 'Six Sigma Black Belt'; write a bullet only from what they confirm. |

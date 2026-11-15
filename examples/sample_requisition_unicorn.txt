@@ -1,0 +1,26 @@
+Job Title: Workforce Management Analyst II - WFM Ops - L4
+Company: Northstar Contact Solutions
+Location: St. Louis, MO
+Job ID: REQ-20431
+
+About the Role
+We're looking for a WFM rockstar who can hit the ground running in a fast-paced contact center. You will wear many hats supporting our 24/7 operation.
+
+Responsibilities
+- Build weekly and intraday forecasts for inbound voice and chat queues.
+- Create agent schedules and monitor RTA across all sites.
+- Report AHT, ASA, shrinkage, and occupancy trends to operations leaders.
+
+Requirements
+- Bachelor's degree in Mathematics, Statistics, or Business required.
+- 7+ years of workforce management experience in a contact center.
+- Expert in NICE IEX, Verint, and Genesys Cloud.
+- Advanced Power BI and Tableau dashboard development.
+- SQL, Python, and R for forecasting.
+- Six Sigma Black Belt certification required.
+- Erlang C and capacity planning expertise.
+- Experience with Salesforce and Microsoft Dynamics.
+- Must have no gaps in employment history.
+- Strong communication and stakeholder management skills.
+- Digital native who is comfortable with new tools.
+- Self-starter able to work independently with minimal supervision across multiple sites and time zones while managing competing priorities and stakeholder expectations in a rapidly changing environment.

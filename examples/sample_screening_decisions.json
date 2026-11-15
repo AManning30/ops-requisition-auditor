@@ -1,0 +1,26 @@
+{
+  "CAND-001": {
+    "status": "ADVANCE",
+    "reviewer": "recruiter_j_smith",
+    "timestamp": "2026-11-15T09:00:00Z",
+    "override_reason": ""
+  },
+  "CAND-002": {
+    "status": "ADVANCE",
+    "reviewer": "recruiter_j_smith",
+    "timestamp": "2026-11-15T09:05:00Z",
+    "override_reason": ""
+  },
+  "CAND-003": {
+    "status": "ADVANCE",
+    "reviewer": "recruiter_j_smith",
+    "timestamp": "2026-11-15T09:12:00Z",
+    "override_reason": "Human override: strong Python/SQL/Snowflake/Demand Forecasting in recent role; verify Power BI and SAP in phone screen."
+  },
+  "CAND-004": {
+    "status": "PENDING_HUMAN_REVIEW",
+    "reviewer": "",
+    "timestamp": "",
+    "override_reason": ""
+  }
+}

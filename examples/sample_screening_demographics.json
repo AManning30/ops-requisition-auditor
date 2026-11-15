@@ -1,0 +1,18 @@
+{
+  "CAND-001": {
+    "gender": "Female",
+    "race_ethnicity": "Hispanic/Latino"
+  },
+  "CAND-002": {
+    "gender": "Male",
+    "race_ethnicity": "White"
+  },
+  "CAND-003": {
+    "gender": "Female",
+    "race_ethnicity": "Asian"
+  },
+  "CAND-004": {
+    "gender": "Male",
+    "race_ethnicity": "Black/African American"
+  }
+}

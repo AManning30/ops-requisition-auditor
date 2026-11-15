@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Offline Enterprise ATS Auditor & Deterministic Scoring Engine
-=============================================================
+ops-requisition-auditor: Deterministic JD Alignment Scoring Engine
+==================================================================
 A transparent, repeatable JD-alignment heuristic inspired by common ATS parsing behavior.
 Weights are this project's own, not any vendor's algorithm; use it to find fixable gaps.
 
-Implements the 100-Point Deterministic ATS Scorecard:
+Implements the 100-point JD Alignment Scorecard:
   - Component 1: Weighted Keyword & Taxonomy Score (Max 45 pts)
   - Component 2: Contextual Placement & Recency Score (Max 20 pts)
   - Component 3: Title, Seniority & Calculated Tenure Alignment (Max 15 pts)
@@ -62,6 +62,11 @@ class JDRequirement:
     tier: str = "required"                # "required" (2.0x), "preferred" (1.0x)
     synonyms: List[str] = field(default_factory=list)
     is_knockout_gate: bool = False        # Mandatory degree, license, clearance, work auth
+    alternatives: List[str] = field(default_factory=list)  # Options the JD itself offers ("NICE, Verint, or Genesys"): each earns full 1.0 credit
+
+    @property
+    def display_name(self) -> str:
+        return f"{self.name} (or {', '.join(self.alternatives)})" if self.alternatives else self.name
 
     @property
     def base_weight(self) -> int:
@@ -582,7 +587,9 @@ def evaluate_requirement(req: JDRequirement, resume: ParsedResume) -> AuditLedge
     ensuring an exact literal match (1.0 credit) on the resume is never erased by a 0.5x synonym,
     while also tracking the highest contextual factor `max(credit * mult)` for Component 2.
     """
-    candidates: List[Tuple[str, float]] = [(req.name, 1.0)] + [(syn, 0.5) for syn in req.synonyms]
+    candidates: List[Tuple[str, float]] = (
+        [(req.name, 1.0)] + [(alt, 1.0) for alt in req.alternatives] + [(syn, 0.5) for syn in req.synonyms]
+    )
 
     best_credit = 0.0
     best_multiplier = 0.0
@@ -805,11 +812,11 @@ def run_ats_audit(
             action = f"Confirm whether the candidate holds '{r.requirement.name}' or an accepted equivalent; list it only if true."
         else:
             fix_tier = "Tier 3: True Gap Interrogation (0.0x Missing Requirement)"
-            action = f"Ask whether the candidate has hands-on experience with '{r.requirement.name}'; write a bullet only from what they confirm."
+            action = f"Ask whether the candidate has hands-on experience with '{r.requirement.display_name}'; write a bullet only from what they confirm."
 
         recovery_plan.append(
             {
-                "requirement": r.requirement.name,
+                "requirement": r.requirement.display_name,
                 "tier_label": f"{r.requirement.tier.title()} ({r.requirement.req_multiplier:.1f}x)",
                 "max_item_weight": r.max_weight,
                 "fix_tier": fix_tier,
@@ -867,7 +874,7 @@ def render_markdown_report(report: AuditReport) -> str:
         "",
         "## 2. 5-Component Breakdown Table",
         "",
-        "| ATS Component | Max Points | Underlying Formula / Fraction Math | Earned Points |",
+        "| Component | Max Points | Underlying Formula / Fraction Math | Earned Points |",
         "| :--- | :---: | :--- | :---: |",
         f"| **1. Weighted Keyword & Taxonomy** | 45.0 | `45 * ({report.sum_kw_matched_weights:.2f} / {report.total_max_item_weights:.2f})` *(Literal: `{report.sum_literal_matched_weights:.2f}/{report.total_max_item_weights:.2f}`)* | **{report.comp1_kw_score:.2f}** |",
         f"| **2. Contextual Placement & Recency** | 20.0 | `20 * ({report.sum_earned_item_scores:.2f} / {report.total_max_item_weights:.2f})` | **{report.comp2_context_score:.2f}** |",
@@ -897,7 +904,7 @@ def render_markdown_report(report: AuditReport) -> str:
             else "`\"MISSING\"`"
         )
         lines.append(
-            f"| **{row.requirement.name}** | {tier_str} | {row.requirement.base_weight} | {row.max_weight:.1f} | `{row.match_credit:.1f}` | `{row.placement_multiplier:.1f}x` | `{row.earned_item_score:.2f}` | {quote_display} | `-{pts_lost:.2f}` |"
+            f"| **{row.requirement.display_name}** | {tier_str} | {row.requirement.base_weight} | {row.max_weight:.1f} | `{row.match_credit:.1f}` | `{row.placement_multiplier:.1f}x` | `{row.earned_item_score:.2f}` | {quote_display} | `-{pts_lost:.2f}` |"
         )
 
     lines.extend(
@@ -907,7 +914,7 @@ def render_markdown_report(report: AuditReport) -> str:
             "",
             "## 4. Highest-ROI Point Recovery Plan",
             "",
-            "| Rank | JD Requirement | Fix Strategy Tier | Recoverable ATS Points | Actionable Instruction |",
+            "| Rank | JD Requirement | Fix Strategy Tier | Recoverable Points | Actionable Instruction |",
             "| :---: | :--- | :--- | :---: | :--- |",
         ]
     )
@@ -1264,7 +1271,7 @@ def print_scorecard(scorecard: AuditReport) -> None:
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    parser = argparse.ArgumentParser(description="Offline Deterministic Enterprise ATS Auditor")
+    parser = argparse.ArgumentParser(prog="ops-req-audit", description="ops-requisition-auditor: deterministic, explainable JD Alignment scoring (offline)")
     parser.add_argument("--resume", type=str, help="Path to candidate resume (.docx, .pdf, .txt, or .md)")
     parser.add_argument("--jd-config", type=str, help="Path to structured JD JSON config")
     parser.add_argument("--jd-text", "--jd-file", dest="jd_file", type=str,

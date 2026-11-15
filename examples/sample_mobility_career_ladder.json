@@ -1,0 +1,318 @@
+[
+  {
+    "job_id": "INT-WFM-204",
+    "title": "Senior Analytics Manager",
+    "company": "Northstar Contact Solutions",
+    "location": "St. Louis, MO (Hybrid)",
+    "source": "internal",
+    "requirements": [
+      {
+        "name": "Python",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "PySpark"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "SQL",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "PostgreSQL",
+          "T-SQL"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Snowflake",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "BigQuery",
+          "Redshift"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "SAP S/4HANA",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "SAP ERP",
+          "Oracle NetSuite"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Power BI",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "Tableau",
+          "Looker"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Workforce Capacity Modeling",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "capacity planning"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Demand Forecasting",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "demand planning"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "P&L Ownership",
+        "category": "title_scope",
+        "tier": "required",
+        "synonyms": [
+          "operating budget"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Kubernetes",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [
+          "Docker",
+          "EKS"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Six Sigma Black Belt",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [
+          "Lean Six Sigma"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "Cross-Functional Leadership",
+        "category": "soft_skill",
+        "tier": "required",
+        "synonyms": [
+          "cross-functional"
+        ],
+        "is_knockout_gate": false
+      },
+      {
+        "name": "B.S.",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "Bachelor"
+        ],
+        "is_knockout_gate": true
+      }
+    ],
+    "alignment": {
+      "target_title": "Senior Analytics Manager",
+      "title_synonyms": [
+        "Analytics Manager",
+        "Data Analytics Manager"
+      ],
+      "min_years_required": 6.0,
+      "target_seniority_keywords": [
+        "architected",
+        "spearheaded",
+        "governed",
+        "led",
+        "managed",
+        "directed",
+        "scaled",
+        "owned"
+      ]
+    }
+  },
+  {
+    "job_id": "INT-WFM-108",
+    "title": "Forecasting & Capacity Planning Lead",
+    "company": "Northstar Contact Solutions",
+    "location": "Remote - US",
+    "source": "internal",
+    "requirements": [
+      {
+        "name": "Demand Forecasting",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "demand planning"
+        ]
+      },
+      {
+        "name": "SQL",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": []
+      },
+      {
+        "name": "Python",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": []
+      },
+      {
+        "name": "Workforce Capacity Modeling",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "capacity planning"
+        ]
+      },
+      {
+        "name": "Power BI",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "alternatives": [
+          "Tableau"
+        ]
+      },
+      {
+        "name": "Erlang C",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": []
+      },
+      {
+        "name": "NICE IEX",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [],
+        "alternatives": [
+          "Verint",
+          "Genesys Cloud"
+        ]
+      },
+      {
+        "name": "Cross-Functional Leadership",
+        "category": "soft_skill",
+        "tier": "required",
+        "synonyms": [
+          "cross-functional"
+        ]
+      },
+      {
+        "name": "B.S.",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "Bachelor"
+        ],
+        "is_knockout_gate": true
+      }
+    ],
+    "alignment": {
+      "target_title": "Forecasting & Capacity Planning Lead",
+      "title_synonyms": [
+        "Senior Analytics Manager",
+        "Analytics Manager",
+        "Supply Chain Analytics"
+      ],
+      "min_years_required": 5.0
+    }
+  },
+  {
+    "job_id": "INT-WFM-310",
+    "title": "Director, Contact-Center Workforce Management",
+    "company": "Northstar Contact Solutions",
+    "location": "St. Louis, MO",
+    "source": "internal",
+    "requirements": [
+      {
+        "name": "Workforce Capacity Modeling",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "capacity planning"
+        ]
+      },
+      {
+        "name": "Demand Forecasting",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "demand planning"
+        ]
+      },
+      {
+        "name": "P&L Ownership",
+        "category": "title_scope",
+        "tier": "required",
+        "synonyms": [
+          "operating budget"
+        ]
+      },
+      {
+        "name": "NICE IEX",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [],
+        "alternatives": [
+          "Verint",
+          "Genesys Cloud"
+        ]
+      },
+      {
+        "name": "Erlang C",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": []
+      },
+      {
+        "name": "SQL",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": []
+      },
+      {
+        "name": "Six Sigma Black Belt",
+        "category": "hard_skill",
+        "tier": "preferred",
+        "synonyms": [
+          "Lean Six Sigma"
+        ]
+      },
+      {
+        "name": "Cross-Functional Leadership",
+        "category": "soft_skill",
+        "tier": "required",
+        "synonyms": [
+          "cross-functional"
+        ]
+      },
+      {
+        "name": "B.S.",
+        "category": "hard_skill",
+        "tier": "required",
+        "synonyms": [
+          "Bachelor"
+        ],
+        "is_knockout_gate": true
+      }
+    ],
+    "alignment": {
+      "target_title": "Director, Workforce Management",
+      "title_synonyms": [
+        "Senior Analytics Manager",
+        "Analytics Manager"
+      ],
+      "min_years_required": 8.0
+    }
+  }
+]

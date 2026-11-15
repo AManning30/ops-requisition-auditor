@@ -25,3 +25,11 @@ cache/
 *scorecard*.md
 *scorecard*.json
 *_tailored*.docx
+
+# Packaging build output
+build/
+dist/
+*.egg-info/
+
+# Keep the public synthetic example scorecards
+!examples/sample_scorecard_*.md

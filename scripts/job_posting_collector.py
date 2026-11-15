@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Universal Job Posting Collector & Structured JD Parser
-======================================================
+ops-requisition-auditor: Job Posting Collector & Structured Requisition Parser
+==============================================================================
 Parses job postings from pasted text or saved pages (any site: LinkedIn, Indeed, ZipRecruiter,
 Glassdoor, employer career pages, ATS boards) and can fetch employer-published postings
 directly: Greenhouse, Lever (US + EU), Ashby, and USAJobs via their public posting APIs,
@@ -32,6 +32,7 @@ import argparse
 import dataclasses
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
+import functools
 import html as html_lib
 from html.parser import HTMLParser
 import json
@@ -42,11 +43,12 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import urllib.robotparser
 from typing import Any, Dict, List, Optional, Tuple
 
 
 # ---------------------------------------------------------------------------
-# Supported Job Sites & Enterprise ATS Platforms
+# Source-platform labels (used to tag pasted or fetched postings; not a fetch list)
 # ---------------------------------------------------------------------------
 
 SITE_PATTERNS: List[Tuple[str, str]] = [
@@ -116,6 +118,7 @@ class JobPostingRecord:
     max_years_experience: Optional[float] = None
     hard_skills: List[str] = field(default_factory=list)
     soft_skills: List[str] = field(default_factory=list)
+    alternative_groups: List[List[str]] = field(default_factory=list)  # options the JD itself offers
     security_clearance: str = ""
     work_authorization: str = ""
     travel_requirement: str = ""
@@ -235,7 +238,7 @@ def extract_jsonld_job_posting(raw_html: str) -> Optional[Dict[str, Any]]:
 # Employer-Published Posting Helpers (Greenhouse API, Lever API, direct career pages)
 # ---------------------------------------------------------------------------
 
-USER_AGENT = "ats-auditor-recruiter/1.4 (personal, low-volume job-posting reader; no login or CAPTCHA handling)"
+USER_AGENT = "ops-requisition-auditor/1.5.0 (personal, low-volume job-posting reader; no login or CAPTCHA handling)"
 
 PASTE_ONLY_HOSTS = re.compile(
     r"(?:^|\.)(linkedin|indeed|simplyhired|ziprecruiter|glassdoor|monster|careerbuilder|dice|builtin|wellfound|angel)\.[a-z.]+$",
@@ -283,6 +286,25 @@ def _http_get(url: str, timeout: int = 20) -> Tuple[int, str]:
         return e.code, body
     except Exception as e:
         return 0, str(e)
+
+
+def robots_allows(url: str) -> bool:
+    """False only when the site's robots.txt was read and asks automated tools not to fetch `url`.
+
+    A missing robots.txt (404) or an unreachable site counts as allowed, since the page fetch that
+    follows would fail anyway. A 401/403 on robots.txt counts as disallowed, per the usual convention.
+    """
+    parts = urllib.parse.urlparse(url)
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        return True
+    status, body = _http_get(f"{parts.scheme}://{parts.netloc}/robots.txt")
+    if status in (401, 403):
+        return False
+    if status != 200:
+        return True
+    rp = urllib.robotparser.RobotFileParser()
+    rp.parse(body.splitlines())
+    return rp.can_fetch("ops-requisition-auditor", url)
 
 
 def normalized_job_to_record(njob: NormalizedJob) -> JobPostingRecord:
@@ -383,7 +405,20 @@ def fetch_job_source(url: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 4. General direct HTML fetch (honest User-Agent; employer career pages)
+    # 4. General direct HTML fetch (honest User-Agent; employer career pages), only if robots.txt allows it
+    if not robots_allows(url):
+        return {
+            "ok": False,
+            "error": "This site's robots.txt asks automated tools not to fetch this page (or could not be read).",
+            "status": 0,
+            "platform": platform,
+            "mode": "paste_required",
+            "html": "",
+            "url": url,
+            "blocked": False,
+            "paste_required": True,
+            "reason": "robots_txt",
+        }
     status, body = _http_get(url)
     is_blocked = (
         status in (401, 403, 429, 503)
@@ -422,16 +457,107 @@ KNOWN_HARD_SKILLS: List[str] = [
     "Machine Learning", "Deep Learning", "NLP", "LLM", "GenAI", "PyTorch", "TensorFlow", "Scikit-learn",
     "Pandas", "NumPy", "A/B Testing", "Statistical Modeling", "Forecasting", "Demand Forecasting",
     "Capacity Planning", "Workforce Capacity Modeling", "Inventory Optimization", "Supply Chain Management",
-    "Workforce Management", "NICE IEX", "Genesys Cloud", "Amazon Connect", "Verint", "Calabrio", "Aspect",
+    "Workforce Management", "Amazon Connect", "Aspect", "Google Sheets",
     "Five9", "Talkdesk", "Avaya", "UKG", "Kronos", "Intraday Management", "Real-Time Adherence",
     "Schedule Adherence", "Shrinkage", "Occupancy", "Queue Optimization", "Staffing Models", "Scheduling",
     "Erlang", "Erlang C", "SLA/ASA", "Service Level Agreement", "Average Speed of Answer", "AHT",
+    "ASA", "Service Level", "Abandonment Rate", "Conformance", "Headcount Modeling", "Real-Time Management", "Average Handle Time",
     "Call Volume Forecasting", "Contact Center Operations", "Epic", "MicroStrategy", "Power Query",
     "PivotTables", "Salesforce CRM", "Accounts Receivable", "Grant Management", "Billing Reconciliation",
     "P&L Ownership", "Financial Modeling", "Budgeting", "Variance Analysis", "GAAP", "SOX", "IFRS",
     "HIPAA", "GDPR", "SOC 2", "ISO 27001", "NIST", "PCI-DSS", "OSHA", "FDA", "cGMP",
     "Agile", "Scrum", "Kanban", "SDLC", "ITIL", "Lean Six Sigma", "Six Sigma",
 ]
+
+# Contact-center WFM platforms. Each family is its own product (see references/wfm-taxonomy.md):
+# platforms are never synonyms of each other. Aliases listed together are one vendor's names.
+WFM_PLATFORM_ALIASES: List[str] = [
+    "NICE IEX", "NICE CXone", "NICE inContact", "NICE WFM", "NICE", "IEX", "CXone", "inContact",
+    "Genesys Cloud", "Genesys", "Verint", "Calabrio", "Alvaria", "Injixo", "Teleopti", "Playvox",
+]
+KNOWN_HARD_SKILLS.extend(a for a in WFM_PLATFORM_ALIASES if a not in KNOWN_HARD_SKILLS)
+
+# Names that are also ordinary English words. They count only in a skills-style context and with
+# exact capitalization, so "every aspect", "go beyond", and "Excel in a fast-paced team" are ignored.
+AMBIGUOUS_SKILLS = {"R", "Go", "Aspect", "Epic", "Excel", "Swift", "Rust", "Scala"}
+CASE_SENSITIVE_SKILLS = {"NICE", "IEX"}  # "nice to have" is not a vendor
+
+_AMBIGUOUS_PRE = (
+    r"(?:(?:in|with|using|of|and|or|including|via|plus|Microsoft|MS|Advanced|Strong|Expert|Proficient)\s+"
+    r"|[,/(;]\s*|^[\s\-\u2022*]*)"
+)
+_AMBIGUOUS_POST = (
+    r"(?=\s*[,/);.]|\s*$|\s*\(|\s+(?:and|or|skills?|proficiency|programming|language|formulas?|macros?|"
+    r"modeling|modelling|pivot\w*|VBA|WFM|eWFM|Workforce|Quality|Recording|Software|EHR|EMR|Systems?)\b)"
+)
+
+
+@functools.lru_cache(maxsize=None)
+def _skill_regex(skill: str) -> "re.Pattern[str]":
+    if skill in AMBIGUOUS_SKILLS:
+        return re.compile(rf"{_AMBIGUOUS_PRE}(?P<t>{re.escape(skill)}){_AMBIGUOUS_POST}", re.MULTILINE)
+    left = r"(?<!\w)" if skill[0].isalnum() else r"(?:^|(?<=[\s,;/(\[]))"
+    right = r"(?!\w)" if skill[-1].isalnum() else r"(?:$|(?=[\s,;/.)\]]))"
+    flags = 0 if skill in CASE_SENSITIVE_SKILLS else re.IGNORECASE
+    return re.compile(rf"{left}(?P<t>{re.escape(skill)}){right}", flags)
+
+
+def find_skill_spans(text: str) -> List[Tuple[str, int, int]]:
+    spans: List[Tuple[str, int, int]] = []
+    for skill in KNOWN_HARD_SKILLS:
+        for m in _skill_regex(skill).finditer(text):
+            spans.append((skill, m.start("t"), m.end("t")))
+    return spans
+
+
+def _drop_contained_spans(spans: List[Tuple[str, int, int]]) -> List[Tuple[str, int, int]]:
+    """A shorter name inside a longer one ('SAP' in 'SAP S/4HANA', 'NICE' in 'NICE IEX') is not a second requirement."""
+    return [
+        s for s in spans
+        if not any(o is not s and o[1] <= s[1] and s[2] <= o[2] and (o[2] - o[1]) > (s[2] - s[1]) for o in spans)
+    ]
+
+
+_ALT_SEP_RE = re.compile(r"^(?:\s*,\s*(?:or\s+|and/or\s+)?|\s*/\s*|\s+(?:or|and/or)\s+)$", re.IGNORECASE)
+_ALT_OR_RE = re.compile(r"\bor\b|and/or", re.IGNORECASE)
+_ALT_LEAD_RE = re.compile(r"(?:such\s+as|e\.g\.,?|like)\s*$", re.IGNORECASE)
+
+
+def find_alternative_groups(text: str) -> List[List[str]]:
+    """Skills the JD itself offers as options ("NICE, Verint, or Genesys"; "SQL or Tableau"; "tools such as A, B, C").
+
+    "and" lists ("Python and SQL") are never grouped: those are all required. Any one member of a group
+    satisfies the requirement at full credit (references/wfm-taxonomy.md, rule 3).
+    """
+    groups: List[List[str]] = []
+    for line in text.splitlines():
+        spans = sorted(_drop_contained_spans(find_skill_spans(line)), key=lambda s: (s[1], s[2]))
+        chains: List[List[Tuple[str, int, int]]] = []
+        chain: List[Tuple[str, int, int]] = []
+        for sp in spans:
+            if chain and _ALT_SEP_RE.match(line[chain[-1][2]:sp[1]]):
+                chain.append(sp)
+            else:
+                if chain:
+                    chains.append(chain)
+                chain = [sp]
+        if chain:
+            chains.append(chain)
+        for ch in chains:
+            if len(ch) < 2:
+                continue
+            between = [line[ch[i][2]:ch[i + 1][1]] for i in range(len(ch) - 1)]
+            has_or = any(_ALT_OR_RE.search(b) for b in between)
+            slash_platforms = all("/" in b for b in between) and all(s[0] in WFM_PLATFORM_ALIASES for s in ch)
+            example_lead = bool(_ALT_LEAD_RE.search(line[:ch[0][1]]))
+            if has_or or slash_platforms or example_lead:
+                names: List[str] = []
+                for s in ch:
+                    if s[0] not in names:
+                        names.append(s[0])
+                if len(names) >= 2 and names not in groups:
+                    groups.append(names)
+    return groups
 
 KNOWN_SOFT_SKILLS: List[str] = [
     "Cross-Functional Leadership", "Stakeholder Management", "Executive Communication",
@@ -573,19 +699,53 @@ def extract_salary_from_text(text: str) -> SalaryInfo:
 
 _SECTION_HEADER_MAP: List[Tuple[str, str]] = [
     (r"^(?:preferred|desired|nice[-\s]to[-\s]have|bonus|plus|additional|ideal)\s+(?:qualifications?|requirements?|skills?|experience|attributes?)", "preferred"),
-    (r"^(?:what\s+makes\s+you\s+stand\s+out|even\s+better\s+if\s+you\s+have|nice\s+to\s+haves?|preferred|bonus\s+points?)", "preferred"),
-    (r"^(?:required|minimum|basic|essential|must[-\s]have|key)\s+(?:qualifications?|requirements?|skills?|experience|criteria)", "required"),
-    (r"^(?:qualifications?|requirements?|what\s+you(?:\s+will)?\s+bring|what\s+we(?:\s+are|'re)\s+looking\s+for|who\s+you\s+are|skills\s+(?:&|and)\s+experience|candidate\s+profile)", "required"),
-    (r"^(?:responsibilities|key\s+responsibilities|essential\s+duties|duties|what\s+you(?:\s+will|'ll)\s+do|the\s+role|day[-\s]to[-\s]day|job\s+duties|role\s+overview|in\s+this\s+role)", "responsibilities"),
-    (r"^(?:benefits|perks|compensation\s*(?:&|and)?\s*benefits|what\s+we\s+offer|why\s+work\s+(?:here|with\s+us)|total\s+rewards)", "benefits"),
+    (r"^(?:what\s+makes\s+you\s+stand\s+out|what\s+will\s+help\s+you\s+stand\s+out|even\s+better\s+if\s+you\s+have|nice\s+to\s+haves?|preferred|bonus\s+points?|optional\s+garnishes)", "preferred"),
+    (r"^(?:required|minimum|basic|essential|must[-\s]have|key|candidate)\s+(?:qualifications?|requirements?|skills?|experience|criteria)", "required"),
+    (r"^(?:qualifications?|requirements?|what\s+you(?:\s+will)?\s+bring|what\s+we(?:\s+are|'re)\s+looking\s+for|what\s+we\s+require|who\s+you\s+are|skills\s+(?:&|and)\s+(?:experience|qualifications?)|candidate\s+profile)", "required"),
+    (r"^(?:your\s+(?:expertise|experience|background|qualifications|skills(?:\s+(?:&|and)\s+(?:competencies|experience))?)"
+     r"|(?:here's\s+)?what\s+we(?:'re|\s+are)\s+looking\s+for|we're\s+excited\s+about\s+you(?:\s+(?:because|if))?"
+     r"|you\s+(?:might|may)\s+be\s+a\s+(?:good\s+|great\s+)?fit\s+if|about\s+you|what\s+you(?:'ll)?\s+(?:need|have)"
+     r"|what\s+skills\s+do\s+i\s+need|must[-\s]haves?|you\s+must\s+have|you'll\s+be\s+successful\s+in\s+this\s+role\s+if(?:\s+you\s+have)?"
+     r"|do\s+you\s+have\s+the\s+right\s+ingredients|must[-\s]have\s+pantry\s+staples"
+     r"|you\s+(?:will\s+)?(?:have|bring)|the\s+ideal\s+candidate|skills\s+(?:&|and)\s+competencies)", "required"),
+    (r"^(?:responsibilities|key\s+responsibilities|job\s+responsibilities|essential\s+duties|duties|what\s+you(?:\s+will|'ll)\s+do|the\s+role|day[-\s]to[-\s]day|job\s+duties|role\s+overview|in\s+this\s+role)", "responsibilities"),
+    (r"^(?:a\s+typical\s+day|a\s+day\s+in\s+the\s+life|(?:here's\s+)?what\s+you'll\s+(?:do|be\s+doing|own|cook\s+up)(?:\s+day[-\s]to[-\s]day)?"
+     r"|what\s+will\s+i\s+be\s+doing|your\s+day[-\s]to[-\s]day(?:\s+is)?|what\s+success\s+looks\s+like"
+     r"|as\s+a\s+[\w\s-]+,\s+you\s+will|^you\s+will$"
+     r"|you're\s+excited\s+about\s+this\s+opportunity\s+because\s+you\s+will|your\s+(?:role|responsibilities|impact))", "responsibilities"),
+    (r"^(?:benefits|perks|compensation\s*(?:&|and)?\s*benefits|what\s+we\s+offer|(?:what\s+yo)?u'll\s+get|why\s+work\s+(?:here|with\s+us)|total\s+rewards|our\s+total\s+rewards)", "benefits"),
+    (r"^(?:compensation|(?:base\s+|annual\s+)?(?:pay|salary)(?:\s+range)?|how\s+we'll\s+take\s+care\s+of\s+you|see\s+below\s+for\s+paid\s+time\s+off)", "benefits"),
     (r"^(?:about\s+(?:us|the\s+company)|company\s+overview|who\s+we\s+are)", "company"),
-    (r"^(?:about\s+the\s+(?:job|role|position|opportunity)|job\s+summary|position\s+summary|summary|overview)", "summary"),
+    (r"^(?:about\s+the\s+(?:job|role|position|opportunity)|what's\s+the\s+opportunity|job\s+summary|position\s+summary|summary|overview)", "summary"),
+    (r"^(?:about\s+(?:the\s+)?team|the\s+community\s+you\s+will\s+join|about\s+[A-Za-z][\w&.'+ -]{1,30})$", "company"),
+    # Logistics and legal boilerplate: never requirements.
+    (r"^(?:where\s+you'll\s+be|(?:your\s+)?location|our\s+commitment\s+to|equal\s+(?:employment\s+)?opportunity"
+     r"|we\s+expect\s+this\s+position\s+to\s+be\s+filled|join\s+us\b|unleash\s+your\s+potential|policies\b|how\s+\w+\s+uses\s+ai)", "other"),
 ]
+
+_REQUIREMENT_LIKE_RE = re.compile(
+    r"\b(?:degree|bachelor|master'?s|years?\s+of|\d+\+?\s*years?|experience\s+(?:with|in)|proficien|certif|licen[sc])",
+    re.IGNORECASE,
+)
+_LIST_END_RE = re.compile(
+    r"compensation|salary|pay\s+range|\boffice\b|in[-\s]office|\bhybrid\b|\bremote\b|location|benefits|equity|bonus"
+    r"|privacy|disclaimer|^note\s*:|we\s+(?:hire|offer|value)|our\s+(?:customers|team|mission)",
+    re.IGNORECASE,
+)
+
+_BOILERPLATE_LINE_RE = re.compile(
+    r"equal\s+(?:employment\s+)?opportunity\s+employer|reasonable\s+accommodations?|applicant\s+privacy|privacy\s+(?:notice|policy)"
+    r"|we\s+expect\s+this\s+position\s+to\s+be\s+filled|e-verify|does\s+not\s+discriminate|without\s+regard\s+to\s+(?:race|age|sex)",
+    re.IGNORECASE,
+)
 
 
 def classify_section_header(line: str) -> Optional[str]:
-    cleaned = re.sub(r"^[#*\-•\s]+|[#*:_\s]+$", "", line).strip()
-    if not cleaned or len(cleaned) > 75:
+    normalized = line.replace("\u2019", "'").replace("\u2018", "'").replace("\xa0", " ")
+    if re.match(r"^\s*(?:[-*•▪▸]|\d+[.)])\s+", normalized) and len(normalized.split()) > 5:
+        return None  # a bullet sentence such as "- Requirements gathering with stakeholders" is content, not a heading
+    cleaned = re.sub(r"^[#*\-•\s]+|(?:[#*:_?\s]|\.\.\.|\u2026)+$", "", normalized).strip()
+    if not cleaned or len(cleaned) > 80:
         return None
     # Must not look like a full sentence ending with a period
     if cleaned.endswith(".") and len(cleaned.split()) > 7:
@@ -593,6 +753,13 @@ def classify_section_header(line: str) -> Optional[str]:
     for pattern, bucket in _SECTION_HEADER_MAP:
         if re.search(pattern, cleaned, re.IGNORECASE):
             return bucket
+    # Check parenthetical section labels such as "About this roll* (Responsibilities)" or "Optional garnishes (Preferred Qualifications)"
+    paren_m = re.search(r"\(([^()]{3,45})\)\s*$", cleaned)
+    if paren_m:
+        inner = paren_m.group(1).strip()
+        for pattern, bucket in _SECTION_HEADER_MAP:
+            if re.search(pattern, inner, re.IGNORECASE):
+                return bucket
     return None
 
 
@@ -786,6 +953,7 @@ def parse_job_posting_text(
 
     # 5. Split Job Posting Lines into Sections (Summary, Responsibilities, Required, Preferred, Benefits)
     current_bucket = "summary"
+    bucket_has_bullets = False
     summary_lines: List[str] = []
     company_lines: List[str] = []
 
@@ -793,11 +961,26 @@ def parse_job_posting_text(
         header_bucket = classify_section_header(line)
         if header_bucket:
             current_bucket = header_bucket
+            bucket_has_bullets = False
             continue
 
         is_bullet = bool(re.match(r"^(?:[-*•▪▸]|\d+[.)])\s+", line))
         clean_item = re.sub(r"^(?:[-*•▪▸]|\d+[.)])\s*", "", line).strip()
         if not clean_item:
+            continue
+
+        # A plain paragraph after a bulleted list usually ends that list (pay, office policy, and legal text often
+        # follow a requirements list without their own heading). Short requirement-like lines are kept.
+        if current_bucket in ("required", "preferred", "responsibilities"):
+            if is_bullet:
+                bucket_has_bullets = True
+            elif bucket_has_bullets and not _REQUIREMENT_LIKE_RE.search(clean_item) and (
+                    len(clean_item.split()) > 30 or _LIST_END_RE.search(clean_item)):
+                current_bucket = "other"
+                continue
+
+        # Legal/logistics boilerplate is never a requirement or duty
+        if current_bucket in ("required", "preferred", "responsibilities") and _BOILERPLATE_LINE_RE.search(clean_item):
             continue
 
         # Inline preferred override inside a required list
@@ -825,6 +1008,10 @@ def parse_job_posting_text(
                     rec.responsibilities.append(clean_item)
             elif len(clean_item) > 40 and clean_item != rec.job_title and not re.match(r"^(?:job\s+title|company|location|job\s+id|req(?:uisition)?\s+id|department|date\s+posted)\s*:", clean_item, re.IGNORECASE):
                 summary_lines.append(clean_item)
+
+    if not rec.required_qualifications and rec.preferred_qualifications:
+        rec.required_qualifications = rec.preferred_qualifications
+        rec.preferred_qualifications = []
 
     rec.role_summary = " ".join(summary_lines[:4])[:900]
     rec.company_overview = " ".join(company_lines[:3])[:700]
@@ -858,13 +1045,12 @@ def parse_job_posting_text(
         if re.search(pat, full_text, re.IGNORECASE) and cert not in rec.certifications_licenses:
             rec.certifications_licenses.append(cert)
 
-    # Hard & Soft Skills
+    # Hard & Soft Skills (a longer name absorbs a contained one; ambiguous words need skills-style context)
+    present_skills = {sp[0] for sp in _drop_contained_spans(find_skill_spans(full_text))}
     for skill in KNOWN_HARD_SKILLS:
-        left = r"(?<!\w)" if skill[0].isalnum() else r"(?:^|(?<=[\s,;/(\[]))"
-        right = r"(?!\w)" if skill[-1].isalnum() else r"(?:$|(?=[\s,;/.)\]]))"
-        if re.search(rf"{left}{re.escape(skill)}{right}", full_text, re.IGNORECASE):
-            if skill not in rec.hard_skills:
-                rec.hard_skills.append(skill)
+        if skill in present_skills and skill not in rec.hard_skills:
+            rec.hard_skills.append(skill)
+    rec.alternative_groups = find_alternative_groups(full_text)
 
     for s_skill in KNOWN_SOFT_SKILLS:
         if re.search(rf"\b{re.escape(s_skill)}\b", full_text, re.IGNORECASE):
@@ -890,35 +1076,32 @@ def parse_job_posting_text(
 # ---------------------------------------------------------------------------
 
 SKILL_SYNONYM_MAP: Dict[str, List[str]] = {
-    "python": ["PySpark", "Pandas"],
+    # Rule: a synonym must name the SAME capability, or be a specific case of a generic requirement
+    # (JD says "SQL", resume says "PostgreSQL"). Competing products and different methods are never
+    # synonyms: Tableau/Power BI, Snowflake/BigQuery, Verint/NICE/Genesys, Erlang C/Erlang A.
+    # Those become gap questions for the candidate instead (references/wfm-taxonomy.md).
     "sql": ["PostgreSQL", "T-SQL", "MySQL", "PL/SQL"],
-    "snowflake": ["BigQuery", "Redshift", "Databricks"],
-    "power bi": ["Tableau", "Looker", "Qlik"],
-    "tableau": ["Power BI", "Looker", "Qlik"],
     "aws": ["Amazon Web Services", "EC2", "S3"],
     "gcp": ["Google Cloud", "BigQuery"],
     "azure": ["Microsoft Azure"],
-    "kubernetes": ["EKS", "GKE", "AKS", "Docker"],
-    "sap s/4hana": ["SAP ERP", "SAP", "Oracle NetSuite"],
+    "kubernetes": ["EKS", "GKE", "AKS"],
     "p&l ownership": ["operating budget", "P&L management"],
-    "demand forecasting": ["demand planning", "inventory forecasting", "call volume forecasting"],
-    "workforce capacity modeling": ["capacity planning", "resource modeling", "staffing models", "capacity & workforce planning"],
-    "capacity planning": ["workforce capacity modeling", "staffing models", "capacity & workforce planning"],
-    "workforce management": ["WFM", "workforce planning", "workforce analytics", "senior workforce analyst", "intraday management"],
-    "nice iex": ["NICE WFM", "IEX", "Verint", "Calabrio", "Aspect"],
-    "verint": ["NICE IEX", "Calabrio", "Aspect", "Genesys Cloud"],
-    "calabrio": ["NICE IEX", "Verint", "Genesys Cloud"],
-    "genesys cloud": ["Amazon Connect", "NICE IEX", "Five9", "Avaya"],
-    "amazon connect": ["Genesys Cloud", "NICE IEX", "Five9"],
-    "intraday management": ["real-time adherence", "schedule adherence", "queue optimization", "shrinkage"],
-    "real-time adherence": ["schedule adherence", "adherence", "intraday management"],
-    "schedule adherence": ["real-time adherence", "adherence", "intraday management"],
-    "shrinkage": ["occupancy", "intraday management", "real-time adherence"],
-    "occupancy": ["shrinkage", "utilization", "capacity & workforce planning", "queue optimization"],
-    "aht": ["average handle time", "SLA/ASA", "ASA", "queue optimization"],
-    "service level agreement": ["SLA", "SLA/ASA", "KPI"],
-    "cross-functional leadership": ["cross-functional", "stakeholder management", "cross-functional collaboration"],
-    "six sigma black belt": ["Lean Six Sigma", "Six Sigma Green Belt"],
+    "demand forecasting": ["demand planning"],
+    "forecasting": ["volume forecasting", "contact volume forecasting", "call volume forecasting", "workload forecasting", "demand forecasting"],
+    "workforce capacity modeling": ["capacity planning"],
+    "capacity planning": ["workforce capacity modeling"],
+    "workforce management": ["WFM"],
+    "nice iex": ["IEX"],
+    "intraday management": ["real-time management", "real-time monitoring"],
+    "real-time management": ["intraday management", "real-time monitoring"],
+    "real-time adherence": ["schedule adherence", "adherence"],
+    "schedule adherence": ["real-time adherence", "adherence"],
+    "aht": ["average handle time"],
+    "average handle time": ["AHT"],
+    "average speed of answer": ["ASA"],
+    "asa": ["average speed of answer"],
+    "service level agreement": ["SLA"],
+    "cross-functional leadership": ["cross-functional", "cross-functional collaboration"],
 }
 
 
@@ -929,6 +1112,31 @@ def build_ats_config_from_record(rec: JobPostingRecord) -> Dict[str, Any]:
 
     req_text_block = "\n".join(rec.required_qualifications)
     pref_text_block = "\n".join(rec.preferred_qualifications)
+
+    # 0. JD-offered alternatives ("NICE, Verint, or Genesys"): one requirement, any listed option earns full credit
+    for group in rec.alternative_groups:
+        members = [m for m in group if m.lower() not in seen]
+        if len(members) < 2:
+            continue
+        member_keys = {m.lower() for m in members}
+        in_req = any(re.search(re.escape(m), req_text_block, re.IGNORECASE) for m in members)
+        in_pref = any(re.search(re.escape(m), pref_text_block, re.IGNORECASE) for m in members)
+        syns: List[str] = []
+        for m in members:
+            for s in SKILL_SYNONYM_MAP.get(m.lower(), []):
+                if s.lower() not in member_keys and s not in syns:
+                    syns.append(s)
+        seen.update(member_keys)
+        requirements.append(
+            {
+                "name": members[0],
+                "category": "hard_skill",
+                "tier": "preferred" if (in_pref and not in_req) else "required",
+                "synonyms": syns,
+                "alternatives": members[1:],
+                "is_knockout_gate": False,
+            }
+        )
 
     # 1. Add matched hard skills with tier detection
     for hs in rec.hard_skills:
@@ -1242,7 +1450,7 @@ Benefits & Perks
 # Stage 1 Public API Functions & Unified 10-Board ToS Compliance Router
 # ---------------------------------------------------------------------------
 
-DEFAULT_USER_AGENT = "ATS-Ledger-CompliantCollector/1.0 (Public-API-Only)"
+DEFAULT_USER_AGENT = "ops-requisition-auditor/1.5.0 (public-API-only collector)"
 
 # Unified 10-board blocklist inside job_posting_collector.py
 RESTRICTED_DOMAINS: dict[str, str] = {
@@ -1629,7 +1837,7 @@ def load_manual_jd(text: str, title: str = "Manual Paste", company: str = "Manua
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Universal Job Posting Collector & Structured JD Parser")
+    parser = argparse.ArgumentParser(prog="ops-req-collect", description="ops-requisition-auditor: job posting collector & structured requisition parser")
     parser.add_argument("--url", type=str, help="Employer-published job posting URL (Greenhouse, Lever, Ashby, career page)")
     parser.add_argument("--input-file", "--jd-file", "--jd-text", dest="input_file", type=str, help="Path to saved HTML or plain-text job posting file")
     parser.add_argument("--platform", type=str, default="", help="Optional source platform override (e.g., LinkedIn, Indeed, ZipRecruiter)")

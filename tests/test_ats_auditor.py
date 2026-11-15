@@ -14,7 +14,7 @@ import offline_ats_auditor as oaa
 import job_posting_collector as jpc
 
 
-class TestEnterpriseATSAuditor(unittest.TestCase):
+class TestOpsRequisitionAuditor(unittest.TestCase):
     def test_baseline_demo_score_parity(self):
         resume_txt, reqs, align_cfg = oaa.get_demo_fixture()
         rep = oaa.run_ats_audit(resume_txt, reqs, align_cfg, reference_date=oaa.datetime(2026, 11, 1))
@@ -120,9 +120,24 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
             docs_html = f2.read()
         self.assertEqual(demo_html, docs_html)
         self.assertTrue(demo_html.strip().endswith("</html>"))
-        for required_fn in ("function renderAtsTable()", "function toggleAtsItem(", "function applyAllAtsFixes()", "function resetAtsSim()"):
+        for required_fn in (
+            "function renderTable()",
+            "function toggleItem(",
+            "function applyAllFixes()",
+            "function resetSim()",
+            "function verdictFor(",
+            "function renderRqsTable()",
+            "function toggleRqsFinding(",
+            "function applyRqsAutoEdits()",
+            "function auditJdTextClient(",
+        ):
             self.assertIn(required_fn, demo_html)
+        self.assertIn("ops-requisition-auditor", demo_html)
         self.assertNotIn("C:/Users/", demo_html)
+        self.assertNotIn("C:\\Users\\", demo_html)
+        # Guard against regressions to vendor-algorithm claims, agent telemetry, or removed features.
+        for banned in ("Hermes", "Taleo", "Eightfold", "--search", "Legacy Literal", "Strong Advance"):
+            self.assertNotIn(banned, demo_html)
 
 
 
@@ -302,6 +317,68 @@ class TestEnterpriseATSAuditor(unittest.TestCase):
                     check=True,
                 )
                 self.assertIn("Analytics Engineer", proc.stdout)
+
+    def test_wfm_alternatives_ambiguous_spans_and_robots_gate(self):
+        # 1. Ambiguous / case-sensitive skills and contained-span suppression
+        noisy_jd = (
+            "Job Title: Workforce Planning Analyst\n"
+            "Required Qualifications\n"
+            "- You will excel in a fast-paced team and go beyond in every aspect of service delivery.\n"
+            "- Experience with NICE IEX, Verint, or Genesys Cloud for contact center scheduling.\n"
+            "- Strong Excel and SQL proficiency; SAP S/4HANA experience is nice to have.\n"
+        )
+        rec = jpc.parse_job_posting_text(noisy_jd)
+        self.assertNotIn("Go", rec.hard_skills)
+        self.assertNotIn("Aspect", rec.hard_skills)
+        self.assertNotIn("SAP", rec.hard_skills)
+        self.assertNotIn("NICE", rec.hard_skills)
+        self.assertNotIn("IEX", rec.hard_skills)
+        self.assertIn("Excel", rec.hard_skills)
+        self.assertIn("SQL", rec.hard_skills)
+        self.assertIn("SAP S/4HANA", rec.hard_skills)
+        self.assertIn(["NICE IEX", "Verint", "Genesys Cloud"], rec.alternative_groups)
+
+        # 2. JD-offered alternatives earn full 1.0 match credit and render display_name
+        reqs, align_cfg = oaa.extract_reqs_consistent(noisy_jd)
+        alt_reqs = [r for r in reqs if r.alternatives]
+        self.assertEqual(len(alt_reqs), 1)
+        self.assertEqual(alt_reqs[0].name, "NICE IEX")
+        self.assertEqual(alt_reqs[0].alternatives, ["Verint", "Genesys Cloud"])
+        self.assertEqual(alt_reqs[0].display_name, "NICE IEX (or Verint, Genesys Cloud)")
+
+        wfm_resume = (
+            "ALEX RIVERA\n"
+            "St. Louis, MO | alex@example.com | 314-555-0100\n"
+            "Professional Summary\n"
+            "Workforce Planning Analyst with 6 years of contact center scheduling experience.\n"
+            "Work Experience\n"
+            "Workforce Planning Analyst - Metro Contact Center (01/2021 - Present)\n"
+            "- Managed contact center scheduling for 350 agents using Genesys Cloud, SQL, and Excel, improving adherence by 12%.\n"
+            "- Supported SAP S/4HANA reporting integration across 4 regional sites.\n"
+            "Education\n"
+            "B.S. in Business Administration - Saint Louis University (05/2020)\n"
+            "Technical & Core Skills\n"
+            "Genesys Cloud, SQL, Excel, SAP S/4HANA\n"
+        )
+        rep = oaa.run_ats_audit(wfm_resume, reqs, align_cfg, reference_date=oaa.datetime(2026, 11, 1))
+        alt_row = next(row for row in rep.ledger if row.requirement.name == "NICE IEX")
+        self.assertEqual(alt_row.match_credit, 1.0)
+        self.assertEqual(alt_row.matched_term, "Genesys Cloud")
+        md = oaa.render_markdown_report(rep)
+        self.assertIn("NICE IEX (or Verint, Genesys Cloud)", md)
+
+        # 3. robots.txt gate on direct career-page fetches
+        from unittest import mock
+        disallow_robots = "User-agent: *\nDisallow: /jobs/\n"
+        with mock.patch.object(jpc, "_http_get", return_value=(200, disallow_robots)):
+            self.assertFalse(jpc.robots_allows("https://careers.example.com/jobs/123"))
+            res_disallowed = jpc.fetch_job_source("https://careers.example.com/jobs/123")
+            self.assertTrue(res_disallowed.get("paste_required"))
+            self.assertEqual(res_disallowed.get("reason"), "robots_txt")
+
+        # 4. WFM taxonomy reference file exists
+        taxonomy_path = os.path.join(ROOT_DIR, "references", "wfm-taxonomy.md")
+        self.assertTrue(os.path.isfile(taxonomy_path))
 
 
 if __name__ == "__main__":

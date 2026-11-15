@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Compliant Job Posting Collector & ToS Router.
+ops-requisition-auditor: Public-API Job Posting Collector & Terms-of-Service Router.
 Permitted automated APIs: Greenhouse, Lever (US + EU), Ashby, USAJobs.
 Blocked from automated HTTP (manual paste/file only):
   Monster, CareerBuilder, Dice, Built In, Wellfound, SimplyHired, Indeed.
@@ -23,7 +23,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-DEFAULT_USER_AGENT = "ATS-Ledger-CompliantCollector/1.0 (Public-API-Only)"
+DEFAULT_USER_AGENT = "ops-requisition-auditor/1.5.0 (public-API-only collector)"
 
 RESTRICTED_DOMAINS: dict[str, str] = {
     "linkedin.com": "LinkedIn Terms of Service prohibit automated scraping and bots.",
@@ -424,7 +424,7 @@ def load_manual_jd(text: str, title: str = "Manual Paste", company: str = "Manua
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="ToS-Compliant Job Posting Collector")
+    ap = argparse.ArgumentParser(prog="ops-req-api-collect", description="ops-requisition-auditor: public-API job posting collector (restricted boards are paste-only)")
     grp = ap.add_mutually_exclusive_group(required=True)
     grp.add_argument("--url", help="Greenhouse, Lever, or Ashby job/board URL (blocks restricted boards)")
     grp.add_argument("--greenhouse", metavar="BOARD_TOKEN", help="Fetch all public jobs for a Greenhouse board token")

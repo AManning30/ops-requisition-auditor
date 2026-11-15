@@ -8,7 +8,7 @@ This documents the model implemented in `scripts/offline_ats_auditor.py`, so inl
 - Max item weight = base x tier. Total possible = sum of all max item weights (the shared denominator for Components 1 and 2).
 
 ## Component 1 - Keyword coverage (45)
-`45 x sum(max weight x match credit) / sum(max weights)`. Match credit: exact term = 1.0; listed synonym = 0.5; none = 0.0. The literal-only view scores synonyms as 0.0. Matching is case-insensitive and boundary-aware (handles `C++`, `B.S.`, `.NET`).
+`45 x sum(max weight x match credit) / sum(max weights)`. Match credit: exact term (or a JD-offered alternative in `alternatives`) = 1.0; listed synonym = 0.5; none = 0.0. The literal-only view scores synonyms as 0.0. Matching is case-insensitive and boundary-aware (handles `C++`, `B.S.`, `.NET`).
 
 ## Component 2 - Placement and recency (20)
 `20 x sum(max weight x best (credit x placement)) / sum(max weights)`. Placement multiplier by where the best match sits:
