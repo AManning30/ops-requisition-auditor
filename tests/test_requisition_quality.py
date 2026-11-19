@@ -203,6 +203,17 @@ class TestRequisitionQualityAuditor(unittest.TestCase):
             self.assertIn(heading, md)
         self.assertIn("not legal advice", md)
 
+    def test_render_rqs_csv_includes_level_detected_and_sha(self):
+        import csv
+        import io
+        audit = rqa.audit_text(_read(UNICORN))
+        csv_text = rqa.render_rqs_csv([audit])
+        rows = list(csv.DictReader(io.StringIO(csv_text)))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["input_sha256"], audit.input_sha256[:16])
+        self.assertEqual(rows[0]["level_detected"], "level II")
+        self.assertEqual(rows[0]["title"], "Workforce Management Analyst II - WFM Ops - L4")
+
     def test_portfolio_audit_with_stubbed_board(self):
         def fake_greenhouse(token, job_id=None):
             return [

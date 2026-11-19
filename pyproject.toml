@@ -8,11 +8,11 @@ version = "1.5.0"
 description = "ops-requisition-auditor: deterministic, explainable JD Alignment scoring with quoted evidence and zero-fabrication rewrites for operations, WFM, and BI requisitions"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "AGPL-3.0-only OR LicenseRef-Commercial" }
+license = "AGPL-3.0-only OR LicenseRef-Commercial"
+license-files = ["LICENSE", "COMMERCIAL-LICENSE.md", "NOTICE"]
 authors = [{ name = "Alexandru Manning" }]
 keywords = ["requisition", "jd-alignment", "resume", "explainable-ai", "workforce-management", "recruiting", "skills-based-hiring"]
 classifiers = [
-    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -20,6 +20,13 @@ classifiers = [
     "Topic :: Office/Business",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/AManning30/ops-requisition-auditor"
+Repository = "https://github.com/AManning30/ops-requisition-auditor"
+"Interactive Workbench" = "https://amanning30.github.io/ops-requisition-auditor/"
+Releases = "https://github.com/AManning30/ops-requisition-auditor/releases"
+Issues = "https://github.com/AManning30/ops-requisition-auditor/issues"
 
 [tool.setuptools]
 package-dir = {"" = "scripts"}

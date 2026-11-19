@@ -980,7 +980,7 @@ def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
     writer.writerow([
-        "input_sha256", "title", "company", "location", "inferred_level",
+        "input_sha256", "title", "company", "location", "level_detected",
         "score", "projected_score", "band", "gates_score", "load_score",
         "clarity_score", "title_score", "language_score", "findings_count", "top_issue",
     ])
@@ -992,7 +992,7 @@ def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
             a.title or "",
             a.company or "",
             a.location or "",
-            str(a.stats.get("inferred_level") or ""),
+            str(a.stats.get("level_detected") or ""),
             f"{a.score:.1f}",
             f"{a.projected_score:.1f}" if a.projected_score is not None else f"{a.score:.1f}",
             a.band,
