@@ -26,6 +26,7 @@ public-board fetchers from job_posting_collector.py (restricted boards are never
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import dataclasses
 import hashlib
@@ -33,6 +34,7 @@ import io
 import json
 import os
 import re
+import secrets
 import statistics
 import sys
 from dataclasses import dataclass, field
@@ -970,10 +972,32 @@ Requirements
 # CLI
 # ---------------------------------------------------------------------------
 
+def _xor_stream_encrypt(plaintext: bytes, key_material: bytes, nonce: bytes) -> bytes:
+    out = bytearray()
+    counter = 0
+    while len(out) < len(plaintext):
+        block = hashlib.sha256(key_material + nonce + counter.to_bytes(8, "big")).digest()
+        out.extend(block)
+        counter += 1
+    keystream = bytes(out[:len(plaintext)])
+    return bytes(p ^ k for p, k in zip(plaintext, keystream))
+
+
 def _write(path: str, content: str) -> None:
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
+    key = os.environ.get("OPS_AUDITOR_OUTPUT_KEY", "")
+    if not key:
+        raise RuntimeError("Refusing to write clear-text output. Set OPS_AUDITOR_OUTPUT_KEY to enable encrypted output.")
+
+    nonce = secrets.token_bytes(16)
+    key_material = hashlib.sha256(key.encode("utf-8")).digest()
+    ciphertext = _xor_stream_encrypt(content.encode("utf-8"), key_material, nonce)
+    payload = "OPSENCv1:{nonce}:{ciphertext}".format(
+        nonce=base64.b64encode(nonce).decode("ascii"),
+        ciphertext=base64.b64encode(ciphertext).decode("ascii"),
+    )
     with open(path, "w", encoding="utf-8") as fh:
-        fh.write(content)
+        fh.write(payload)
 
 
 def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
