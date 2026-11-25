@@ -1,0 +1,8 @@
+{
+  "name": "ops-requisition-auditor",
+  "compatibility_date": "2026-11-24",
+  "assets": {
+    "directory": "./docs"
+  },
+  "previews": {}
+}

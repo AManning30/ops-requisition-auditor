@@ -20,7 +20,8 @@ heuristic for finding fixable issues; it is not legal advice and does not predic
 volume or any system's behaviour. Level benchmarks are defaults: replace them with your own
 leveling guide via --level-benchmarks.
 
-Runs on the Python 3 standard library only. Reuses the requisition parser and the compliant
+Scoring uses the Python 3 standard library. Encrypted exports require cryptography.
+Reuses the requisition parser and the compliant
 public-board fetchers from job_posting_collector.py (restricted boards are never fetched).
 """
 from __future__ import annotations
@@ -35,7 +36,9 @@ import os
 import re
 import statistics
 import sys
+import tempfile
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -970,10 +973,33 @@ Requirements
 # CLI
 # ---------------------------------------------------------------------------
 
-def _write(path: str, content: str) -> None:
-    os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write(content)
+def _output_cipher(parser: argparse.ArgumentParser):
+    key = os.environ.get("OPS_AUDITOR_OUTPUT_KEY")
+    if not key:
+        parser.error("Set OPS_AUDITOR_OUTPUT_KEY to a generated Fernet key to use encrypted reports.")
+    try:
+        from cryptography.fernet import Fernet
+    except ImportError:
+        parser.error("Install cryptography to use encrypted reports (python -m pip install cryptography).")
+    try:
+        return Fernet(key)
+    except ValueError:
+        parser.error("OPS_AUDITOR_OUTPUT_KEY must be a valid Fernet key.")
+
+
+def _write(path: str, content: str, cipher) -> None:
+    payload = cipher.encrypt(content.encode("utf-8"))
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as fh:
+            temporary = Path(fh.name)
+            fh.write(payload)
+        temporary.replace(destination)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
@@ -1020,6 +1046,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     src.add_argument("--greenhouse", metavar="BOARD_TOKEN", help="Audit every open role on a public Greenhouse board")
     src.add_argument("--lever", metavar="SITE_SLUG", help="Audit every open role on a public Lever site")
     src.add_argument("--ashby", metavar="BOARD_NAME", help="Audit every open role on a public Ashby board")
+    src.add_argument("--decrypt", metavar="PATH", help="Decrypt an exported report to standard output")
     src.add_argument("--demo", action="store_true", help="Audit the built-in fictional requisition")
     ap.add_argument("--title-filter", help="Regex to keep only matching titles (board audits)")
     ap.add_argument("--limit", type=int, default=0, help="Audit at most N roles (board audits)")
@@ -1030,6 +1057,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--csv-out", help="Write a UTF-8 CSV summary table to this path")
     ap.add_argument("--improved-out", help="Write the draft requisition with automatic edits applied (single audits)")
     args = ap.parse_args(argv)
+    exports_requested = any((args.output, args.json_out, args.csv_out, args.improved_out))
+    if args.decrypt and exports_requested:
+        ap.error("--decrypt writes to standard output and cannot be combined with export flags.")
+    cipher = _output_cipher(ap) if exports_requested or args.decrypt else None
+    if args.decrypt:
+        from cryptography.fernet import InvalidToken
+
+        try:
+            plaintext = cipher.decrypt(Path(args.decrypt).read_bytes())
+        except InvalidToken:
+            ap.error("Cannot authenticate the report. Check the key and encrypted file.")
+        except OSError as exc:
+            ap.error(f"Cannot read the encrypted report: {exc}")
+        sys.stdout.buffer.write(plaintext)
+        return 0
 
     benchmarks: Dict[str, float] = {}
     if args.level_benchmarks:
@@ -1061,13 +1103,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         audits = [audit_normalized_job(j, benchmarks) for j in board_jobs]
         report = render_portfolio_markdown(audits, source_label, details=args.details)
         if args.output:
-            _write(args.output, report + "\n")
+            _write(args.output, report + "\n", cipher)
         if args.json_out:
             _write(args.json_out, json.dumps({"source": source_label, "audits": [audit_to_dict(a) for a in audits]},
-                                             indent=2, default=str))
+                                             indent=2, default=str), cipher)
         if args.csv_out:
-            _write(args.csv_out, render_rqs_csv(audits))
-        print(report)
+            _write(args.csv_out, render_rqs_csv(audits), cipher)
+        if not exports_requested:
+            print(report)
         return 0
 
     if args.url:
@@ -1088,14 +1131,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     report = render_markdown(audit)
     if args.output:
-        _write(args.output, report + "\n")
+        _write(args.output, report + "\n", cipher)
     if args.json_out:
-        _write(args.json_out, json.dumps(audit_to_dict(audit), indent=2, default=str))
+        _write(args.json_out, json.dumps(audit_to_dict(audit), indent=2, default=str), cipher)
     if args.csv_out:
-        _write(args.csv_out, render_rqs_csv([audit]))
+        _write(args.csv_out, render_rqs_csv([audit]), cipher)
     if args.improved_out and audit.improved_text:
-        _write(args.improved_out, audit.improved_text)
-    print(report)
+        _write(args.improved_out, audit.improved_text, cipher)
+    if not exports_requested:
+        print(report)
     return 0
 
 
