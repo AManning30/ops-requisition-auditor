@@ -1,0 +1,164 @@
+{
+  "schema_version": "org-customization-profile-1.0",
+  "org_id": "northstar-contact-solutions",
+  "org_name": "Northstar Contact Solutions (Skills-First WFM & BI Customization)",
+  "config_version": "2026.11.2",
+  "effective_date": "2026-11-15",
+  "policy_pack_id": "us-employment-ai-transparency-baseline",
+  "leveling_guide": {
+    "entry": {
+      "org_level_code": "L1",
+      "display_title": "Entry / Associate Analyst (L1)",
+      "min_years_expected": 0.0,
+      "max_benchmark_years": 2.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "level_1": {
+      "org_level_code": "L2",
+      "display_title": "Workforce / Operations Analyst I (L2)",
+      "min_years_expected": 1.0,
+      "max_benchmark_years": 2.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "level_2": {
+      "org_level_code": "L3",
+      "display_title": "Workforce / Operations Analyst II (L3)",
+      "min_years_expected": 2.0,
+      "max_benchmark_years": 3.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "level_3": {
+      "org_level_code": "L4",
+      "display_title": "Workforce / Operations Analyst III (L4)",
+      "min_years_expected": 4.0,
+      "max_benchmark_years": 5.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "mid": {
+      "org_level_code": "L3",
+      "display_title": "Mid-Level Operations Analyst (L3)",
+      "min_years_expected": 3.0,
+      "max_benchmark_years": 5.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "senior": {
+      "org_level_code": "L5",
+      "display_title": "Senior WFM / BI Analyst (L5)",
+      "min_years_expected": 5.0,
+      "max_benchmark_years": 6.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "lead": {
+      "org_level_code": "L5",
+      "display_title": "Lead WFM / Capacity Planner (L5)",
+      "min_years_expected": 5.0,
+      "max_benchmark_years": 8.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "staff_principal": {
+      "org_level_code": "L6",
+      "display_title": "Principal / Staff Analytics Architect (L6)",
+      "min_years_expected": 8.0,
+      "max_benchmark_years": 10.0,
+      "requires_people_or_budget_scope": false,
+      "degree_policy": "equivalency_accepted"
+    },
+    "manager": {
+      "org_level_code": "M1",
+      "display_title": "WFM / Analytics Manager (M1)",
+      "min_years_expected": 5.0,
+      "max_benchmark_years": 6.0,
+      "requires_people_or_budget_scope": true,
+      "degree_policy": "equivalency_accepted"
+    },
+    "senior_manager": {
+      "org_level_code": "M2",
+      "display_title": "Senior Analytics Manager (M2)",
+      "min_years_expected": 6.0,
+      "max_benchmark_years": 8.0,
+      "requires_people_or_budget_scope": true,
+      "degree_policy": "equivalency_accepted"
+    },
+    "director": {
+      "org_level_code": "D1",
+      "display_title": "Director, Workforce Operations (D1)",
+      "min_years_expected": 8.0,
+      "max_benchmark_years": 12.0,
+      "requires_people_or_budget_scope": true,
+      "degree_policy": "equivalency_accepted"
+    },
+    "executive": {
+      "org_level_code": "VP",
+      "display_title": "VP, Global Operations & Analytics (VP)",
+      "min_years_expected": 10.0,
+      "max_benchmark_years": 15.0,
+      "requires_people_or_budget_scope": true,
+      "degree_policy": "equivalency_accepted"
+    }
+  },
+  "gate_and_equivalency_policy": {
+    "allowed_hard_gate_types": [
+      "degree",
+      "certification",
+      "license",
+      "security_clearance",
+      "work_authorization"
+    ],
+    "require_degree_equivalency_by_default": true,
+    "bachelor_equivalency_years": 3.0,
+    "master_equivalency_years": 6.0,
+    "allow_certification_substitution": true,
+    "accepted_alternative_credentials": [
+      "Six Sigma Black Belt",
+      "Six Sigma Green Belt",
+      "Military Operations / Logistics Experience",
+      "Workforce Board / Registered Apprenticeship Certificate"
+    ],
+    "standard_equivalency_clause": "Bachelor's degree or 3+ years of practical contact-center WFM, capacity planning, or BI experience accepted as full equivalency."
+  },
+  "scoring_and_thresholds": {
+    "comp1_keyword_max": 40.0,
+    "comp2_context_max": 25.0,
+    "comp3_alignment_max": 15.0,
+    "comp4_knockout_max": 10.0,
+    "comp5_schema_max": 10.0,
+    "category_weights": {
+      "hard_skill": 3,
+      "title_scope": 2,
+      "soft_skill": 1
+    },
+    "tier_multipliers": {
+      "required": 2.0,
+      "preferred": 1.0
+    },
+    "synonym_match_credit": 0.5,
+    "placement_multipliers": {
+      "recent_experience": 1.0,
+      "historical_experience": 0.8,
+      "skills_or_summary_only": 0.4
+    },
+    "jd_strong_match_threshold": 78.0,
+    "jd_borderline_threshold": 62.0,
+    "rqs_clear_inclusive_threshold": 85.0,
+    "rqs_needs_tuning_threshold": 70.0
+  },
+  "approval_workflow": {
+    "approval_status": "APPROVED",
+    "author_id": "wfm_director_k_patel",
+    "created_timestamp": "2026-11-14T14:00:00Z",
+    "change_rationale": "Adopted Northstar skills-first WFM leveling ceilings (L3=3y, L5=6y), elevated Component 2 recent-experience weight from 20 to 25 pts (C1=40, C2=25), lowered bachelor equivalency to 3 years, and set Strong shortlist threshold to 78.0.",
+    "ta_or_comp_approver_id": "ta_comp_lead_s_jenkins",
+    "ta_approved_timestamp": "2026-11-15T10:15:00Z",
+    "compliance_or_legal_approver_id": "legal_counsel_d_thompson",
+    "compliance_approved_timestamp": "2026-11-15T11:00:00Z",
+    "previous_version": "1.6.0",
+    "previous_config_sha256": "2d476d89063f9ac02bc00cb501e315f13797fdd6d2cc6e12a13b5cde67fc80ef"
+  }
+}

@@ -1,0 +1,218 @@
+{
+  "policy_pack_id": "us-employment-ai-transparency-baseline",
+  "policy_pack_version": "2026.11.0",
+  "organization_name": "Baseline Reference Policy Pack (Replace with Organization Counsel-Reviewed Pack)",
+  "created_date": "2026-11-01",
+  "default_disclaimer": "*A deterministic, human-in-the-loop screening aid governed by a versioned compliance policy pack. It never auto-rejects candidates, is not legal advice, and does not replace an independent bias audit or organization counsel review where required by law.*",
+  "right_to_clarify_template": "The following job requirements were **not detected** on your submitted application text. If you hold any of these qualifications under different terminology or omitted them from your resume, you have the right to submit a clarification or updated resume to the recruiting team to trigger a deterministic re-score and human review:",
+  "rules": [
+    {
+      "rule_id": "POL-CO-SB24-205",
+      "jurisdiction_code": "US-CO",
+      "title": "Colorado Artificial Intelligence Act (SB 24-205) \u2014 Principal Factor & Correction Notice",
+      "statute_citation": "Colo. Rev. Stat. \u00a7 6-1-1701 et seq. (SB 24-205, as amended)",
+      "category": "ai_automated_assessment_notice",
+      "policy_version": "2026.11",
+      "effective_date": "2026-06-30",
+      "last_amended_date": "2025-08-25",
+      "last_reviewed_date": "2026-11-01",
+      "next_review_due_date": "2027-05-01",
+      "official_source_url": "https://leg.colorado.gov/bills/sb24-205",
+      "legal_review_status": "COUNSEL_APPROVED",
+      "reviewed_by": "reference_policy_maintainer",
+      "review_notes": "Covers principal scoring factors (Components 1-5), human oversight status, and statutory right to correct inaccurate application data.",
+      "enabled": true,
+      "geography": {
+        "country": "US",
+        "state_or_province": "CO",
+        "locality": "",
+        "applies_to_remote": true,
+        "location_patterns": [
+          "\\bCO\\b",
+          "\\bColorado\\b",
+          "\\bDenver\\b",
+          "\\bBoulder\\b",
+          "\\bRemote\\b"
+        ]
+      },
+      "engine_controls": {
+        "require_factor_notice": true,
+        "require_right_to_clarify": true,
+        "require_human_oversight_disclosure": true
+      },
+      "notice_heading": "Colorado SB 24-205 Automated Assessment & Factor Disclosure",
+      "notice_clause": "Pursuant to Colorado SB 24-205, this notice discloses the principal job-related factors evaluated by the deterministic requirement-alignment rubric, confirms that a human reviewer makes all disposition decisions, and provides a direct mechanism to clarify or correct any unverified qualification."
+    },
+    {
+      "rule_id": "POL-NYC-LL144",
+      "jurisdiction_code": "US-NYC",
+      "title": "New York City Local Law 144 (AEDT) \u2014 Candidate Notice & Selection-Rate Tables",
+      "statute_citation": "N.Y.C. Admin. Code \u00a7 20-871 et seq. / 6 RCNY \u00a7 5-300 et seq.",
+      "category": "bias_audit_and_selection_rates",
+      "policy_version": "2026.11",
+      "effective_date": "2023-07-05",
+      "last_amended_date": "2023-07-05",
+      "last_reviewed_date": "2026-11-01",
+      "next_review_due_date": "2027-05-01",
+      "official_source_url": "https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page",
+      "legal_review_status": "COUNSEL_APPROVED",
+      "reviewed_by": "reference_policy_maintainer",
+      "review_notes": "Provides deterministic reference scoring, job qualifications evaluated, and sex/race/ethnicity selection-rate & impact-ratio tables for independent bias auditors.",
+      "enabled": true,
+      "geography": {
+        "country": "US",
+        "state_or_province": "NY",
+        "locality": "New York City",
+        "applies_to_remote": false,
+        "location_patterns": [
+          "\\bNew\\s+York\\b",
+          "\\bNYC\\b",
+          "\\bManhattan\\b",
+          "\\bBrooklyn\\b",
+          ",\\s*NY\\b"
+        ]
+      },
+      "engine_controls": {
+        "require_factor_notice": true,
+        "require_selection_rate_table": true,
+        "advance_notice_business_days": 10
+      },
+      "notice_heading": "NYC Local Law 144 Job Qualifications & Features Disclosure",
+      "notice_clause": "In support of NYC Local Law 144 transparency workflows, this notice lists the specific job qualifications and features evaluated from your submitted resume text alongside the exact quoted lines."
+    },
+    {
+      "rule_id": "POL-IL-HB3773",
+      "jurisdiction_code": "US-IL",
+      "title": "Illinois Human Rights Act AI Amendment (HB 3773) \u2014 AI Notice & ZIP Proxy Prohibition",
+      "statute_citation": "775 ILCS 5/2-102(L) (Public Act 103-0804 / HB 3773)",
+      "category": "demographic_proxy_redaction",
+      "policy_version": "2026.11",
+      "effective_date": "2026-01-01",
+      "last_amended_date": "2024-08-09",
+      "last_reviewed_date": "2026-11-01",
+      "next_review_due_date": "2027-05-01",
+      "official_source_url": "https://www.ilga.gov/legislation/publicacts/fulltext.asp?Name=103-0804",
+      "legal_review_status": "COUNSEL_APPROVED",
+      "reviewed_by": "reference_policy_maintainer",
+      "review_notes": "Enforces 5/9-digit ZIP code stripping in blind mode so geographic codes are never used as a proxy for protected classes, and discloses automated assessment usage.",
+      "enabled": true,
+      "geography": {
+        "country": "US",
+        "state_or_province": "IL",
+        "locality": "",
+        "applies_to_remote": true,
+        "location_patterns": [
+          "\\bIL\\b",
+          "\\bIllinois\\b",
+          "\\bChicago\\b",
+          "\\bRemote\\b"
+        ]
+      },
+      "engine_controls": {
+        "redact_zip_code": true,
+        "require_factor_notice": true
+      },
+      "notice_heading": "Illinois HB 3773 Automated Assessment & Geographic Proxy Protection Notice",
+      "notice_clause": "Pursuant to Illinois HB 3773 (effective January 1, 2026), 5- and 9-digit ZIP codes are stripped prior to scoring so geographic location cannot act as a proxy for protected classes."
+    },
+    {
+      "rule_id": "POL-FED-EEOC-UGESP",
+      "jurisdiction_code": "US-FED",
+      "title": "EEOC Uniform Guidelines on Employee Selection Procedures \u2014 Four-Fifths (80%) Rule",
+      "statute_citation": "29 CFR \u00a7 1607.4(D)",
+      "category": "bias_audit_and_selection_rates",
+      "policy_version": "2026.11",
+      "effective_date": "1978-08-25",
+      "last_amended_date": "1978-08-25",
+      "last_reviewed_date": "2026-11-01",
+      "next_review_due_date": "2027-11-01",
+      "official_source_url": "https://www.ecfr.gov/current/title-29/subtitle-B/chapter-XIV/part-1607",
+      "legal_review_status": "COUNSEL_APPROVED",
+      "reviewed_by": "reference_policy_maintainer",
+      "review_notes": "Computes group selection rates and 0.80 impact ratios post-scoring from segregated voluntary self-ID data.",
+      "enabled": true,
+      "geography": {
+        "country": "US",
+        "state_or_province": "ALL",
+        "locality": "",
+        "applies_to_remote": true,
+        "location_patterns": [
+          ".*"
+        ]
+      },
+      "engine_controls": {
+        "four_fifths_ratio_threshold": 0.8,
+        "small_sample_warning_min_n": 5,
+        "segregate_demographics_from_scorer": true
+      },
+      "notice_heading": "EEOC Job-Relatedness & Uniform Guidelines Notice",
+      "notice_clause": "All scored items trace directly to documented job requirements in the requisition configuration, and demographic self-identification data is never accessible to the scoring engine."
+    },
+    {
+      "rule_id": "POL-FED-ADEA-GRAD-YEAR",
+      "jurisdiction_code": "US-FED",
+      "title": "Age Discrimination in Employment Act (ADEA) \u2014 Graduation-Year Proxy Redaction",
+      "statute_citation": "29 U.S.C. \u00a7 621 et seq.",
+      "category": "demographic_proxy_redaction",
+      "policy_version": "2026.11",
+      "effective_date": "1968-06-12",
+      "last_amended_date": "1990-10-16",
+      "last_reviewed_date": "2026-11-01",
+      "next_review_due_date": "2027-11-01",
+      "official_source_url": "https://www.eeoc.gov/statutes/age-discrimination-employment-act-1967",
+      "legal_review_status": "COUNSEL_APPROVED",
+      "reviewed_by": "reference_policy_maintainer",
+      "review_notes": "Redacts graduation dates inside the Education section during blind screening while preserving work-experience date ranges for net tenure math.",
+      "enabled": true,
+      "geography": {
+        "country": "US",
+        "state_or_province": "ALL",
+        "locality": "",
+        "applies_to_remote": true,
+        "location_patterns": [
+          ".*"
+        ]
+      },
+      "engine_controls": {
+        "redact_graduation_year": true,
+        "flag_age_coded_jd_phrases": true
+      },
+      "notice_heading": "ADEA Age-Proxy Redaction Safeguard",
+      "notice_clause": "Education graduation dates are redacted prior to scoring to prevent age-proxy inference while preserving work-experience date ranges for relevant tenure calculation."
+    },
+    {
+      "rule_id": "POL-US-PAY-TRANSPARENCY",
+      "jurisdiction_code": "US-MULTI-PAY",
+      "title": "Multi-State Pay Transparency Statutes (CO, CA, NY, WA, IL, MN, MD, DC, MA)",
+      "statute_citation": "C.R.S. \u00a7 8-5-201; Cal. Lab. Code \u00a7 432.3; N.Y. Lab. Law \u00a7 194-b; RCW 49.58.110; 820 ILCS 112/10",
+      "category": "pay_transparency",
+      "policy_version": "2026.11",
+      "effective_date": "2021-01-01",
+      "last_amended_date": "2025-10-29",
+      "last_reviewed_date": "2026-11-01",
+      "next_review_due_date": "2027-05-01",
+      "official_source_url": "https://cdle.colorado.gov/equalpaytransparency",
+      "legal_review_status": "COUNSEL_APPROVED",
+      "reviewed_by": "reference_policy_maintainer",
+      "review_notes": "Controls Requisition Quality Audit Rule P1 (-8 pts when pay range is omitted on covered or remote-eligible job postings).",
+      "enabled": true,
+      "geography": {
+        "country": "US",
+        "state_or_province": "CO,CA,NY,WA,IL,MN,MD,DC,MA,HI,NJ,VT",
+        "locality": "",
+        "applies_to_remote": true,
+        "location_patterns": [
+          "\\b(?:CO|CA|NY|WA|IL|MN|MD|DC|MA|HI|NJ|VT)\\b",
+          "\\b(?:Colorado|California|New\\s+York|Washington|Illinois|Minnesota|Maryland|Massachusetts|Remote)\\b"
+        ]
+      },
+      "engine_controls": {
+        "require_pay_range": true,
+        "rqs_p1_deduction_points": 8.0
+      },
+      "notice_heading": "Pay Range Transparency Verification",
+      "notice_clause": "Requisition Quality Audit Rule P1 verifies whether a good-faith base salary or hourly wage range is disclosed in the job posting."
+    }
+  ],
+  "policy_pack_sha256": "048393d49069105ded06093f69954bf1313c26971a752213ff0e3f18adcf3c9d"
+}

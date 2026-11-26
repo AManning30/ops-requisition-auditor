@@ -1,0 +1,88 @@
+{
+  "consents": [
+    {
+      "subject_id": "CAND-001",
+      "flow_type": "batch_screening",
+      "consented": true,
+      "consent_scope": [
+        "batch_screening",
+        "jd_alignment_scoring",
+        "factor_disclosure_notice",
+        "voluntary_demographics"
+      ],
+      "consent_timestamp": "2026-11-01T08:00:00Z",
+      "consent_method": "applicant_portal_opt_in",
+      "expires_at": "2027-11-01",
+      "revoked": false,
+      "revoked_timestamp": "",
+      "share_with_manager": false
+    },
+    {
+      "subject_id": "CAND-002",
+      "flow_type": "batch_screening",
+      "consented": true,
+      "consent_scope": [
+        "batch_screening",
+        "jd_alignment_scoring",
+        "factor_disclosure_notice",
+        "voluntary_demographics"
+      ],
+      "consent_timestamp": "2026-11-01T08:05:00Z",
+      "consent_method": "applicant_portal_opt_in",
+      "expires_at": "2027-11-01",
+      "revoked": false,
+      "revoked_timestamp": "",
+      "share_with_manager": false
+    },
+    {
+      "subject_id": "CAND-003",
+      "flow_type": "batch_screening",
+      "consented": true,
+      "consent_scope": [
+        "batch_screening",
+        "jd_alignment_scoring",
+        "factor_disclosure_notice",
+        "voluntary_demographics"
+      ],
+      "consent_timestamp": "2026-11-01T08:10:00Z",
+      "consent_method": "applicant_portal_opt_in",
+      "expires_at": "2027-11-01",
+      "revoked": false,
+      "revoked_timestamp": "",
+      "share_with_manager": false
+    },
+    {
+      "subject_id": "CAND-004",
+      "flow_type": "batch_screening",
+      "consented": true,
+      "consent_scope": [
+        "batch_screening",
+        "jd_alignment_scoring",
+        "factor_disclosure_notice",
+        "voluntary_demographics"
+      ],
+      "consent_timestamp": "2026-11-01T08:15:00Z",
+      "consent_method": "applicant_portal_opt_in",
+      "expires_at": "2027-11-01",
+      "revoked": false,
+      "revoked_timestamp": "",
+      "share_with_manager": false
+    },
+    {
+      "subject_id": "EMP-001",
+      "flow_type": "internal_mobility",
+      "consented": true,
+      "consent_scope": [
+        "internal_mobility",
+        "career_path_matching",
+        "reskilling_plan_30_60_90"
+      ],
+      "consent_timestamp": "2026-11-01T09:00:00Z",
+      "consent_method": "employee_self_service_opt_in",
+      "expires_at": "2027-05-01",
+      "revoked": false,
+      "revoked_timestamp": "",
+      "share_with_manager": false
+    }
+  ]
+}

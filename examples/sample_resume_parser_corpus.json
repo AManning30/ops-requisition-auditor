@@ -1,0 +1,310 @@
+{
+  "schema": "resume-parser-benchmark-corpus-1.0",
+  "reference_date": "2026-11-01",
+  "requirements": [
+    {
+      "name": "WFM Platform",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [],
+      "alternatives": []
+    },
+    {
+      "name": "Verint",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [],
+      "alternatives": []
+    },
+    {
+      "name": "Power BI",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [],
+      "alternatives": []
+    },
+    {
+      "name": "Workforce Capacity Modeling",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [
+        "capacity planning",
+        "planificaci\u00f3n de capacidad",
+        "planification de la capacit\u00e9",
+        "kapazit\u00e4tsplanung"
+      ],
+      "alternatives": []
+    },
+    {
+      "name": "Demand Forecasting",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [
+        "demand planning",
+        "pron\u00f3stico de demanda",
+        "pr\u00e9vision de la demande",
+        "bedarfsprognose"
+      ],
+      "alternatives": []
+    },
+    {
+      "name": "SQL",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [],
+      "alternatives": []
+    },
+    {
+      "name": "Python",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [],
+      "alternatives": []
+    },
+    {
+      "name": "B.S.",
+      "category": "hard_skill",
+      "tier": "required",
+      "synonyms": [
+        "Bachelor",
+        "Licenciatura",
+        "Licence",
+        "Bachelorabschluss"
+      ],
+      "alternatives": [],
+      "is_knockout_gate": true
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "CORP-01-DOCX-FULL",
+      "category": "docx_headers_tables_textboxes",
+      "language": "en",
+      "format_type": ".docx",
+      "description": "Word .docx with header contact info, 2-column table sections, and textbox certifications",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "NICE IEX",
+      "docx_spec": {
+        "header_text": "ALEX RIVERA | St. Louis, MO 63101 | alex.rivera@example.com | (314) 555-0188",
+        "body_paragraphs": [
+          "Career Profile",
+          "Senior WFM Analyst with 6 years of Demand Forecasting and capacity planning."
+        ],
+        "table_rows": [
+          [
+            "Professional Background",
+            "Senior WFM Analyst \u2014 Apex Contact Center (01/2021 - Present)"
+          ],
+          [
+            "",
+            "- Built Demand Forecasting and capacity planning models in SQL, Python, and NICE IEX across 200 queues."
+          ],
+          [
+            "",
+            "- Published executive operational scorecards in Power BI."
+          ],
+          [
+            "Academic Credentials",
+            "B.S. in Industrial Engineering \u2014 University of Missouri"
+          ],
+          [
+            "Technical Proficiencies",
+            "SQL, Python, NICE IEX, Power BI, Demand Forecasting, Capacity Planning"
+          ]
+        ],
+        "textbox_text": "Six Sigma Green Belt Certified",
+        "footer_text": "Page 1 of 1"
+      }
+    },
+    {
+      "case_id": "CORP-02-PDF-FLATE",
+      "category": "pdf_stdlib_flate_stream",
+      "language": "en",
+      "format_type": ".pdf",
+      "description": "Compressed FlateDecode PDF decoded via zero-dependency stdlib zlib stream parser",
+      "expected_min_tenure_years": 4.5,
+      "expected_max_tenure_years": 5.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "summary",
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "Tableau",
+      "pdf_lines": [
+        "MORGAN LEE",
+        "Professional Overview",
+        "Workforce Operations Analyst experienced in Verint and Tableau.",
+        "Work History",
+        "WFM Analyst - Northstar Logistics (01/2022 - Present)",
+        "- Led Demand Forecasting and Workforce Capacity Modeling in SQL, Python, Verint, and Tableau.",
+        "Education & Training",
+        "B.S. in Statistics",
+        "Tools & Technologies",
+        "SQL, Python, Verint, Tableau, Demand Forecasting, Workforce Capacity Modeling"
+      ]
+    },
+    {
+      "case_id": "CORP-03-PDF-SCANNED-SIDECAR-OCR",
+      "category": "scanned_pdf_sidecar_ocr_recovery",
+      "language": "en",
+      "format_type": ".pdf+ocr",
+      "description": "Scanned image-only PDF recovered automatically via sidecar .ocr.txt fallback",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "",
+      "scanned_sidecar_text": "SAMIRA KHAN\nWork Experience\nSenior WFM Planner \u2014 Metro Support (01/2021 - Present)\n- Directed Demand Forecasting and Workforce Capacity Modeling using SQL, Python, Verint, and Power BI.\nEducation\nB.S. in Mathematics\nSkills\nSQL, Python, Verint, Power BI, Demand Forecasting, Workforce Capacity Modeling\n"
+    },
+    {
+      "case_id": "CORP-04-PDF-SCANNED-NO-OCR",
+      "category": "scanned_pdf_unrecoverable_alert",
+      "language": "en",
+      "format_type": ".pdf (scanned)",
+      "description": "Scanned image-only PDF without OCR sidecar flags OCR_REQUIRED_SCANNED_PDF cleanly",
+      "expected_min_tenure_years": 0.0,
+      "expected_max_tenure_years": 0.0,
+      "expected_career_gaps": 0,
+      "expected_sections": [],
+      "expected_competing_product": "",
+      "scanned_no_sidecar": true
+    },
+    {
+      "case_id": "CORP-05-OVERLAP-AND-CAREER-GAP",
+      "category": "overlapping_roles_and_career_break",
+      "language": "en",
+      "format_type": ".txt",
+      "description": "Concurrent overlapping roles + 1-year Parental Leave / Family Caregiving break excluded from tenure",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.0,
+      "expected_career_gaps": 1,
+      "expected_sections": [
+        "summary",
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "NICE IEX",
+      "raw_text": "TAYLOR VANCE\nQualifications Summary\nOperations & WFM Lead with overlapping consulting and caregiving sabbatical.\n\nEmployment Experience\nSenior WFM Analyst \u2014 Alpha Corp (01/2023 - Present)\n- Led Demand Forecasting and capacity planning in SQL, Python, Power BI, and NICE IEX.\n\nPlanned Career Break \u2014 Parental Leave & Family Caregiving (01/2022 - 12/2022)\n- Full-time family caregiving sabbatical prior to returning to workforce analytics.\n\nWFM Analyst \u2014 Beta Logistics (01/2020 - 12/2021)\n- Built SQL and Python staffing forecasts.\n\nPart-Time WFM Consultant \u2014 Gamma Advisory (06/2020 - 06/2021)\n- Concurrent advisory project overlapping Beta Logistics tenure.\n\nAcademic Background\nB.S. in Operations Research\n\nCore Competencies\nSQL, Python, Power BI, NICE IEX, Demand Forecasting, Capacity Planning\n"
+    },
+    {
+      "case_id": "CORP-06-DATE-VARIATIONS",
+      "category": "quarters_seasons_iso_apostrophe_dates",
+      "language": "en",
+      "format_type": ".txt",
+      "description": "Parses ISO dates (2023-01-01), quarters (Q1 2021 - Q4 2022), and apostrophe years (Jan '19 - Dec '20)",
+      "expected_min_tenure_years": 7.5,
+      "expected_max_tenure_years": 8.0,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "",
+      "raw_text": "JORDAN HAYES\nCareer History\nPrincipal WFM Architect \u2014 CloudOps (2023-01-01 through Present)\n- Architected Demand Forecasting and Workforce Capacity Modeling in SQL, Python, Verint, and Power BI.\nLead WFM Analyst \u2014 Delta Retail (Q1 2021 - Q4 2022)\n- Managed SQL and Power BI staffing models.\nOperations Analyst \u2014 Epsilon Freight (Jan '19 - Dec '20)\n- Built Python forecasting scripts.\nEducation\nB.S. in Industrial Engineering\nTechnical Skills\nSQL, Python, Verint, Power BI, Demand Forecasting, Workforce Capacity Modeling\n"
+    },
+    {
+      "case_id": "CORP-07-SPANISH-RESUME",
+      "category": "multilingual_spanish_es",
+      "language": "es",
+      "format_type": ".txt",
+      "description": "Spanish section headers (Experiencia Laboral, Habilidades T\u00e9cnicas) and Spanish dates (Enero 2021 - Actualidad)",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "summary",
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "Genesys Cloud",
+      "raw_text": "CARLOS MENDOZA\nResumen Profesional\nAnalista Senior de Operaciones y WFM.\n\nExperiencia Laboral\nAnalista Senior WFM \u2014 Contacto Global (Enero 2021 hasta Actualidad)\n- Lider\u00f3 pron\u00f3stico de demanda y planificaci\u00f3n de capacidad en SQL, Python, Power BI y Genesys Cloud.\n\nFormaci\u00f3n Acad\u00e9mica\nLicenciatura en Ingenier\u00eda Industrial\n\nHabilidades T\u00e9cnicas\nSQL, Python, Power BI, Genesys Cloud, pron\u00f3stico de demanda, planificaci\u00f3n de capacidad\n"
+    },
+    {
+      "case_id": "CORP-08-FRENCH-RESUME",
+      "category": "multilingual_french_fr",
+      "language": "fr",
+      "format_type": ".txt",
+      "description": "French section headers (Exp\u00e9rience Professionnelle, Comp\u00e9tences Techniques) and French dates (Janvier 2021 - Pr\u00e9sent)",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "summary",
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "Calabrio",
+      "raw_text": "CLAIRE DUBOIS\nProfil Professionnel\nResponsable Analytique Op\u00e9rations et WFM.\n\nExp\u00e9rience Professionnelle\nResponsable WFM \u2014 Services Europe (Janvier 2021 \u00e0 Pr\u00e9sent)\n- Pilot\u00e9 la pr\u00e9vision de la demande et la planification de la capacit\u00e9 en SQL, Python, Power BI et Calabrio.\n\nFormation\nLicence en Math\u00e9matiques Appliqu\u00e9es\n\nComp\u00e9tences Techniques\nSQL, Python, Power BI, Calabrio, pr\u00e9vision de la demande, planification de la capacit\u00e9\n"
+    },
+    {
+      "case_id": "CORP-09-GERMAN-RESUME",
+      "category": "multilingual_german_de",
+      "language": "de",
+      "format_type": ".txt",
+      "description": "German section headers (Berufserfahrung, Fachkenntnisse), German dates (M\u00e4rz 2020 bis Heute), and Elternzeit gap",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 1,
+      "expected_sections": [
+        "summary",
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "Looker",
+      "raw_text": "LUKAS SCHMIDT\nBerufsprofil\nSenior Workforce Management & Operations Analyst.\n\nBerufserfahrung\nSenior WFM Analyst \u2014 Nordstern GmbH (Januar 2021 bis Heute)\n- Leitete Bedarfsprognose und Kapazit\u00e4tsplanung mit SQL, Python, Verint und Looker.\n\nElternzeit \u2014 Familienbetreuung (M\u00e4rz 2020 bis Dezember 2020)\n- Geplante Elternzeit.\n\nAusbildung\nBachelorabschluss in Wirtschaftsingenieurwesen\n\nFachkenntnisse\nSQL, Python, Verint, Looker, Bedarfsprognose, Kapazit\u00e4tsplanung\n"
+    },
+    {
+      "case_id": "CORP-10-ASCII-PIPE-TABLE",
+      "category": "multicolumn_pipe_table_layout",
+      "language": "en",
+      "format_type": ".md",
+      "description": "Two-column pipe-delimited Markdown/ASCII resume layout de-interleaved into standard sections",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "summary",
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "Tableau",
+      "raw_text": "DANA CHEN\nExecutive Profile | Senior WFM & BI Lead with 6 years of experience.\nWork Experience | Senior WFM Lead \u2014 Pacific Ops (01/2021 - Present)\n | - Built Demand Forecasting and Workforce Capacity Modeling in SQL, Python, Verint, and Tableau.\nEducation | B.S. in Applied Mathematics\nSkills & Tools | SQL, Python, Verint, Tableau, Demand Forecasting, Workforce Capacity Modeling\n"
+    },
+    {
+      "case_id": "CORP-11-COMPETING-PRODUCT-BOUNDARY",
+      "category": "transferred_skill_vs_competing_product",
+      "language": "en",
+      "format_type": ".txt",
+      "description": "Distinguishes generic WFM Platform (1.0x via NICE IEX), synonym capacity planning (0.5x), and competing products Verint/Power BI (0.0x)",
+      "expected_min_tenure_years": 5.5,
+      "expected_max_tenure_years": 6.2,
+      "expected_career_gaps": 0,
+      "expected_sections": [
+        "experience",
+        "education",
+        "skills"
+      ],
+      "expected_competing_product": "NICE IEX",
+      "raw_text": "CASEY BROOKS\nWork Experience\nWFM Capacity Planner \u2014 Summit Services (01/2021 - Present)\n- Built capacity planning and demand planning models in SQL, Python, NICE IEX, and Tableau.\nEducation\nB.S. in Economics\nSkills\nSQL, Python, NICE IEX, Tableau, capacity planning, demand planning\n"
+    }
+  ]
+}

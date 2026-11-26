@@ -16,8 +16,8 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run full unit & integration test suite (Candidate + Modules 1-3)
@@ -42,3 +42,43 @@ jobs:
         run: |
           python -B scripts/internal_mobility_matcher.py --demo --csv-out /tmp/mobility_ladder.csv
           python -B scripts/internal_mobility_matcher.py --resume examples/sample_resume.txt --from-json examples/sample_mobility_career_ladder.json --outplacement-pack
+      - name: Run Pilot & Empirical Evidence Harness (ops-req-pilot + CSV export)
+        run: |
+          python -B scripts/pilot_evidence_harness.py --demo --csv-out /tmp/pilot_ledger.csv
+          python -B scripts/pilot_evidence_harness.py --manifest examples/sample_pilot_manifest.json --json-out /tmp/pilot_evidence.json
+      - name: Run Human-Approval & Anti-Automation Governance Validator (ops-req-governance)
+        run: |
+          python -B scripts/governance_middleware.py --demo
+          python -B scripts/governance_middleware.py --validate-decisions examples/sample_screening_decisions.json
+      - name: Run Compliance Policy Versioning Registry & Legal Freshness Audit (ops-req-policy)
+        run: |
+          python -B scripts/compliance_policy_registry.py --demo --require-counsel-approved
+          python -B scripts/compliance_policy_registry.py --policy-pack examples/sample_policy_pack_2026_11.json --location "Denver, CO" --require-counsel-approved
+      - name: Run Privacy, Three-Vault Segregation & Retention Audit (ops-req-privacy)
+        run: |
+          python -B scripts/privacy_data_minimization.py --demo --retention-policy examples/sample_privacy_retention_policy.json
+          python -B scripts/explainable_screening_assistant.py --demo --consent-json examples/sample_consent_records.json --require-consent
+          python -B scripts/internal_mobility_matcher.py --demo --consent-json examples/sample_consent_records.json --require-consent
+      - name: Run Fairness, Bias & Adverse-Impact Evaluation Dashboard (ops-req-fairness)
+        run: |
+          python -B scripts/fairness_adverse_impact_auditor.py --demo --csv-out /tmp/fairness_subgroups.csv
+          python -B scripts/fairness_adverse_impact_auditor.py --manifest examples/sample_fairness_cohort_manifest.json --json-out /tmp/fairness_audit.json
+      - name: Run Resume Parser, Layout, OCR & Fuzz Benchmark Suite (ops-req-parser-bench)
+        run: |
+          python -B scripts/parser_benchmark_suite.py --demo --csv-out /tmp/parser_bench.csv
+          python -B scripts/parser_benchmark_suite.py --corpus examples/sample_resume_parser_corpus.json --fuzz-iterations 150
+      - name: Run Organization-Native Customization & Approval Registry (ops-req-org-config)
+        run: |
+          python -B scripts/org_customization_registry.py --demo
+          python -B scripts/org_customization_registry.py --org-profile examples/sample_org_profile_northstar.json --require-approved
+          python -B scripts/org_customization_registry.py --verify-audit-history examples/sample_org_config_audit_history.json
+      - name: Run ATS-Neutral Integration Adapters, Webhooks & Batch Engine (ops-req-integrate)
+        run: |
+          python -B scripts/integration_adapters_and_webhooks.py --demo
+          python -B scripts/integration_adapters_and_webhooks.py --batch-job examples/sample_ats_neutral_contract_bundle.json --jsonl-out /tmp/neutral_envelopes.jsonl
+      - name: Run Workbench Parity, Shared Test Vectors & WCAG Accessibility Audit (ops-req-workbench)
+        run: |
+          python -B scripts/workbench_parity_and_a11y.py --demo
+      - name: Run Public Benchmark Suite, Synthetic Corpus & Community Trust Governance (ops-req-trust-bench)
+        run: |
+          python -B scripts/public_trust_and_benchmarks.py --demo

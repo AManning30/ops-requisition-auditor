@@ -1,0 +1,12 @@
+include README.md
+include SKILL.md
+include MODEL_CARD.md
+include LICENSE
+include COMMERCIAL-LICENSE.md
+include NOTICE
+include demo.html
+recursive-include docs *.html
+recursive-include examples *.txt *.json *.md
+recursive-include references *.md
+recursive-include tests *.py
+global-exclude __pycache__ *.py[cod]

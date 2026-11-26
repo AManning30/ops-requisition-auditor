@@ -443,57 +443,133 @@
     cursor: pointer;
   }
   .copy-btn:hover { opacity: 0.92; }
+
+  /* Accessibility: Skip Link, Focus Rings & Demo Mode Banner */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    z-index: 9999;
+    background: var(--accent-blue);
+    color: #090b0f;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    text-decoration: none;
+  }
+  .skip-link:focus {
+    left: 16px;
+    outline: 2px solid #ffffff;
+  }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+  .demo-mode-banner {
+    background: rgba(245, 158, 11, 0.14);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fcd34d;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Responsive Mobile & Tablet Layout */
+  @media (max-width: 1024px) {
+    body { height: auto; min-height: 100vh; overflow-y: auto; }
+    header.topbar { height: auto; padding: 10px 16px; flex-wrap: wrap; gap: 10px; }
+    .telemetry-pills { flex-wrap: wrap; }
+    .workspace {
+      grid-template-columns: 1fr;
+      overflow: visible;
+    }
+    nav.rail {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      flex-direction: row;
+      flex-wrap: wrap;
+      overflow-x: auto;
+    }
+    .rail-label { width: 100%; }
+    .nav-btn { width: auto; flex: 1 1 200px; }
+    main.stage { overflow: visible; padding: 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .sandbox-grid { grid-template-columns: 1fr; }
+    aside.inspector { border-left: none; border-top: 1px solid var(--border); max-height: 360px; }
+    .panel-body { overflow-x: auto; }
+  }
+  @media (max-width: 640px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .nav-btn { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
+<a href="#main-stage" class="skip-link">Skip to main content</a>
 
-<header class="topbar">
+<div id="synthetic-demo-banner" class="demo-mode-banner" role="status" aria-live="polite">
+  <span><strong>SYNTHETIC DEMO MODE (ZERO REAL PII):</strong> All candidate profiles (Jordan Vance, Alexander Mercer, Morgan Chen, Taylor Brooks) and Northstar Contact Solutions requisitions are 100% synthetic test vectors.</span>
+  <span>Shared Vector Contract: <code>shared-vectors-1.0</code> &bull; Keyboard Navigation: <code>&larr;/&rarr;</code> or <code>&uarr;/&darr;</code></span>
+</div>
+
+<header class="topbar" role="banner">
   <div class="brand">
-    <div class="brand-badge">OR</div>
+    <div class="brand-badge" aria-hidden="true">OR</div>
     <span class="brand-title">ops-requisition-auditor</span>
     <span class="brand-sub">Candidate JD Alignment &amp; Employer Requisition Quality Workbench</span>
   </div>
   <div class="telemetry-pills">
     <div class="pill"><span class="dot"></span> Engine: <strong>Deterministic (no LLM)</strong></div>
     <div class="pill">Rubric: <strong>rqs-0.2</strong></div>
-    <div class="pill">Version: <strong>1.5.0</strong></div>
+    <div class="pill">Version: <strong>1.6.0</strong></div>
     <div class="pill">License: <strong>AGPL-3.0 | Commercial</strong></div>
   </div>
 </header>
 
 <div class="workspace">
-  <nav class="rail">
+  <nav class="rail" role="tablist" aria-label="Auditor Workbench Views" onkeydown="handleTabKeydown(event)">
     <div class="rail-label">Interactive Auditors</div>
-    <button class="nav-btn active" onclick="switchTab('sim', this)">
+    <button class="nav-btn active" id="tab-btn-sim" role="tab" aria-selected="true" aria-controls="tab-sim" tabindex="0" onclick="switchTab('sim', this)">
       <span>1. Candidate JD Alignment</span>
       <span class="badge" id="nav-score">88.3</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('rqs', this)">
+    <button class="nav-btn" id="tab-btn-rqs" role="tab" aria-selected="false" aria-controls="tab-rqs" tabindex="-1" onclick="switchTab('rqs', this)">
       <span>2. Employer JD Auditor (RQS)</span>
       <span class="badge" id="nav-rqs-score">36.0</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('screen', this)">
+    <button class="nav-btn" id="tab-btn-screen" role="tab" aria-selected="false" aria-controls="tab-screen" tabindex="-1" onclick="switchTab('screen', this)">
       <span>3. Explainable Screening</span>
       <span class="badge" id="nav-screen-badge">3/4 Adv</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('mobility', this)">
+    <button class="nav-btn" id="tab-btn-mobility" role="tab" aria-selected="false" aria-controls="tab-mobility" tabindex="-1" onclick="switchTab('mobility', this)">
       <span>4. Mobility &amp; Reskilling</span>
       <span class="badge" id="nav-mobility-badge">3 Roles</span>
     </button>
     <div class="rail-label" style="margin-top:8px">Reference &amp; CLI</div>
-    <button class="nav-btn" onclick="switchTab('cli', this)">
+    <button class="nav-btn" id="tab-btn-cli" role="tab" aria-selected="false" aria-controls="tab-cli" tabindex="-1" onclick="switchTab('cli', this)">
       <span>5. CLI Workflows</span>
       <span class="badge">15</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('method', this)">
+    <button class="nav-btn" id="tab-btn-method" role="tab" aria-selected="false" aria-controls="tab-method" tabindex="-1" onclick="switchTab('method', this)">
       <span>6. Method &amp; Compliance</span>
       <span class="badge">4 Modules</span>
     </button>
+    <button class="nav-btn" id="tab-btn-orgcfg" role="tab" aria-selected="false" aria-controls="tab-orgcfg" tabindex="-1" onclick="switchTab('orgcfg', this)">
+      <span>7. Org Config &amp; Approvals</span>
+      <span class="badge" id="nav-org-badge">APPROVED</span>
+    </button>
   </nav>
 
-  <main class="stage">
+  <main class="stage" id="main-stage">
     <!-- TAB 1: CANDIDATE JD ALIGNMENT SIMULATOR -->
-    <section id="tab-sim" class="view-pane active">
+    <section id="tab-sim" class="view-pane active" role="tabpanel" aria-labelledby="tab-btn-sim">
       <div class="pane-header">
         <div>
           <div class="pane-title">Candidate Edition: JD Alignment Score Simulator</div>
@@ -504,24 +580,55 @@
 
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-label">JD Alignment Score</div>
+          <div class="kpi-label">1. Heuristic Score &amp; Plausible Band</div>
           <div class="kpi-val" id="kpi-composite">88.3 <span style="font-size:14px;color:var(--text-muted)">/ 100</span></div>
-          <div class="kpi-delta" id="kpi-verdict">Verdict: Strong match (baseline)</div>
+          <div class="kpi-delta" id="kpi-verdict">Plausible Band: [82.9, 96.8] (&plusmn;6.9 pts) &bull; Strong match</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Literal-Only View</div>
-          <div class="kpi-val" id="kpi-literal">82.9%</div>
-          <div class="kpi-delta" id="kpi-lit-delta">Exact terms only; synonyms earn no credit</div>
+          <div class="kpi-label">2. Measurement Confidence</div>
+          <div class="kpi-val" id="kpi-confidence" style="color:var(--accent-emerald)">99.1% <span style="font-size:14px;color:var(--text-muted)">HIGH</span></div>
+          <div class="kpi-delta" id="kpi-conf-sub">Resume Parse: 100% &bull; Confirmed JD Config: 98%</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Coverage + Placement (65 pts)</div>
-          <div class="kpi-val" id="kpi-kwctx">53.33</div>
-          <div class="kpi-delta" id="kpi-kwctx-sub">C1 (39.00/45) + C2 (14.33/20)</div>
+          <div class="kpi-label">3. Evidence Completeness</div>
+          <div class="kpi-val" id="kpi-completeness" style="color:var(--accent-amber)">71.7% <span style="font-size:14px;color:var(--text-muted)">PARTIAL</span></div>
+          <div class="kpi-delta" id="kpi-comp-sub">6 Full (1.0x) &bull; 5 Partial &bull; 1 Missing (0.0x)</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Title/Tenure + Gates + Hygiene</div>
-          <div class="kpi-val">35.0 <span style="font-size:14px;color:var(--text-muted)">/ 35</span></div>
-          <div class="kpi-delta">C3: 15/15 &bull; C4: 10/10 &bull; C5: 10/10</div>
+          <div class="kpi-label">Semantic vs. Literal Spread</div>
+          <div class="kpi-val" id="kpi-literal">82.9% <span style="font-size:14px;color:var(--accent-blue)">(+5.4&Delta;)</span></div>
+          <div class="kpi-delta" id="kpi-lit-delta">C1: 39.0 vs 36.0 &bull; C2: 14.33 vs 11.93 &bull; C3-5: 35.0</div>
+        </div>
+      </div>
+
+      <!-- SIDE-BY-SIDE SEMANTIC VS LITERAL + MISSING EVIDENCE & FULL DEDUCTION RECONCILIATION -->
+      <div class="sandbox-grid" style="margin-bottom:14px">
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-head">
+            <span>Side-by-Side Semantic vs. Literal View &amp; Three-Pillar Uncertainty</span>
+            <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px" id="sim-band-pill">Band: [82.9, 96.8]</span>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Max</th>
+                  <th>Semantic (0.5x Syn)</th>
+                  <th>Literal (1.0x Exact)</th>
+                  <th>Spread (&Delta;)</th>
+                </tr>
+              </thead>
+              <tbody id="sim-sidebyside-rows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-head">
+            <span>Complete Point-Deduction Explanations (100.0 &rarr; <span id="sim-ded-target">88.3</span>)</span>
+            <span style="color:var(--accent-amber);font-family:var(--font-mono);font-size:11px" id="sim-ded-total">-11.67 pts explained</span>
+          </div>
+          <div class="panel-body" id="sim-deductions-box" style="max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;font-size:12px"></div>
         </div>
       </div>
 
@@ -557,7 +664,7 @@
     </section>
 
     <!-- TAB 2: EMPLOYER REQUISITION QUALITY AUDITOR (RQS) -->
-    <section id="tab-rqs" class="view-pane">
+    <section id="tab-rqs" class="view-pane" role="tabpanel" aria-labelledby="tab-btn-rqs">
       <div class="pane-header">
         <div>
           <div class="pane-title">Employer Edition (Module 1): Requisition Quality Auditor (<code>ops-req-jd-audit</code>)</div>
@@ -637,8 +744,9 @@
         <div class="panel-body">
           <div class="sandbox-grid">
             <div>
-              <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary);margin-bottom:6px">INPUT REQUISITION TEXT (EDIT OR PASTE ANY JD):</div>
-              <textarea id="live-jd-input" class="jd-editor" oninput="runLiveJdAudit()"></textarea>
+              <label for="live-jd-input" style="display:block;font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary);margin-bottom:6px">INPUT REQUISITION TEXT (EDIT OR PASTE ANY JD):</label>
+              <textarea id="live-jd-input" class="jd-editor" aria-describedby="live-jd-validation-banner" oninput="runLiveJdAudit()"></textarea>
+              <div id="live-jd-validation-banner" role="alert" style="display:none;margin-top:6px;padding:6px 10px;border-radius:5px;background:rgba(244,63,94,0.14);border:1px solid rgba(244,63,94,0.35);color:var(--accent-rose);font-family:var(--font-mono);font-size:11.5px"></div>
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -653,7 +761,7 @@
     </section>
 
     <!-- TAB 3: EXPLAINABLE SCREENING ASSISTANT (MODULE 2) -->
-    <section id="tab-screen" class="view-pane">
+    <section id="tab-screen" class="view-pane" role="tabpanel" aria-labelledby="tab-btn-screen">
       <div class="pane-header">
         <div>
           <div class="pane-title">Employer Edition (Module 2): Explainable Screening &amp; Compliance Workbench (<code>ops-req-screen</code>)</div>
@@ -746,7 +854,7 @@
     </section>
 
     <!-- TAB 4: INTERNAL MOBILITY & 30/60/90-DAY RESKILLING (MODULE 3) -->
-    <section id="tab-mobility" class="view-pane">
+    <section id="tab-mobility" class="view-pane" role="tabpanel" aria-labelledby="tab-btn-mobility">
       <div class="pane-header">
         <div>
           <div class="pane-title">Employer &amp; Outplacement Edition (Module 3): Internal Mobility &amp; 30/60/90-Day Reskilling (<code>ops-req-mobility</code>)</div>
@@ -840,7 +948,7 @@
     </section>
 
     <!-- TAB 5: CLI WORKFLOWS -->
-    <section id="tab-cli" class="view-pane">
+    <section id="tab-cli" class="view-pane" role="tabpanel" aria-labelledby="tab-btn-cli">
       <div class="pane-header">
         <div>
           <div class="pane-title">CLI Workflows (<code>ops-req-audit</code> &bull; <code>ops-req-jd-audit</code> &bull; <code>ops-req-collect</code>)</div>
@@ -875,8 +983,8 @@
       </div>
     </section>
 
-    <!-- TAB 4: METHOD & COMPLIANCE -->
-    <section id="tab-method" class="view-pane">
+    <!-- TAB 6: METHOD & COMPLIANCE -->
+    <section id="tab-method" class="view-pane" role="tabpanel" aria-labelledby="tab-btn-method">
       <div class="pane-header">
         <div>
           <div class="pane-title">Method &amp; Compliance</div>
@@ -947,6 +1055,140 @@
           <div><strong>Competing products are never synonyms.</strong> Tableau does not earn Power BI credit; NICE does not earn Verint credit. On the employer side, requiring NICE <em>and</em> Verint <em>and</em> Genesys simultaneously triggers rule <code>L3</code>.</div>
           <div><span class="status-tag tag-green">Fetched</span> Greenhouse, Lever (US + EU), Ashby public job-board APIs; USAJobs official API; employer career pages with <code>Schema.org/JobPosting</code> data (after a <code>robots.txt</code> check).</div>
           <div><span class="status-tag tag-red">Paste-only</span> LinkedIn, Indeed, SimplyHired, ZipRecruiter, Glassdoor, Monster, CareerBuilder, Dice, Built In, Wellfound/AngelList. Their terms restrict automated access, so these URLs are declined before any network request (exit code <code>2</code>).</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: ORGANIZATION-NATIVE CUSTOMIZATION & APPROVAL WORKFLOW -->
+    <section id="tab-orgcfg" class="view-pane" role="tabpanel" aria-labelledby="tab-btn-orgcfg">
+      <div class="pane-header">
+        <div>
+          <div class="pane-title">Organization-Native Customization, Leveling &amp; Approval Workbench (<code>ops-req-org-config</code>)</div>
+          <div class="pane-desc">Configure organization-specific leveling ceilings, degree-equivalency policies, custom component weights (enforcing <code>C1 + C2 + C3 + C4 + C5 = 100.0</code>), and verdict cutoffs. Every change requires dual sign-off under Separation of Duties (TA/Compensation Lead + HR Compliance/Legal Counsel) and is sealed into a SHA-256 hash-chained configuration audit history.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="sim-toggle" onclick="loadOrgPreset('baseline')">Preset: Baseline Reference (v1.5.0)</button>
+          <button class="sim-toggle applied" onclick="loadOrgPreset('northstar')">Preset: Northstar Skills-First (v2026.11.2)</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Active Organization Profile</div>
+          <div class="kpi-val" id="org-kpi-id" style="font-size:18px;margin-top:6px">northstar-contact-solutions</div>
+          <div class="kpi-delta" id="org-kpi-ver">Version 2026.11.2 &bull; Effective 2026-11-15</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Component Weight Sum</div>
+          <div class="kpi-val" id="org-kpi-sum" style="color:var(--accent-emerald)">100.0 <span style="font-size:14px;color:var(--text-muted)">/ 100.0</span></div>
+          <div class="kpi-delta" id="org-kpi-weights-sub">C1:40 &bull; C2:25 &bull; C3:15 &bull; C4:10 &bull; C5:10</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Dual-Signoff SoD Status</div>
+          <div class="kpi-val" id="org-kpi-status" style="color:var(--accent-emerald);font-size:20px;margin-top:6px">APPROVED</div>
+          <div class="kpi-delta" id="org-kpi-approvers">TA: ta_comp_lead_s_jenkins &bull; Legal: legal_counsel_d_thompson</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Degree Equivalency Policy</div>
+          <div class="kpi-val" id="org-kpi-equiv" style="color:var(--accent-blue);font-size:20px;margin-top:6px">3.0+ Years</div>
+          <div class="kpi-delta">Skills-first practical experience equivalency</div>
+        </div>
+      </div>
+
+      <div class="sandbox-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <span>1. Custom Scoring Weights &amp; Verdict Cutoffs (Interactive Schema Validator)</span>
+          </div>
+          <div class="panel-body" style="display:flex;flex-direction:column;gap:10px;font-size:12.5px">
+            <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center">
+              <label for="org-c1">C1. Requirement Coverage Max (default 45.0):</label>
+              <input type="number" id="org-c1" value="40" step="1" min="0" max="100" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-c2">C2. Contextual Placement &amp; Recency Max (default 20.0):</label>
+              <input type="number" id="org-c2" value="25" step="1" min="0" max="100" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-c3">C3. Title, Tenure &amp; Scale Max (default 15.0):</label>
+              <input type="number" id="org-c3" value="15" step="1" min="0" max="100" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-c4">C4. Knockout Gate Verification Max (default 10.0):</label>
+              <input type="number" id="org-c4" value="10" step="1" min="0" max="100" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-c5">C5. Document &amp; Parse Hygiene Max (default 10.0):</label>
+              <input type="number" id="org-c5" value="10" step="1" min="0" max="100" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-strong">JD Strong Match Cutoff (&ge;):</label>
+              <input type="number" id="org-strong" value="78" step="1" min="1" max="100" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-border">JD Borderline Review Cutoff (&ge;):</label>
+              <input type="number" id="org-border" value="62" step="1" min="1" max="99" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+              <label for="org-bachelor-yrs">Bachelor Equivalency Years:</label>
+              <input type="number" id="org-bachelor-yrs" value="3" step="0.5" min="0" max="12" oninput="recalcOrgConfig()" style="background:var(--bg-base);color:var(--text-primary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-family:var(--font-mono)">
+            </div>
+            <div id="org-validation-banner" role="status" aria-live="polite" style="padding:8px 10px;border-radius:5px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:var(--accent-emerald);font-family:var(--font-mono);font-size:11.5px">
+              &#10003; SCHEMA &amp; SoD VALID: Component weights sum to 100.0 &bull; Thresholds ordered (0 &lt; 62.0 &lt; 78.0 &le; 100)
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span>2. Organization Leveling Guide &amp; Experience Ceilings</span>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Canonical Level</th>
+                  <th>Org Band</th>
+                  <th>Title</th>
+                  <th>Baseline Ceiling</th>
+                  <th>Org Ceiling</th>
+                  <th>Degree Policy</th>
+                </tr>
+              </thead>
+              <tbody id="org-level-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>3. Cryptographically Sealed Configuration Audit History (SHA-256 Hash Chain)</span>
+          <span style="color:var(--accent-emerald);font-family:var(--font-mono);font-size:11.5px">&#10003; HASH CHAIN VERIFIED (2 VERSIONS)</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Seq</th>
+                <th>Version</th>
+                <th>Status</th>
+                <th>Author</th>
+                <th>TA / Comp Approver</th>
+                <th>Compliance / Legal Approver</th>
+                <th>Change Rationale &amp; Parameter Diffs</th>
+                <th>Chain SHA-256</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">1</td>
+                <td class="mono"><strong>1.5.0</strong></td>
+                <td><span class="status-tag tag-green">APPROVED</span></td>
+                <td class="mono">arch_a_manning</td>
+                <td class="mono">ta_lead_m_chen</td>
+                <td class="mono">hr_compliance_r_davis</td>
+                <td>Baseline 100-point deterministic rubric and HBS Hidden Workers leveling ceilings (C1=45, C2=20, C3=15, C4=10, C5=10; Strong&ge;80.0).</td>
+                <td class="mono">9c41f02a8b1e&hellip;</td>
+              </tr>
+              <tr>
+                <td class="mono">2</td>
+                <td class="mono"><strong>2026.11.2</strong></td>
+                <td><span class="status-tag tag-green">APPROVED</span></td>
+                <td class="mono">wfm_director_k_patel</td>
+                <td class="mono">ta_comp_lead_s_jenkins</td>
+                <td class="mono">legal_counsel_d_thompson</td>
+                <td><strong>9 parameter diffs:</strong> Adopted Northstar skills-first WFM leveling ceilings (<code>level_2: 4y&rarr;3y</code>, <code>senior: 8y&rarr;6y</code>), elevated Component 2 recent-experience weight (<code>C1: 45&rarr;40</code>, <code>C2: 20&rarr;25</code>), lowered bachelor equivalency (<code>4y&rarr;3y</code>), and set Strong cutoff to <code>78.0</code>.</td>
+                <td class="mono">e72b94d13c08&hellip;</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -1201,6 +1443,10 @@ Northstar Contact Solutions is an equal opportunity employer and provides reason
       cmd: 'python scripts/internal_mobility_matcher.py --demo' },
     { cat: 'Mobility & Reskill', name: 'Outplacement transition pack', desc: 'Generates an employee-private outplacement & reskilling pack across a folder or public board.',
       cmd: 'python scripts/internal_mobility_matcher.py --resume examples/sample_resume.txt --reqs-dir path/to/open_reqs --outplacement-pack --output outplacement_pack.md' },
+    { cat: 'Pilot & Evidence', name: '6-case pilot validation harness', desc: 'Runs (requisition, resume) pairs through RQS + JD Alignment, parser confidence, and Cohen\'s kappa / Pearson r outcome checks.',
+      cmd: 'python scripts/pilot_evidence_harness.py --demo --output pilot_report.md --csv-out pilot_ledger.csv' },
+    { cat: 'Pilot & Evidence', name: 'Run custom pilot manifest', desc: 'Benchmarks a custom pilot manifest JSON of human decisions and validated hiring outcomes.',
+      cmd: 'python scripts/pilot_evidence_harness.py --manifest examples/sample_pilot_manifest.json --output pilot_report.md --json-out pilot_evidence.json --csv-out pilot_ledger.csv' },
     { cat: 'Verify', name: 'Built-in candidate demo', desc: 'Runs the deterministic candidate alignment engine on built-in fixtures.',
       cmd: 'python scripts/offline_ats_auditor.py --demo' },
     { cat: 'Candidate Audit', name: 'Audit vs confirmed config', desc: 'Scores a resume against a requirement list you approved, with a fixed reference date.',
@@ -1215,7 +1461,7 @@ Northstar Contact Solutions is an equal opportunity employer and provides reason
       cmd: 'python scripts/job_posting_collector.py --input-file job_description.txt --output posting.md --ats-config-out jd_config.json' },
     { cat: 'Export', name: 'Export accepted rewrites', desc: 'Writes confirmed rewrites into a .docx that keeps paragraph styles.',
       cmd: 'python scripts/offline_ats_auditor.py --resume Resume.docx --jd-config jd_config.json --replacements-json replacements.json --export-docx Resume_Updated.docx' },
-    { cat: 'Test', name: 'Run the 47-test suite', desc: 'Runs candidate alignment, employer RQS, explainable screening, and mobility unit tests offline.',
+    { cat: 'Test', name: 'Run the 50-test suite', desc: 'Runs candidate alignment, employer RQS, explainable screening, mobility, and pilot harness unit tests offline.',
       cmd: 'python -m unittest discover -s tests -v' }
   ];
 
@@ -1315,13 +1561,79 @@ Northstar Contact Solutions is an equal opportunity employer and provides reason
     });
 
     document.getElementById('kpi-composite').innerHTML = `${t.composite.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100</span>`;
-    document.getElementById('kpi-verdict').textContent = `Verdict: ${verdictFor(t.composite)} (${delta >= 0.01 ? '+' + delta.toFixed(2) + ' pts recovered' : 'baseline'})`;
-    document.getElementById('kpi-literal').textContent = `${t.literal.toFixed(1)}%`;
-    document.getElementById('kpi-lit-delta').textContent = `C1 literal (${t.c1Lit.toFixed(2)}) + C2 literal (${t.c2Lit.toFixed(2)}) + 35.00`;
-    document.getElementById('kpi-kwctx').textContent = (t.c1 + t.c2).toFixed(2);
-    document.getElementById('kpi-kwctx-sub').textContent = `C1 (${t.c1.toFixed(2)}/45) + C2 (${t.c2.toFixed(2)}/20)`;
+    const presentMaxW = items.reduce((acc, it) => acc + ((it.applied || it.baseCredit > 0) ? it.maxWeight : 0), 0);
+    const upperBound = Math.min(100.0, 45.0 * (presentMaxW / TOTAL_MAX_WEIGHT) + 20.0 * (presentMaxW / TOTAL_MAX_WEIGHT) + FIXED_C3_C4_C5);
+    const lowerBound = Math.min(t.composite, t.literal);
+    const spreadHalf = ((upperBound - lowerBound) / 2).toFixed(1);
+    document.getElementById('kpi-verdict').textContent = `Plausible Band: [${lowerBound.toFixed(1)}, ${upperBound.toFixed(1)}] (\u00B1${spreadHalf} pts) \u2022 ${verdictFor(t.composite)}`;
+    document.getElementById('sim-band-pill').textContent = `Band: [${lowerBound.toFixed(1)}, ${upperBound.toFixed(1)}]`;
+
+    const fullCnt = items.filter(it => (it.applied ? 1.0 : it.baseCredit) === 1.0 && (it.applied ? 1.0 : it.baseMult) === 1.0).length;
+    const missingCnt = items.filter(it => (it.applied ? 1.0 : it.baseCredit) === 0.0).length;
+    const partialCnt = items.length - fullCnt - missingCnt;
+    const wtCompleteness = (t.sumCtx / TOTAL_MAX_WEIGHT) * 100.0;
+    const compEl = document.getElementById('kpi-completeness');
+    if (compEl) {
+      const compBand = (wtCompleteness >= 85 && missingCnt === 0) ? 'COMPLETE' : 'PARTIAL';
+      compEl.style.color = compBand === 'COMPLETE' ? 'var(--accent-emerald)' : 'var(--accent-amber)';
+      compEl.innerHTML = `${wtCompleteness.toFixed(1)}% <span style="font-size:14px;color:var(--text-muted)">${compBand}</span>`;
+      document.getElementById('kpi-comp-sub').textContent = `${fullCnt} Full (1.0x) \u2022 ${partialCnt} Partial \u2022 ${missingCnt} Missing (0.0x)`;
+    }
+
+    const semLitDelta = t.composite - t.literal;
+    document.getElementById('kpi-literal').innerHTML = `${t.literal.toFixed(1)}% <span style="font-size:14px;color:var(--accent-blue)">(+${semLitDelta.toFixed(1)}\u0394)</span>`;
+    document.getElementById('kpi-lit-delta').textContent = `C1: ${t.c1.toFixed(1)} vs ${t.c1Lit.toFixed(1)} \u2022 C2: ${t.c2.toFixed(2)} vs ${t.c2Lit.toFixed(2)} \u2022 C3-5: 35.0`;
     document.getElementById('ledger-weight-summary').textContent = `Matched: ${t.sumKw.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} coverage wt | ${t.sumCtx.toFixed(1)} / ${TOTAL_MAX_WEIGHT.toFixed(1)} placement wt`;
     document.getElementById('nav-score').textContent = t.composite.toFixed(1);
+
+    // Side-by-side Semantic vs Literal table
+    const sbsBody = document.getElementById('sim-sidebyside-rows');
+    if (sbsBody) {
+      const sbsRows = [
+        { name: 'C1. Requirement Coverage', max: '45.0', sem: t.c1.toFixed(2), lit: t.c1Lit.toFixed(2), d: (t.c1 - t.c1Lit) },
+        { name: 'C2. Placement & Recency', max: '20.0', sem: t.c2.toFixed(2), lit: t.c2Lit.toFixed(2), d: (t.c2 - t.c2Lit) },
+        { name: 'C3. Title, Tenure & Scale', max: '15.0', sem: '15.00', lit: '15.00', d: 0.0 },
+        { name: 'C4. Knockout Gate Verification', max: '10.0', sem: '10.00', lit: '10.00', d: 0.0 },
+        { name: 'C5. Document & Parse Hygiene', max: '10.0', sem: '10.00', lit: '10.00', d: 0.0 }
+      ];
+      sbsBody.innerHTML = sbsRows.map(r => `
+        <tr>
+          <td><strong>${escapeHtml(r.name)}</strong></td>
+          <td class="mono">${r.max}</td>
+          <td class="mono" style="color:var(--accent-emerald)"><strong>${r.sem}</strong></td>
+          <td class="mono">${r.lit}</td>
+          <td class="mono" style="color:${r.d > 0.005 ? 'var(--accent-blue)' : 'var(--text-muted)'}">${r.d > 0.005 ? '+' + r.d.toFixed(2) + ' pts' : '0.00'}</td>
+        </tr>`).join('');
+    }
+
+    // Complete Point-Deduction Explanations Box
+    const dedBox = document.getElementById('sim-deductions-box');
+    if (dedBox) {
+      document.getElementById('sim-ded-target').textContent = t.composite.toFixed(1);
+      const totalLost = Math.max(0, 100.0 - t.composite);
+      document.getElementById('sim-ded-total').textContent = `-${totalLost.toFixed(2)} pts explained`;
+      const activeDeds = items.filter(it => it.fixable && !it.applied).map(it => {
+        const g = itemGain(it);
+        const c1Loss = ((it.maxWeight - it.maxWeight * it.baseCredit) / TOTAL_MAX_WEIGHT) * 45.0;
+        const c2Loss = ((it.maxWeight - it.maxWeight * it.baseCredit * it.baseMult) / TOTAL_MAX_WEIGHT) * 20.0;
+        const reason = it.baseCredit === 0.0
+          ? `MISSING (0.0x): Not detected on resume (-${c1Loss.toFixed(2)} C1, -${c2Loss.toFixed(2)} C2). Confirm with candidate before claiming.`
+          : (it.baseCredit === 0.5
+              ? `SYNONYM DILUTION (0.5x): Matched same-capability synonym in recent role (-${c1Loss.toFixed(2)} C1, -${c2Loss.toFixed(2)} C2).`
+              : `PLACEMENT PENALTY (0.4x): Listed only in Skills section, not in recent role bullets (-${c2Loss.toFixed(2)} C2).`);
+        return { name: it.name, tier: it.tier, lost: g, reason, isZero: it.baseCredit === 0.0 };
+      }).sort((a, b) => b.lost - a.lost);
+
+      if (!activeDeds.length) {
+        dedBox.innerHTML = `<div style="color:var(--accent-emerald);font-weight:600">&#10003; Zero points deducted (100.0 / 100). All 12 requirements verified at 1.0x credit in recent work experience.</div>`;
+      } else {
+        dedBox.innerHTML = activeDeds.map(d => `
+          <div style="border-left:2px solid ${d.isZero ? 'var(--accent-rose)' : 'var(--accent-amber)'};padding-left:8px">
+            <div><strong>${escapeHtml(d.name)}</strong> <span class="mono" style="color:var(--text-muted)">(${escapeHtml(d.tier)})</span> &mdash; <strong class="mono" style="color:${d.isZero ? 'var(--accent-rose)' : 'var(--accent-amber)'}">-${d.lost.toFixed(2)} pts</strong></div>
+            <div style="color:var(--text-secondary);font-size:11.5px">${escapeHtml(d.reason)}</div>
+          </div>`).join('');
+      }
+    }
   }
 
   function toggleItem(id) {
@@ -1568,6 +1880,16 @@ Northstar Contact Solutions is an equal opportunity employer and provides reason
 
   function runLiveJdAudit() {
     const text = document.getElementById('live-jd-input').value;
+    const valBanner = document.getElementById('live-jd-validation-banner');
+    if (valBanner) {
+      if (!text || text.trim().length < 30) {
+        valBanner.style.display = 'block';
+        valBanner.textContent = '\u26A0 FORM VALIDATION: Please paste or enter a job requisition of at least 30 characters to compute a meaningful Requisition Quality Score.';
+      } else {
+        valBanner.style.display = 'none';
+        valBanner.textContent = '';
+      }
+    }
     const res = auditJdTextClient(text);
     document.getElementById('live-jd-score-inline').textContent = `${res.score.toFixed(1)} / 100`;
     const bandEl = document.getElementById('live-jd-band-inline');
@@ -2093,11 +2415,41 @@ Northstar Contact Solutions is an equal opportunity employer and provides reason
     });
   }
 
+  const SHARED_SCORING_VECTOR_VERSION = 'shared-vectors-1.0';
+
   function switchTab(tabId, btn) {
     document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn[role="tab"]').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    btn.setAttribute('tabindex', '0');
+  }
+
+  function handleTabKeydown(event) {
+    const tabs = Array.from(document.querySelectorAll('.nav-btn[role="tab"]'));
+    const currentIndex = tabs.indexOf(document.activeElement);
+    if (currentIndex === -1) return;
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    const targetBtn = tabs[nextIndex];
+    targetBtn.focus();
+    targetBtn.click();
   }
 
   function setPrompt(text) {
@@ -2133,6 +2485,110 @@ Northstar Contact Solutions is an equal opportunity employer and provides reason
   renderCli();
   document.getElementById('live-jd-input').value = PRESET_UNICORN_JD;
   runLiveJdAudit();
+
+  // =========================================================================
+  // TAB 7: ORGANIZATION-NATIVE CUSTOMIZATION & APPROVAL WORKBENCH
+  // =========================================================================
+  const orgLevelGuides = {
+    baseline: [
+      { key: 'entry', code: 'L1', title: 'Entry / Associate Analyst', baseMax: 2, orgMax: 2, policy: 'equivalency_accepted' },
+      { key: 'level_1', code: 'L2', title: 'WFM / Operations Analyst I', baseMax: 2, orgMax: 2, policy: 'equivalency_accepted' },
+      { key: 'level_2', code: 'L3', title: 'WFM / Operations Analyst II', baseMax: 4, orgMax: 4, policy: 'equivalency_accepted' },
+      { key: 'level_3', code: 'L4', title: 'WFM / Operations Analyst III', baseMax: 6, orgMax: 6, policy: 'equivalency_accepted' },
+      { key: 'senior', code: 'L5', title: 'Senior WFM / BI Analyst', baseMax: 8, orgMax: 8, policy: 'equivalency_accepted' },
+      { key: 'manager', code: 'M1', title: 'WFM / Analytics Manager', baseMax: 8, orgMax: 8, policy: 'equivalency_accepted' },
+      { key: 'senior_manager', code: 'M2', title: 'Senior Analytics Manager', baseMax: 10, orgMax: 10, policy: 'equivalency_accepted' }
+    ],
+    northstar: [
+      { key: 'entry', code: 'L1', title: 'Entry / Associate Analyst', baseMax: 2, orgMax: 2, policy: 'equivalency_accepted' },
+      { key: 'level_1', code: 'L2', title: 'WFM / Operations Analyst I', baseMax: 2, orgMax: 2, policy: 'equivalency_accepted' },
+      { key: 'level_2', code: 'L3', title: 'WFM / Operations Analyst II', baseMax: 4, orgMax: 3, policy: 'equivalency_accepted' },
+      { key: 'level_3', code: 'L4', title: 'WFM / Operations Analyst III', baseMax: 6, orgMax: 5, policy: 'equivalency_accepted' },
+      { key: 'senior', code: 'L5', title: 'Senior WFM / BI Analyst', baseMax: 8, orgMax: 6, policy: 'equivalency_accepted' },
+      { key: 'manager', code: 'M1', title: 'WFM / Analytics Manager', baseMax: 8, orgMax: 6, policy: 'equivalency_accepted' },
+      { key: 'senior_manager', code: 'M2', title: 'Senior Analytics Manager', baseMax: 10, orgMax: 8, policy: 'equivalency_accepted' }
+    ]
+  };
+  let activeOrgPreset = 'northstar';
+
+  function renderOrgLevelTable() {
+    const tbody = document.getElementById('org-level-rows');
+    if (!tbody) return;
+    const rows = orgLevelGuides[activeOrgPreset] || orgLevelGuides.northstar;
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="mono">${escapeHtml(r.key)}</td>
+        <td class="mono"><strong>${escapeHtml(r.code)}</strong></td>
+        <td>${escapeHtml(r.title)}</td>
+        <td class="mono">&le; ${r.baseMax} yrs</td>
+        <td class="mono" style="color:${r.orgMax < r.baseMax ? 'var(--accent-emerald)' : 'var(--text-primary)'}"><strong>&le; ${r.orgMax} yrs</strong></td>
+        <td class="mono">${escapeHtml(r.policy)}</td>
+      </tr>`).join('');
+  }
+
+  function loadOrgPreset(preset) {
+    activeOrgPreset = preset;
+    if (preset === 'baseline') {
+      document.getElementById('org-c1').value = 45;
+      document.getElementById('org-c2').value = 20;
+      document.getElementById('org-c3').value = 15;
+      document.getElementById('org-c4').value = 10;
+      document.getElementById('org-c5').value = 10;
+      document.getElementById('org-strong').value = 80;
+      document.getElementById('org-border').value = 65;
+      document.getElementById('org-bachelor-yrs').value = 4;
+      document.getElementById('org-kpi-id').textContent = 'default-baseline-org';
+      document.getElementById('org-kpi-ver').textContent = 'Version 1.5.0 \u2022 Effective 2026-11-01';
+    } else {
+      document.getElementById('org-c1').value = 40;
+      document.getElementById('org-c2').value = 25;
+      document.getElementById('org-c3').value = 15;
+      document.getElementById('org-c4').value = 10;
+      document.getElementById('org-c5').value = 10;
+      document.getElementById('org-strong').value = 78;
+      document.getElementById('org-border').value = 62;
+      document.getElementById('org-bachelor-yrs').value = 3;
+      document.getElementById('org-kpi-id').textContent = 'northstar-contact-solutions';
+      document.getElementById('org-kpi-ver').textContent = 'Version 2026.11.2 \u2022 Effective 2026-11-15';
+    }
+    renderOrgLevelTable();
+    recalcOrgConfig();
+  }
+
+  function recalcOrgConfig() {
+    const c1 = parseFloat(document.getElementById('org-c1').value) || 0;
+    const c2 = parseFloat(document.getElementById('org-c2').value) || 0;
+    const c3 = parseFloat(document.getElementById('org-c3').value) || 0;
+    const c4 = parseFloat(document.getElementById('org-c4').value) || 0;
+    const c5 = parseFloat(document.getElementById('org-c5').value) || 0;
+    const strong = parseFloat(document.getElementById('org-strong').value) || 0;
+    const border = parseFloat(document.getElementById('org-border').value) || 0;
+    const bachYrs = parseFloat(document.getElementById('org-bachelor-yrs').value) || 0;
+    const sum = Math.round((c1 + c2 + c3 + c4 + c5) * 10) / 10;
+
+    document.getElementById('org-kpi-sum').innerHTML = `${sum.toFixed(1)} <span style="font-size:14px;color:var(--text-muted)">/ 100.0</span>`;
+    document.getElementById('org-kpi-weights-sub').textContent = `C1:${c1} \u2022 C2:${c2} \u2022 C3:${c3} \u2022 C4:${c4} \u2022 C5:${c5}`;
+    document.getElementById('org-kpi-equiv').textContent = `${bachYrs.toFixed(1)}+ Years`;
+
+    const banner = document.getElementById('org-validation-banner');
+    const sumOk = Math.abs(sum - 100.0) < 0.05;
+    const threshOk = border > 0 && strong > border && strong <= 100;
+    if (sumOk && threshOk) {
+      document.getElementById('org-kpi-sum').style.color = 'var(--accent-emerald)';
+      banner.style.background = 'rgba(16,185,129,0.12)';
+      banner.style.borderColor = 'rgba(16,185,129,0.35)';
+      banner.style.color = 'var(--accent-emerald)';
+      banner.innerHTML = `\u2713 SCHEMA &amp; SoD VALID: Component weights sum to 100.0 \u2022 Thresholds ordered (0 &lt; ${border.toFixed(1)} &lt; ${strong.toFixed(1)} &le; 100)`;
+    } else {
+      document.getElementById('org-kpi-sum').style.color = 'var(--accent-rose)';
+      banner.style.background = 'rgba(244,63,94,0.12)';
+      banner.style.borderColor = 'rgba(244,63,94,0.35)';
+      banner.style.color = 'var(--accent-rose)';
+      banner.innerHTML = `\u26A0 SCHEMA BLOCKED: Component sum is ${sum.toFixed(1)} (must equal 100.0) and thresholds must satisfy 0 &lt; Borderline (${border}) &lt; Strong (${strong}) &le; 100.`;
+    }
+  }
+
+  renderOrgLevelTable();
 </script>
 </body>
 </html>

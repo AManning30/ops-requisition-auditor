@@ -1,0 +1,110 @@
+{
+  "corpus_id": "ops-requisition-auditor-public-synthetic-corpus-2026.11",
+  "domains": {
+    "1_candidate_jd_alignment": {
+      "baseline_resume_fixture": "examples/sample_resume.txt",
+      "expected_baseline_score": 88.3,
+      "expected_literal_score": 82.9,
+      "expected_optimized_score": 100.0,
+      "expected_plausible_band": [
+        82.9,
+        96.8
+      ],
+      "jd_config_fixture": "examples/sample_ats_config.json",
+      "optimized_resume_fixture": "examples/sample_resume_optimized.txt"
+    },
+    "2_employer_requisition_quality": {
+      "expected_auto_edit_rqs": 56.0,
+      "expected_hidden_worker_flags": 8,
+      "expected_improved_rqs": 100.0,
+      "expected_unicorn_rqs": 36.0,
+      "improved_requisition_fixture": "examples/sample_requisition_improved.txt",
+      "rubric_version": "rqs-0.2",
+      "unicorn_requisition_fixture": "examples/sample_requisition_unicorn.txt"
+    },
+    "3_explainable_screening_and_blind_parity": {
+      "candidate_count": 4,
+      "expected_auto_rejections": 0,
+      "expected_blind_score_drift": 0.0,
+      "expected_ranked_scores": [
+        100.0,
+        88.3,
+        76.4,
+        33.0
+      ]
+    },
+    "4_internal_mobility_and_reskilling": {
+      "career_ladder_fixture": "examples/sample_mobility_career_ladder.json",
+      "catalog_version": "wfm-reskill-cat-2.0",
+      "confirmations_fixture": "examples/sample_mobility_confirmation_and_outcomes.json",
+      "expected_role_scores": [
+        {
+          "confirmed_30d": 94.9,
+          "current": 88.3,
+          "projected_30d": 96.7,
+          "requisition_id": "INT-WFM-204"
+        },
+        {
+          "confirmed_30d": 85.6,
+          "current": 81.4,
+          "projected_30d": 85.6,
+          "requisition_id": "INT-WFM-108"
+        },
+        {
+          "confirmed_30d": 71.6,
+          "current": 67.0,
+          "projected_30d": 74.7,
+          "requisition_id": "INT-WFM-310"
+        }
+      ]
+    },
+    "5_multiformat_multilingual_parser_corpus": {
+      "corpus_fixture": "examples/sample_resume_parser_corpus.json",
+      "expected_case_count": 11,
+      "expected_fuzz_Trial_count": 25,
+      "expected_pass_rate": 1.0
+    },
+    "6_fairness_and_adverse_impact": {
+      "cohort_manifest_fixture": "examples/sample_fairness_cohort_manifest.json",
+      "evaluated_dimensions": [
+        "race_ethnicity",
+        "sex",
+        "age_proxy_band",
+        "disability_status",
+        "resume_language",
+        "intersectional_race_sex"
+      ],
+      "expected_parser_parity_pass": true
+    }
+  },
+  "license": "AGPL-3.0-or-later",
+  "reference_date": "2026-11-01",
+  "suite_version": "trust-bench-1.6.0",
+  "synthetic_attestation": "100% synthetic data corpus. All candidate personas (Alexander Mercer, Jordan Vance, Morgan Chen, Taylor Brooks, Mateo Rivera, Camille Laurent), contact details (@example.com / 555-01xx), and employer requisitions (Northstar Contact Solutions) are fictional.",
+  "synthetic_candidates_sample": [
+    {
+      "candidate_id": "CAND-001",
+      "email": "redacted@example.com",
+      "phone": "(314) 555-0199",
+      "synthetic": true
+    },
+    {
+      "candidate_id": "CAND-002",
+      "email": "redacted@example.com",
+      "phone": "(314) 555-0199",
+      "synthetic": true
+    },
+    {
+      "candidate_id": "CAND-003",
+      "email": "redacted@example.com",
+      "phone": "(314) 555-0199",
+      "synthetic": true
+    },
+    {
+      "candidate_id": "CAND-004",
+      "email": "redacted@example.com",
+      "phone": "(314) 555-0199",
+      "synthetic": true
+    }
+  ]
+}

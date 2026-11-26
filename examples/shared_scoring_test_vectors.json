@@ -1,0 +1,84 @@
+{
+  "vector_contract_version": "shared-vectors-1.0",
+  "reference_date": "2026-11-01",
+  "candidate_jd_alignment": {
+    "baseline_composite_score": 88.3,
+    "baseline_literal_score": 82.9,
+    "baseline_c1_coverage": 39.0,
+    "baseline_c2_placement": 14.33,
+    "baseline_c3_c4_c5_fixed": 35.0,
+    "plausible_band_low": 82.9,
+    "plausible_band_high": 96.8,
+    "evidence_completeness_pct": 71.7,
+    "optimized_composite_score": 100.0,
+    "total_max_weight": 60.0,
+    "requirement_count": 12
+  },
+  "employer_requisition_quality": {
+    "rubric_version": "rqs-0.2",
+    "unicorn_rqs_score": 36.0,
+    "unicorn_projected_auto_edit_score": 56.0,
+    "unicorn_finding_count": 17,
+    "unicorn_hidden_worker_flags": 8,
+    "improved_rqs_score": 100.0
+  },
+  "explainable_screening": {
+    "candidate_scores": [
+      {
+        "candidate_id": "CAND-001",
+        "rank": 1,
+        "score": 100.0,
+        "literal_score": 100.0,
+        "blind_parity_verified": true
+      },
+      {
+        "candidate_id": "CAND-002",
+        "rank": 2,
+        "score": 88.3,
+        "literal_score": 82.9,
+        "blind_parity_verified": true
+      },
+      {
+        "candidate_id": "CAND-003",
+        "rank": 3,
+        "score": 76.4,
+        "literal_score": 71.0,
+        "blind_parity_verified": true
+      },
+      {
+        "candidate_id": "CAND-004",
+        "rank": 4,
+        "score": 33.0,
+        "literal_score": 29.8,
+        "blind_parity_verified": true
+      }
+    ],
+    "all_blind_parity_verified": true
+  },
+  "internal_mobility": {
+    "catalog_version": "wfm-reskill-cat-2.0",
+    "roles": [
+      {
+        "requisition_id": "INT-WFM-204",
+        "rank": 1,
+        "current_score": 88.3,
+        "projected_30d_score": 96.7,
+        "readiness_band": "Ready Now (Immediate Transfer / Application)"
+      },
+      {
+        "requisition_id": "INT-WFM-108",
+        "rank": 2,
+        "current_score": 81.4,
+        "projected_30d_score": 85.6,
+        "readiness_band": "Ready Now (Immediate Transfer / Application)"
+      },
+      {
+        "requisition_id": "INT-WFM-310",
+        "rank": 3,
+        "current_score": 67.0,
+        "projected_30d_score": 74.7,
+        "readiness_band": "Near-Ready (30-to-60-Day Bridge)"
+      }
+    ]
+  }
+}

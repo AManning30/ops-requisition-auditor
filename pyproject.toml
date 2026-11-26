@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ops-requisition-auditor"
-version = "1.5.0"
+version = "1.6.0"
 description = "ops-requisition-auditor: deterministic, explainable JD Alignment scoring with quoted evidence and zero-fabrication rewrites for operations, WFM, and BI requisitions"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,7 +30,7 @@ Issues = "https://github.com/AManning30/ops-requisition-auditor/issues"
 
 [tool.setuptools]
 package-dir = {"" = "scripts"}
-py-modules = ["offline_ats_auditor", "job_posting_collector", "tos_compliant_collector", "requisition_quality_auditor", "explainable_screening_assistant", "internal_mobility_matcher"]
+py-modules = ["offline_ats_auditor", "job_posting_collector", "tos_compliant_collector", "requisition_quality_auditor", "explainable_screening_assistant", "internal_mobility_matcher", "pilot_evidence_harness", "governance_middleware", "compliance_policy_registry", "privacy_data_minimization", "fairness_adverse_impact_auditor", "parser_benchmark_suite", "org_customization_registry", "integration_adapters_and_webhooks", "workbench_parity_and_a11y", "public_trust_and_benchmarks"]
 
 [project.scripts]
 ops-req-audit = "offline_ats_auditor:main"
@@ -39,3 +39,13 @@ ops-req-api-collect = "tos_compliant_collector:main"
 ops-req-jd-audit = "requisition_quality_auditor:main"
 ops-req-screen = "explainable_screening_assistant:main"
 ops-req-mobility = "internal_mobility_matcher:main"
+ops-req-pilot = "pilot_evidence_harness:main"
+ops-req-governance = "governance_middleware:main"
+ops-req-policy = "compliance_policy_registry:main"
+ops-req-privacy = "privacy_data_minimization:main"
+ops-req-fairness = "fairness_adverse_impact_auditor:main"
+ops-req-parser-bench = "parser_benchmark_suite:main"
+ops-req-org-config = "org_customization_registry:main"
+ops-req-integrate = "integration_adapters_and_webhooks:main"
+ops-req-workbench = "workbench_parity_and_a11y:main"
+ops-req-trust-bench = "public_trust_and_benchmarks:main"

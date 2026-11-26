@@ -1,0 +1,1038 @@
+{
+  "contract_version": "ats-neutral-contract-1.0",
+  "batch_jobs": [
+    {
+      "source_system": "greenhouse",
+      "requisition": {
+        "id": "GH-REQ-901",
+        "title": "Senior Analytics Manager",
+        "company": "Northstar Contact Solutions",
+        "location": {
+          "name": "Denver, CO"
+        },
+        "departments": [
+          {
+            "name": "Workforce Operations & BI"
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Python",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "PySpark"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "SQL",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "PostgreSQL",
+              "T-SQL"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Snowflake",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "BigQuery",
+              "Redshift"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "SAP S/4HANA",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "SAP ERP",
+              "Oracle NetSuite"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Power BI",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "Tableau",
+              "Looker"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Workforce Capacity Modeling",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "capacity planning"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Demand Forecasting",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "demand planning"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "P&L Ownership",
+            "category": "title_scope",
+            "tier": "required",
+            "synonyms": [
+              "operating budget"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Kubernetes",
+            "category": "hard_skill",
+            "tier": "preferred",
+            "synonyms": [
+              "Docker",
+              "EKS"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Six Sigma Black Belt",
+            "category": "hard_skill",
+            "tier": "preferred",
+            "synonyms": [
+              "Lean Six Sigma"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Cross-Functional Leadership",
+            "category": "soft_skill",
+            "tier": "required",
+            "synonyms": [
+              "cross-functional"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "B.S.",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "Bachelor"
+            ],
+            "is_knockout_gate": true,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          }
+        ],
+        "alignment": {
+          "target_title": "Senior Analytics Manager",
+          "title_synonyms": [
+            "Analytics Manager",
+            "Data Analytics Manager"
+          ],
+          "min_years_required": 6.0,
+          "target_seniority_keywords": [
+            "architected",
+            "spearheaded",
+            "governed",
+            "led",
+            "managed",
+            "directed",
+            "scaled",
+            "owned"
+          ]
+        }
+      },
+      "application": {
+        "id": "GH-APP-1001",
+        "candidate": {
+          "id": "CAND-001"
+        },
+        "requisition_id": "GH-REQ-901",
+        "resume_text": "JORDAN VANCE\nSt. Louis, MO | jordan.vance@email.com | 314-555-0192\n\nProfessional Summary\nSenior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.\n\nWork Experience\nSenior Analytics Manager - Apex Global Retail (03/2022 - Present)\n- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue, integrating SAP S/4HANA, Power BI, Kubernetes, and Six Sigma Black Belt DMAIC controls.\n- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.\n- Partnered with cross-functional leadership on Workforce Capacity Modeling and annual P&L Ownership ($18M operating budget) reviews.\n\nSupply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)\n- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.\n- Supported ERP migration readiness and warehouse slotting audits.\n\nEducation\nB.S. in Industrial Engineering - University of Missouri (05/2018)\n\nTechnical & Core Skills\nSQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership\n",
+        "blind_mode": true,
+        "consent": {
+          "subject_id": "CAND-001",
+          "flow_type": "batch_screening",
+          "consented": true,
+          "consent_scope": [
+            "batch_screening"
+          ],
+          "consent_timestamp": "2026-11-01T08:00:00Z",
+          "consent_method": "applicant_portal_opt_in"
+        },
+        "human_decision": {
+          "status": "ADVANCE",
+          "reviewer": "recruiter_j_smith",
+          "reviewer_role": "recruiter",
+          "timestamp": "2026-11-01T10:00:00Z",
+          "override_reason": ""
+        }
+      }
+    },
+    {
+      "source_system": "lever",
+      "requisition": {
+        "id": "LEV-REQ-902",
+        "text": "Senior Analytics Manager",
+        "company": "Northstar Contact Solutions",
+        "categories": {
+          "team": "Workforce Analytics",
+          "location": "Chicago, IL"
+        },
+        "requirements": [
+          {
+            "name": "Python",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "PySpark"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "SQL",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "PostgreSQL",
+              "T-SQL"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Snowflake",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "BigQuery",
+              "Redshift"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "SAP S/4HANA",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "SAP ERP",
+              "Oracle NetSuite"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Power BI",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "Tableau",
+              "Looker"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Workforce Capacity Modeling",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "capacity planning"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Demand Forecasting",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "demand planning"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "P&L Ownership",
+            "category": "title_scope",
+            "tier": "required",
+            "synonyms": [
+              "operating budget"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Kubernetes",
+            "category": "hard_skill",
+            "tier": "preferred",
+            "synonyms": [
+              "Docker",
+              "EKS"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Six Sigma Black Belt",
+            "category": "hard_skill",
+            "tier": "preferred",
+            "synonyms": [
+              "Lean Six Sigma"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Cross-Functional Leadership",
+            "category": "soft_skill",
+            "tier": "required",
+            "synonyms": [
+              "cross-functional"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "B.S.",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "Bachelor"
+            ],
+            "is_knockout_gate": true,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          }
+        ],
+        "alignment": {
+          "target_title": "Senior Analytics Manager",
+          "title_synonyms": [
+            "Analytics Manager",
+            "Data Analytics Manager"
+          ],
+          "min_years_required": 6.0,
+          "target_seniority_keywords": [
+            "architected",
+            "spearheaded",
+            "governed",
+            "led",
+            "managed",
+            "directed",
+            "scaled",
+            "owned"
+          ]
+        }
+      },
+      "application": {
+        "id": "LEV-OPP-2002",
+        "contact": "CAND-002",
+        "posting_id": "LEV-REQ-902",
+        "resume_text": "JORDAN VANCE\nSt. Louis, MO | jordan.vance@email.com | 314-555-0192\n\nProfessional Summary\nSenior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.\n\nWork Experience\nSenior Analytics Manager - Apex Global Retail (03/2022 - Present)\n- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue.\n- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.\n- Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.\n\nSupply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)\n- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.\n- Supported ERP migration readiness and warehouse slotting audits.\n\nEducation\nB.S. in Industrial Engineering - University of Missouri (05/2018)\n\nTechnical & Core Skills\nSQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership\n",
+        "blind_mode": true,
+        "human_decision": {
+          "status": "PENDING_HUMAN_REVIEW"
+        }
+      }
+    },
+    {
+      "source_system": "ashby",
+      "requisition": {
+        "id": "ASH-REQ-903",
+        "title": "Senior Analytics Manager",
+        "company": "Northstar Contact Solutions",
+        "departmentName": "Operations Analytics",
+        "locationName": "New York, NY",
+        "requirements": [
+          {
+            "name": "Python",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "PySpark"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "SQL",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "PostgreSQL",
+              "T-SQL"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Snowflake",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "BigQuery",
+              "Redshift"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "SAP S/4HANA",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "SAP ERP",
+              "Oracle NetSuite"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Power BI",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "Tableau",
+              "Looker"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Workforce Capacity Modeling",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "capacity planning"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Demand Forecasting",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "demand planning"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "P&L Ownership",
+            "category": "title_scope",
+            "tier": "required",
+            "synonyms": [
+              "operating budget"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Kubernetes",
+            "category": "hard_skill",
+            "tier": "preferred",
+            "synonyms": [
+              "Docker",
+              "EKS"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Six Sigma Black Belt",
+            "category": "hard_skill",
+            "tier": "preferred",
+            "synonyms": [
+              "Lean Six Sigma"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "Cross-Functional Leadership",
+            "category": "soft_skill",
+            "tier": "required",
+            "synonyms": [
+              "cross-functional"
+            ],
+            "is_knockout_gate": false,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          },
+          {
+            "name": "B.S.",
+            "category": "hard_skill",
+            "tier": "required",
+            "synonyms": [
+              "Bachelor"
+            ],
+            "is_knockout_gate": true,
+            "alternatives": [],
+            "confidence": 1.0,
+            "certainty": "CONFIRMED",
+            "extraction_status": "CONFIRMED",
+            "source_quote": "",
+            "provenance_section": "confirmed_config",
+            "provenance_rule": "manual_config",
+            "ambiguity_flags": []
+          }
+        ],
+        "alignment": {
+          "target_title": "Senior Analytics Manager",
+          "title_synonyms": [
+            "Analytics Manager",
+            "Data Analytics Manager"
+          ],
+          "min_years_required": 6.0,
+          "target_seniority_keywords": [
+            "architected",
+            "spearheaded",
+            "governed",
+            "led",
+            "managed",
+            "directed",
+            "scaled",
+            "owned"
+          ]
+        }
+      },
+      "application": {
+        "id": "ASH-APP-3003",
+        "candidateId": "CAND-003",
+        "jobId": "ASH-REQ-903",
+        "resume_text": "JORDAN VANCE\nSt. Louis, MO | jordan.vance@email.com | 314-555-0192\n\nProfessional Summary\nSenior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.\n\nWork Experience\nSenior Analytics Manager - Apex Global Retail (03/2022 - Present)\n- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue.\n- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.\n- Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.\n\nSupply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)\n- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.\n- Supported ERP migration readiness and warehouse slotting audits.\n\nEducation\nB.S. in Industrial Engineering - University of Missouri (05/2018)\n\nTechnical & Core Skills\nSQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership\n",
+        "blind_mode": true,
+        "human_decision": {
+          "status": "ADVANCE",
+          "reviewer": "ta_lead_m_chen",
+          "reviewer_role": "ta_lead",
+          "timestamp": "2026-11-01T11:15:00Z",
+          "is_override": true,
+          "override_reason": "Human override: verified capacity planning and operating budget scope during structured intake."
+        }
+      }
+    }
+  ],
+  "sample_webhook_event": {
+    "event_id": "EVT-GH-20261101-001",
+    "event_type": "application.submitted",
+    "source_system": "greenhouse",
+    "occurred_at": "2026-11-01T12:00:00Z",
+    "requisition": {
+      "id": "GH-REQ-901",
+      "title": "Senior Analytics Manager",
+      "company": "Northstar Contact Solutions",
+      "location": {
+        "name": "Denver, CO"
+      },
+      "departments": [
+        {
+          "name": "Workforce Operations & BI"
+        }
+      ],
+      "requirements": [
+        {
+          "name": "Python",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PySpark"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "SQL",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PostgreSQL",
+            "T-SQL"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Snowflake",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "BigQuery",
+            "Redshift"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "SAP S/4HANA",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "SAP ERP",
+            "Oracle NetSuite"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Power BI",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Tableau",
+            "Looker"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Workforce Capacity Modeling",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "capacity planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Demand Forecasting",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "demand planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "P&L Ownership",
+          "category": "title_scope",
+          "tier": "required",
+          "synonyms": [
+            "operating budget"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Kubernetes",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Docker",
+            "EKS"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Six Sigma Black Belt",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Lean Six Sigma"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "Cross-Functional Leadership",
+          "category": "soft_skill",
+          "tier": "required",
+          "synonyms": [
+            "cross-functional"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        },
+        {
+          "name": "B.S.",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Bachelor"
+          ],
+          "is_knockout_gate": true,
+          "alternatives": [],
+          "confidence": 1.0,
+          "certainty": "CONFIRMED",
+          "extraction_status": "CONFIRMED",
+          "source_quote": "",
+          "provenance_section": "confirmed_config",
+          "provenance_rule": "manual_config",
+          "ambiguity_flags": []
+        }
+      ],
+      "alignment": {
+        "target_title": "Senior Analytics Manager",
+        "title_synonyms": [
+          "Analytics Manager",
+          "Data Analytics Manager"
+        ],
+        "min_years_required": 6.0,
+        "target_seniority_keywords": [
+          "architected",
+          "spearheaded",
+          "governed",
+          "led",
+          "managed",
+          "directed",
+          "scaled",
+          "owned"
+        ]
+      }
+    },
+    "application": {
+      "id": "GH-APP-1004",
+      "candidate": {
+        "id": "CAND-004"
+      },
+      "requisition_id": "GH-REQ-901",
+      "resume_text": "JORDAN VANCE\nSt. Louis, MO | jordan.vance@email.com | 314-555-0192\n\nProfessional Summary\nSenior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.\n\nWork Experience\nSenior Analytics Manager - Apex Global Retail (03/2022 - Present)\n- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue.\n- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.\n- Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.\n\nSupply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)\n- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.\n- Supported ERP migration readiness and warehouse slotting audits.\n\nEducation\nB.S. in Industrial Engineering - University of Missouri (05/2018)\n\nTechnical & Core Skills\nSQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership\n",
+      "blind_mode": true
+    }
+  }
+}

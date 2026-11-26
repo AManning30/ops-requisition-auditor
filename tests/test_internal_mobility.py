@@ -192,6 +192,61 @@ class TestInternalMobilityMatcher(unittest.TestCase):
             self.assertEqual(payload["roles_evaluated"], 1)
             self.assertAlmostEqual(payload["matches"][0]["current_score"], 88.3, places=1)
 
+    def test_employee_confirmation_mentor_approvals_outcomes_and_catalog_governance(self) -> None:
+        """Verifies Workstream 11: employee skill confirmation, prerequisite chains, mentor/manager privacy gate, and 90d outcomes."""
+        ok, cat_sha = imm.validate_reskilling_catalog_governance()
+        self.assertTrue(ok)
+        self.assertEqual(len(cat_sha), 64)
+
+        conf_path = ROOT / "examples" / "sample_mobility_confirmation_and_outcomes.json"
+        conf_data = json.loads(conf_path.read_text(encoding="utf-8"))
+        emp_confs = conf_data["employee_confirmations"]
+        approvals = {
+            rid: imm.MentorAndManagerApprovalRecord(**ap)
+            for rid, ap in conf_data["approvals_by_role"].items()
+        }
+        outcomes = {
+            rid: imm.MobilityPlanOutcomeRecord(**out)
+            for rid, out in conf_data["outcomes_by_role"].items()
+        }
+
+        report = imm.match_resume_to_roles(
+            resume_text=self.resume_text,
+            role_entries=self.demo_roles,
+            reference_date=self.ref_date,
+            share_with_manager=False,
+            employee_confirmations=emp_confs,
+            approvals_by_role=approvals,
+            outcomes_by_role=outcomes,
+        )
+        top = next(m for m in report.matches if m.role_id == "INT-WFM-204")
+        # Baseline is 88.3, Projected (all 5 Day 1-30 items) is 96.7, Confirmed (only 3 confirmed items) is strictly between 88.3 and 96.7!
+        self.assertEqual(top.current_score, 88.3)
+        self.assertGreater(top.confirmed_30d_score, top.current_score)
+        self.assertLess(top.confirmed_30d_score, top.projected_30d_score)
+        self.assertEqual(top.confirmed_30d_items_count, 3)
+        self.assertEqual(top.unconfirmed_30d_items_count, 2)
+        self.assertEqual(top.approvals.mentor_approval_status, "APPROVED")
+        self.assertEqual(top.outcome_tracking.transition_outcome, "INTERNAL_TRANSFER_COMPLETED")
+        self.assertTrue(top.outcome_tracking.retained_at_90_days)
+        self.assertGreaterEqual(len(top.credential_or_prerequisite_alerts), 1)
+
+        # Attempting to record a manager approval while share_with_manager=False must fail closed
+        bad_approvals = {
+            "INT-WFM-204": imm.MentorAndManagerApprovalRecord(
+                manager_id="mgr_unconsented",
+                manager_approval_status="APPROVED",
+            )
+        }
+        with self.assertRaises(Exception):
+            imm.match_resume_to_roles(
+                resume_text=self.resume_text,
+                role_entries=self.demo_roles,
+                reference_date=self.ref_date,
+                share_with_manager=False,
+                approvals_by_role=bad_approvals,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

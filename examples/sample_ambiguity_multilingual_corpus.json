@@ -1,0 +1,45 @@
+[
+  {
+    "case_id": "CORPUS-01-NEGATIONS-AND-HOMOGRAPHS",
+    "language": "en",
+    "description": "Tests negative skill/degree/clearance statements, verb-homograph 'Excel in', and non-degree/non-security idioms.",
+    "raw_text": "Job Title: Workforce Operations Coordinator\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO\n\nResponsibilities\n- Coordinate daily contact-center shift schedules in NICE IEX and build weekly reports in Power BI.\n- Excel in a fast-paced team environment with a high degree of ownership and 360-degree visibility.\n- Manage warehouse inventory clearance logs and medical clearance forms.\n\nRequired Qualifications\n- 2+ years of workforce management experience.\n- Hands-on experience with NICE IEX and Power BI.\n- No SQL experience required and Python is not required for this role.\n- No college degree required.\n- No security clearance is required.",
+    "expected_extracted_skills": ["NICE IEX", "Power BI", "Workforce Management"],
+    "expected_excluded_terms": ["SQL", "Python", "Excel", "degree", "clearance"]
+  },
+  {
+    "case_id": "CORPUS-02-AMBIGUOUS-GATES-AND-LOCATION",
+    "language": "en",
+    "description": "Tests wide experience range (2-8 yrs), degree equivalency clause, conditional security clearance, and Remote vs. in-office conflict.",
+    "raw_text": "Job Title: Senior Workforce Planning Analyst\nCompany: Federal Support Ops\nLocation: Remote - US\n\nAbout the Role\nFor over 20 years, we have delivered customer operations. Must be at least 18 years of age. While listed as Remote, candidates must reside within 30 miles of our Arlington office and work in-office 3 days per week.\n\nRequired Qualifications\n- Bachelor's degree in Business or Analytics, or an equivalent combination of education and experience.\n- 2-8 years of workforce management and Demand Forecasting experience.\n- Hands-on proficiency in SQL and Erlang C.\n- Ability to obtain a Public Trust security clearance if required by client contract.",
+    "expected_ambiguity_rules": ["AMB-EXP-RANGE", "AMB-DEG-EQUIV", "AMB-CLR-CONDITIONAL", "AMB-LOC-CONFLICT"],
+    "expected_degree_knockout_gate": false
+  },
+  {
+    "case_id": "CORPUS-03-SPANISH-WFM",
+    "language": "es",
+    "description": "Tests Spanish section headers (Requisitos mínimos, Requisitos deseables, Responsabilidades), 'o' alternatives, and degree equivalency.",
+    "raw_text": "Job Title: Analista Senior de Workforce Management\nCompany: Iberia Contact Center\nLocation: Madrid, Spain (Hybrid)\n\nResponsabilidades\n- Diseñar modelos de Erlang C y pronósticos en NICE IEX o Verint.\n\nRequisitos mínimos\n- Licenciatura en Administración o experiencia equivalente.\n- 4+ años de experiencia en Workforce Management y SQL.\n- Dominio de Power BI o Tableau para reportes operativos.\n- No se requiere Kubernetes.\n\nRequisitos deseables\n- Conocimientos de Python.",
+    "expected_language": "es",
+    "expected_alternatives": [["NICE IEX", "Verint"], ["Power BI", "Tableau"]],
+    "expected_excluded_terms": ["Kubernetes"]
+  },
+  {
+    "case_id": "CORPUS-04-FRENCH-BI",
+    "language": "fr",
+    "description": "Tests French section headers (Compétences requises, Atouts, Missions), 'ou' alternatives, and degree equivalency.",
+    "raw_text": "Job Title: Responsable Planification & BI\nCompany: Lumière Services\nLocation: Paris, France\n\nVos missions\n- Piloter la planification des effectifs et les tableaux de bord Snowflake.\n\nCompétences requises\n- Diplôme d'ingénieur / Master ou expérience équivalente.\n- 5+ ans d'expérience en SQL et Snowflake.\n- Maîtrise de Power BI ou Tableau.\n- Aucun besoin de SAP S/4HANA.\n\nAtouts\n- Expérience avec Python.",
+    "expected_language": "fr",
+    "expected_alternatives": [["Power BI", "Tableau"]],
+    "expected_excluded_terms": ["SAP S/4HANA"]
+  },
+  {
+    "case_id": "CORPUS-05-GERMAN-WFM",
+    "language": "de",
+    "description": "Tests German section headers (Anforderungen, Wünschenswert, Aufgaben), 'oder' alternatives, and degree equivalency.",
+    "raw_text": "Job Title: Senior Workforce Management Analyst\nCompany: DACH Customer Care GmbH\nLocation: Berlin, Germany\n\nAufgaben\n- Kapazitätsplanung und Schichtplanung mit NICE IEX oder Genesys Cloud.\n\nAnforderungen\n- Hochschulabschluss in Wirtschaftswissenschaften oder vergleichbare Qualifikation.\n- 3+ Jahre Berufserfahrung im Bereich Workforce Management und SQL.\n- Erfahrung mit NICE IEX oder Genesys Cloud.\n- Kein Kubernetes erforderlich.\n\nWünschenswert\n- Kenntnisse in Python.",
+    "expected_language": "de",
+    "expected_alternatives": [["NICE IEX", "Genesys Cloud"]],
+    "expected_excluded_terms": ["Kubernetes"]
+  }
+]

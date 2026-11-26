@@ -29,7 +29,18 @@ cache/
 # Packaging build output
 build/
 dist/
+pypi_dist/
 *.egg-info/
+ops-requisition-auditor/
+ops-requisition-auditor-1/
+rigorlatch_landing_page.html
+upload_to_pypi.cmd
+mobility_ladder.csv
+mobility_plan.md
+rqs_report.csv
+rqs_report.md
+screening_report.md
+screening_shortlist.csv
 
 # Keep the public synthetic example scorecards
 !examples/sample_scorecard_*.md

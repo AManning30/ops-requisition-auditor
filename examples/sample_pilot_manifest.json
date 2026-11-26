@@ -1,0 +1,728 @@
+[
+  {
+    "case_id": "PILOT-01",
+    "requisition_id": "REQ-SAM-100",
+    "requisition_title": "Senior Analytics Manager",
+    "candidate_id": "CAND-001",
+    "resume_text": "JORDAN VANCE\nSt. Louis, MO | jordan.vance@email.com | 314-555-0192\n\nProfessional Summary\nSenior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.\n\nWork Experience\nSenior Analytics Manager - Apex Global Retail (03/2022 - Present)\n- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue, integrating SAP S/4HANA, Power BI, Kubernetes, and Six Sigma Black Belt DMAIC controls.\n- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.\n- Partnered with cross-functional leadership on Workforce Capacity Modeling and annual P&L Ownership ($18M operating budget) reviews.\n\nSupply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)\n- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.\n- Supported ERP migration readiness and warehouse slotting audits.\n\nEducation\nB.S. in Industrial Engineering - University of Missouri (05/2018)\n\nTechnical & Core Skills\nSQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership\n",
+    "jd_config": {
+      "requirements": [
+        {
+          "name": "Python",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PySpark"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SQL",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PostgreSQL",
+            "T-SQL"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Snowflake",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "BigQuery",
+            "Redshift"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SAP S/4HANA",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "SAP ERP",
+            "Oracle NetSuite"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Power BI",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Tableau",
+            "Looker"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Workforce Capacity Modeling",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "capacity planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Demand Forecasting",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "demand planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "P&L Ownership",
+          "category": "title_scope",
+          "tier": "required",
+          "synonyms": [
+            "operating budget"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Kubernetes",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Docker",
+            "EKS"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Six Sigma Black Belt",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Lean Six Sigma"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Cross-Functional Leadership",
+          "category": "soft_skill",
+          "tier": "required",
+          "synonyms": [
+            "cross-functional"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "B.S.",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Bachelor"
+          ],
+          "is_knockout_gate": true,
+          "alternatives": []
+        }
+      ],
+      "alignment": {
+        "target_title": "Senior Analytics Manager",
+        "title_synonyms": [
+          "Analytics Manager",
+          "Data Analytics Manager"
+        ],
+        "min_years_required": 6.0,
+        "target_seniority_keywords": [
+          "architected",
+          "spearheaded",
+          "governed",
+          "led",
+          "managed",
+          "directed",
+          "scaled",
+          "owned"
+        ]
+      }
+    },
+    "jd_text": "Job Title: Senior Analytics Manager\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO (Hybrid)\nCompensation: $135,000 - $165,000 base salary + annual performance bonus and comprehensive benefits\n\nRole Overview & Scope\nLead a 6-analyst workforce and supply-chain analytics team supporting 400+ distribution centers and contact-center operations ($18M operating budget / P&L Ownership).\n\nKey Responsibilities\n- Lead enterprise Demand Forecasting and Workforce Capacity Modeling in Python and SQL across multi-site operations.\n- Own executive BI reporting in Power BI and data pipelines in Snowflake integrated with SAP S/4HANA.\n- Partner with cross-functional leadership on annual P&L Ownership and capacity reviews.\n\nRequired Qualifications\n- Bachelor's degree (B.S.) in a quantitative or business field, or an equivalent combination of education and experience.\n- 6+ years of progressive analytics experience including Python, SQL, Snowflake, Power BI, and SAP S/4HANA.\n- Demonstrated experience in Demand Forecasting, Workforce Capacity Modeling, P&L Ownership, and Cross-Functional Leadership.\n\nPreferred Qualifications\n- Familiarity with containerized analytics workflows in Kubernetes.\n- Six Sigma Black Belt certification or comparable DMAIC process-improvement experience.\n\nEqual Opportunity\nNorthstar Contact Solutions is an equal opportunity employer and provides reasonable accommodations to qualified applicants with disabilities upon request.\n",
+    "blinded_recruiter_decision": "ADVANCE",
+    "human_decision": "ADVANCE",
+    "human_reviewer": "recruiter_j_smith",
+    "human_override_reason": "",
+    "manual_validated_outcome": "ADVANCE",
+    "manual_outcome_stage": "Final Hiring Manager Panel (Hired & Promoted at 14m)",
+    "manual_expert_score": 98.0,
+    "outcomes": {
+      "interview": 1,
+      "selection": 1,
+      "performance_90d": 1,
+      "promotion": 1,
+      "attrition_90d": 0
+    },
+    "validation_notes": "All 12 competencies verified in technical panel; selected, exceeded 90-day forecast accuracy KPI, retained, and promoted at 14 months."
+  },
+  {
+    "case_id": "PILOT-02",
+    "requisition_id": "REQ-SAM-100",
+    "requisition_title": "Senior Analytics Manager",
+    "candidate_id": "CAND-002",
+    "resume_text": "JORDAN VANCE\nSt. Louis, MO | jordan.vance@email.com | 314-555-0192\n\nProfessional Summary\nSenior Data & Supply Chain Analytics Manager with 7+ years of experience driving inventory optimization, cloud data warehousing, and executive KPI reporting across Fortune 500 retail operations.\n\nWork Experience\nSenior Analytics Manager - Apex Global Retail (03/2022 - Present)\n- Spearheaded enterprise demand forecasting models in Python, reducing stockout rates by 18.4% across 420 distribution centers and protecting $14.2M in annual revenue.\n- Built automated data pipelines in Snowflake and Tableau to track supplier SLA compliance for 1,200+ global vendors.\n- Partnered with cross-functional leadership on capacity planning and annual operating budget reviews.\n\nSupply Chain Data Analyst - Midwest Logistics Corp (06/2018 - 02/2022)\n- Automated weekly freight reconciliation reporting using SQL and Excel, cutting manual reporting cycle time by 12 hours per week.\n- Supported ERP migration readiness and warehouse slotting audits.\n\nEducation\nB.S. in Industrial Engineering - University of Missouri (05/2018)\n\nTechnical & Core Skills\nSQL, Python, Snowflake, Power BI, SAP S/4HANA, Kubernetes, Cross-Functional Leadership\n",
+    "jd_config": {
+      "requirements": [
+        {
+          "name": "Python",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PySpark"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SQL",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PostgreSQL",
+            "T-SQL"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Snowflake",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "BigQuery",
+            "Redshift"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SAP S/4HANA",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "SAP ERP",
+            "Oracle NetSuite"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Power BI",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Tableau",
+            "Looker"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Workforce Capacity Modeling",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "capacity planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Demand Forecasting",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "demand planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "P&L Ownership",
+          "category": "title_scope",
+          "tier": "required",
+          "synonyms": [
+            "operating budget"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Kubernetes",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Docker",
+            "EKS"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Six Sigma Black Belt",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Lean Six Sigma"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Cross-Functional Leadership",
+          "category": "soft_skill",
+          "tier": "required",
+          "synonyms": [
+            "cross-functional"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "B.S.",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Bachelor"
+          ],
+          "is_knockout_gate": true,
+          "alternatives": []
+        }
+      ],
+      "alignment": {
+        "target_title": "Senior Analytics Manager",
+        "title_synonyms": [
+          "Analytics Manager",
+          "Data Analytics Manager"
+        ],
+        "min_years_required": 6.0,
+        "target_seniority_keywords": [
+          "architected",
+          "spearheaded",
+          "governed",
+          "led",
+          "managed",
+          "directed",
+          "scaled",
+          "owned"
+        ]
+      }
+    },
+    "jd_text": "Job Title: Senior Analytics Manager\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO (Hybrid)\nCompensation: $135,000 - $165,000 base salary + annual performance bonus and comprehensive benefits\n\nRole Overview & Scope\nLead a 6-analyst workforce and supply-chain analytics team supporting 400+ distribution centers and contact-center operations ($18M operating budget / P&L Ownership).\n\nKey Responsibilities\n- Lead enterprise Demand Forecasting and Workforce Capacity Modeling in Python and SQL across multi-site operations.\n- Own executive BI reporting in Power BI and data pipelines in Snowflake integrated with SAP S/4HANA.\n- Partner with cross-functional leadership on annual P&L Ownership and capacity reviews.\n\nRequired Qualifications\n- Bachelor's degree (B.S.) in a quantitative or business field, or an equivalent combination of education and experience.\n- 6+ years of progressive analytics experience including Python, SQL, Snowflake, Power BI, and SAP S/4HANA.\n- Demonstrated experience in Demand Forecasting, Workforce Capacity Modeling, P&L Ownership, and Cross-Functional Leadership.\n\nPreferred Qualifications\n- Familiarity with containerized analytics workflows in Kubernetes.\n- Six Sigma Black Belt certification or comparable DMAIC process-improvement experience.\n\nEqual Opportunity\nNorthstar Contact Solutions is an equal opportunity employer and provides reasonable accommodations to qualified applicants with disabilities upon request.\n",
+    "blinded_recruiter_decision": "ADVANCE",
+    "human_decision": "ADVANCE",
+    "human_reviewer": "recruiter_j_smith",
+    "human_override_reason": "",
+    "manual_validated_outcome": "ADVANCE",
+    "manual_outcome_stage": "Hiring Manager Technical Screen (Selected & Met 90d KPIs)",
+    "manual_expert_score": 87.0,
+    "outcomes": {
+      "interview": 1,
+      "selection": 1,
+      "performance_90d": 1,
+      "promotion": 0,
+      "attrition_90d": 0
+    },
+    "validation_notes": "Synonym matches ('capacity planning', 'operating budget') and skills-list Power BI/SAP S/4HANA confirmed in technical screen; met 90-day ramp targets."
+  },
+  {
+    "case_id": "PILOT-03",
+    "requisition_id": "REQ-SAM-100",
+    "requisition_title": "Senior Analytics Manager",
+    "candidate_id": "CAND-003",
+    "resume_text": "MORGAN CHEN\nChicago, IL 60601 | morgan.chen@example.com | (312) 555-0192 | https://linkedin.com/in/morganchen\n\nProfessional Summary\nSenior Operations & Workforce Analyst with 6 years of experience in demand forecasting and supply chain analytics.\n\nWork Experience\nSenior Analytics Specialist \u2014 Midwest Logistics Group (03/2021 - Present)\n- Led enterprise demand forecasting models in Python and SQL across 180 fulfillment centers, improving inventory accuracy by 14%.\n- Built Snowflake data pipelines and Tableau executive dashboards for capacity planning and operating budget reviews.\n- Partnered with cross-functional leadership to streamline weekly staffing schedules.\n\nAnalytics Associate \u2014 Great Lakes Retail (06/2019 - 02/2021)\n- Maintained SQL reporting tables and weekly SLA trackers across 45 stores.\n\nEducation\nB.S. in Industrial Engineering \u2014 University of Illinois (05/2019)\n\nTechnical & Core Skills\nPython, SQL, Snowflake, Power BI, Tableau, Capacity Planning, Cross-Functional Leadership\n",
+    "jd_config": {
+      "requirements": [
+        {
+          "name": "Python",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PySpark"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SQL",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PostgreSQL",
+            "T-SQL"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Snowflake",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "BigQuery",
+            "Redshift"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SAP S/4HANA",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "SAP ERP",
+            "Oracle NetSuite"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Power BI",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Tableau",
+            "Looker"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Workforce Capacity Modeling",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "capacity planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Demand Forecasting",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "demand planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "P&L Ownership",
+          "category": "title_scope",
+          "tier": "required",
+          "synonyms": [
+            "operating budget"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Kubernetes",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Docker",
+            "EKS"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Six Sigma Black Belt",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Lean Six Sigma"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Cross-Functional Leadership",
+          "category": "soft_skill",
+          "tier": "required",
+          "synonyms": [
+            "cross-functional"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "B.S.",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Bachelor"
+          ],
+          "is_knockout_gate": true,
+          "alternatives": []
+        }
+      ],
+      "alignment": {
+        "target_title": "Senior Analytics Manager",
+        "title_synonyms": [
+          "Analytics Manager",
+          "Data Analytics Manager"
+        ],
+        "min_years_required": 6.0,
+        "target_seniority_keywords": [
+          "architected",
+          "spearheaded",
+          "governed",
+          "led",
+          "managed",
+          "directed",
+          "scaled",
+          "owned"
+        ]
+      }
+    },
+    "jd_text": "Job Title: Senior Analytics Manager\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO (Hybrid)\nCompensation: $135,000 - $165,000 base salary + annual performance bonus and comprehensive benefits\n\nRole Overview & Scope\nLead a 6-analyst workforce and supply-chain analytics team supporting 400+ distribution centers and contact-center operations ($18M operating budget / P&L Ownership).\n\nKey Responsibilities\n- Lead enterprise Demand Forecasting and Workforce Capacity Modeling in Python and SQL across multi-site operations.\n- Own executive BI reporting in Power BI and data pipelines in Snowflake integrated with SAP S/4HANA.\n- Partner with cross-functional leadership on annual P&L Ownership and capacity reviews.\n\nRequired Qualifications\n- Bachelor's degree (B.S.) in a quantitative or business field, or an equivalent combination of education and experience.\n- 6+ years of progressive analytics experience including Python, SQL, Snowflake, Power BI, and SAP S/4HANA.\n- Demonstrated experience in Demand Forecasting, Workforce Capacity Modeling, P&L Ownership, and Cross-Functional Leadership.\n\nPreferred Qualifications\n- Familiarity with containerized analytics workflows in Kubernetes.\n- Six Sigma Black Belt certification or comparable DMAIC process-improvement experience.\n\nEqual Opportunity\nNorthstar Contact Solutions is an equal opportunity employer and provides reasonable accommodations to qualified applicants with disabilities upon request.\n",
+    "blinded_recruiter_decision": "DO_NOT_ADVANCE",
+    "human_decision": "ADVANCE",
+    "human_reviewer": "recruiter_j_smith",
+    "human_override_reason": "Blinded recruiter initially filtered out due to missing literal 'Workforce Capacity Modeling' & 'SAP S/4HANA' keywords; engine semantic ledger (76.4 Borderline) surfaced 'capacity planning' + Python/Snowflake depth, prompting human override to interview.",
+    "manual_validated_outcome": "ADVANCE",
+    "manual_outcome_stage": "Hiring Manager Technical Screen (Passed Technical Panel)",
+    "manual_expert_score": 78.0,
+    "outcomes": {
+      "interview": 1,
+      "selection": 0,
+      "performance_90d": 1,
+      "promotion": 0,
+      "attrition_90d": 0
+    },
+    "validation_notes": "Demonstrates value over blinded keyword screen: candidate passed HM technical interview (finalist runner-up, hired into lateral Lead Analytics role and met 90d KPIs)."
+  },
+  {
+    "case_id": "PILOT-04",
+    "requisition_id": "REQ-SAM-100",
+    "requisition_title": "Senior Analytics Manager",
+    "candidate_id": "CAND-004",
+    "resume_text": "TAYLOR BROOKS\nDenver, CO 80202 | taylor.brooks@example.com | (303) 555-0144\n\nProfessional Summary\nOperations Analyst with 4 years of experience building SQL and Power BI reports and supporting workforce scheduling.\n\nWork Experience\nOperations Analyst \u2014 Rocky Mountain Support Services (01/2022 - Present)\n- Built Power BI and SQL dashboards to monitor supplier compliance and weekly staffing across 85 support queues.\n- Assisted leadership with capacity planning and cross-functional process improvement initiatives.\n\nJunior Reporting Analyst \u2014 Mile High Logistics (01/2020 - 12/2021)\n- Prepared weekly Excel and SQL operational reports for regional managers.\n\nEducation\nCompleted 90 credits toward Business Analytics curriculum; 6 years of hands-on operations and reporting experience.\n\nTechnical & Core Skills\nSQL, Power BI, Excel, Capacity Planning, Cross-Functional Leadership\n",
+    "jd_config": {
+      "requirements": [
+        {
+          "name": "Python",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PySpark"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SQL",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "PostgreSQL",
+            "T-SQL"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Snowflake",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "BigQuery",
+            "Redshift"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "SAP S/4HANA",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "SAP ERP",
+            "Oracle NetSuite"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Power BI",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Tableau",
+            "Looker"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Workforce Capacity Modeling",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "capacity planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Demand Forecasting",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "demand planning"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "P&L Ownership",
+          "category": "title_scope",
+          "tier": "required",
+          "synonyms": [
+            "operating budget"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Kubernetes",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Docker",
+            "EKS"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Six Sigma Black Belt",
+          "category": "hard_skill",
+          "tier": "preferred",
+          "synonyms": [
+            "Lean Six Sigma"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "Cross-Functional Leadership",
+          "category": "soft_skill",
+          "tier": "required",
+          "synonyms": [
+            "cross-functional"
+          ],
+          "is_knockout_gate": false,
+          "alternatives": []
+        },
+        {
+          "name": "B.S.",
+          "category": "hard_skill",
+          "tier": "required",
+          "synonyms": [
+            "Bachelor"
+          ],
+          "is_knockout_gate": true,
+          "alternatives": []
+        }
+      ],
+      "alignment": {
+        "target_title": "Senior Analytics Manager",
+        "title_synonyms": [
+          "Analytics Manager",
+          "Data Analytics Manager"
+        ],
+        "min_years_required": 6.0,
+        "target_seniority_keywords": [
+          "architected",
+          "spearheaded",
+          "governed",
+          "led",
+          "managed",
+          "directed",
+          "scaled",
+          "owned"
+        ]
+      }
+    },
+    "jd_text": "Job Title: Senior Analytics Manager\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO (Hybrid)\nCompensation: $135,000 - $165,000 base salary + annual performance bonus and comprehensive benefits\n\nRole Overview & Scope\nLead a 6-analyst workforce and supply-chain analytics team supporting 400+ distribution centers and contact-center operations ($18M operating budget / P&L Ownership).\n\nKey Responsibilities\n- Lead enterprise Demand Forecasting and Workforce Capacity Modeling in Python and SQL across multi-site operations.\n- Own executive BI reporting in Power BI and data pipelines in Snowflake integrated with SAP S/4HANA.\n- Partner with cross-functional leadership on annual P&L Ownership and capacity reviews.\n\nRequired Qualifications\n- Bachelor's degree (B.S.) in a quantitative or business field, or an equivalent combination of education and experience.\n- 6+ years of progressive analytics experience including Python, SQL, Snowflake, Power BI, and SAP S/4HANA.\n- Demonstrated experience in Demand Forecasting, Workforce Capacity Modeling, P&L Ownership, and Cross-Functional Leadership.\n\nPreferred Qualifications\n- Familiarity with containerized analytics workflows in Kubernetes.\n- Six Sigma Black Belt certification or comparable DMAIC process-improvement experience.\n\nEqual Opportunity\nNorthstar Contact Solutions is an equal opportunity employer and provides reasonable accommodations to qualified applicants with disabilities upon request.\n",
+    "blinded_recruiter_decision": "DO_NOT_ADVANCE",
+    "human_decision": "DO_NOT_ADVANCE",
+    "human_reviewer": "recruiter_j_smith",
+    "human_override_reason": "Reviewed manually; missing Python, Snowflake, SAP S/4HANA, Demand Forecasting, P&L scope, and B.S. gate for Senior Manager level (routed to Analyst II internal mobility plan).",
+    "manual_validated_outcome": "DO_NOT_ADVANCE",
+    "manual_outcome_stage": "Calibrated Recruiter & HM Calibration Review",
+    "manual_expert_score": 35.0,
+    "outcomes": {
+      "interview": 0,
+      "selection": 0,
+      "performance_90d": 0,
+      "promotion": 0,
+      "attrition_90d": 1
+    },
+    "validation_notes": "Engine score (33.0) matched manual calibration (35.0); candidate lacked Senior Manager scope and core Python/Snowflake stack."
+  },
+  {
+    "case_id": "PILOT-05",
+    "requisition_id": "REQ-WFM-202",
+    "requisition_title": "Workforce Management Analyst II",
+    "candidate_id": "CAND-005",
+    "resume_text": "ELENA ROSTOVA\nSt. Louis, MO 63101 | elena.rostova@example.com | (314) 555-0188\n\nProfessional Summary\nWorkforce Management Analyst with 4 years of contact-center forecasting, NICE IEX scheduling, and Erlang C capacity modeling experience.\n\nWork Experience\nWorkforce Management Analyst II \u2014 Gateway Contact Centers (02/2023 - Present)\n- Built 15-minute and daily volume forecasting models and multi-skill agent schedules in NICE IEX across 650 contact-center seats, holding service level within 2.1% of the 80/20 target.\n- Developed Erlang C capacity planning and staffing models, tracking Average Speed of Answer (ASA), Average Handle Time (AHT), occupancy, shrinkage, and real-time adherence in Power BI and SQL.\n- Led a Six Sigma Green Belt continuous-improvement project that reduced unplanned shrinkage by 1.8 percentage points across 14 queues.\n\nWorkforce Management Coordinator \u2014 Midwest Customer Care (01/2022 - 01/2023)\n- Monitored intraday real-time adherence in NICE IEX and prepared daily Excel, Python, and SQL exception reports.\n\nEducation\nB.S. in Business Administration \u2014 Saint Louis University (05/2021)\n\nTechnical & Core Skills\nNICE IEX, Erlang C, Workforce Management, Capacity Planning, Forecasting, Staffing Models, Real-Time Adherence, Power BI, SQL, Excel, Python, Six Sigma Green Belt\n",
+    "jd_text": "Job Title: Workforce Management Analyst II\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO (Hybrid)\nJob ID: REQ-20431\nPay range: $62,000 - $74,000 per year\n\nAbout the Role\nNorthstar's Workforce Management (WFM) team plans staffing for a 24/7 contact center that handles about 40,000 voice and chat contacts per week across three sites. You will own forecasts and schedules for two of those sites and partner with operations leaders on staffing decisions.\n\nResponsibilities\n- Build weekly and intraday forecasts for inbound voice and chat queues.\n- Create agent schedules and monitor real-time adherence (RTA) across all sites.\n- Report average handle time (AHT), average speed of answer (ASA), shrinkage, and occupancy trends to operations leaders.\n- Recommend staffing changes when volume or handle time moves outside the forecast range.\n\nRequired Qualifications\n- 3+ years of workforce management or contact-center planning experience.\n- Experience with any one WFM platform, such as NICE IEX, Verint, or Genesys Cloud.\n- Dashboard development in Power BI or Tableau.\n- Working knowledge of SQL.\n- Bachelor's degree in a quantitative field, or an equivalent combination of education and experience.\n\nPreferred Qualifications\n- Python or R for forecasting.\n- Erlang C staffing models and capacity planning.\n- Six Sigma Green Belt or Black Belt.\n\nWe are an equal opportunity employer and provide reasonable accommodations to qualified applicants with disabilities upon request.\n",
+    "blinded_recruiter_decision": "ADVANCE",
+    "human_decision": "ADVANCE",
+    "human_reviewer": "wfm_director_k_lee",
+    "human_override_reason": "",
+    "manual_validated_outcome": "ADVANCE",
+    "manual_outcome_stage": "Structured WFM Erlang C & NICE IEX Case Study (Hired & Promoted)",
+    "manual_expert_score": 92.0,
+    "outcomes": {
+      "interview": 1,
+      "selection": 1,
+      "performance_90d": 1,
+      "promotion": 1,
+      "attrition_90d": 0
+    },
+    "validation_notes": "Calibrated WFM JD (RQS 100.0) cleanly matched NICE IEX, Erlang C, Power BI, and SQL alternatives; candidate hired, met 90d SLA accuracy goals, and promoted to Sr. WFM Analyst."
+  },
+  {
+    "case_id": "PILOT-06",
+    "requisition_id": "REQ-WFM-999-UNICORN",
+    "requisition_title": "Workforce Management Analyst II - WFM Ops - L4",
+    "candidate_id": "CAND-006",
+    "resume_text": "DEVON PARKER\ndevon.parker@example.com | (312) 555-0171\n\nBackground & Stuff\nWorked on some Excel sheets and general office coordination for a small team.\n| Project | Tool | Notes |\n| Reporting | Excel | Weekly logs |\n| Tickets | Email | Inbox triage |\n",
+    "jd_text": "Job Title: Workforce Management Analyst II - WFM Ops - L4\nCompany: Northstar Contact Solutions\nLocation: St. Louis, MO\nJob ID: REQ-20431\n\nAbout the Role\nWe're looking for a WFM rockstar who can hit the ground running in a fast-paced contact center. You will wear many hats supporting our 24/7 operation.\n\nResponsibilities\n- Build weekly and intraday forecasts for inbound voice and chat queues.\n- Create agent schedules and monitor RTA across all sites.\n- Report AHT, ASA, shrinkage, and occupancy trends to operations leaders.\n\nRequirements\n- Bachelor's degree in Mathematics, Statistics, or Business required.\n- 7+ years of workforce management experience in a contact center.\n- Expert in NICE IEX, Verint, and Genesys Cloud.\n- Advanced Power BI and Tableau dashboard development.\n- SQL, Python, and R for forecasting.\n- Six Sigma Black Belt certification required.\n- Erlang C and capacity planning expertise.\n- Experience with Salesforce and Microsoft Dynamics.\n- Must have no gaps in employment history.\n- Strong communication and stakeholder management skills.\n- Digital native who is comfortable with new tools.\n- Self-starter able to work independently with minimal supervision across multiple sites and time zones while managing competing priorities and stakeholder expectations in a rapidly changing environment.\n",
+    "blinded_recruiter_decision": "DO_NOT_ADVANCE",
+    "human_decision": "DO_NOT_ADVANCE",
+    "human_reviewer": "wfm_director_k_lee",
+    "human_override_reason": "Low parser confidence (<75%) triggered manual inspection of raw resume; confirmed lack of WFM, forecasting, and BI experience.",
+    "manual_validated_outcome": "DO_NOT_ADVANCE",
+    "manual_outcome_stage": "Manual Parse Verification & HM Review",
+    "manual_expert_score": 15.0,
+    "outcomes": {
+      "interview": 0,
+      "selection": 0,
+      "performance_90d": 0,
+      "promotion": 0,
+      "attrition_90d": 1
+    },
+    "validation_notes": "Parser confidence guard (<75%) properly flagged non-standard headers, missing dates, and ASCII table layout; RQS (36.0) also flagged the requisition itself for remediation."
+  }
+]

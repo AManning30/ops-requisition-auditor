@@ -8,6 +8,7 @@
   - *Literal-only view (exact terms only, approximates strict keyword filters):* `100.0%` *(excludes 0.5x synonym credits)*
   - *Knockout Gate Status:* `PASS`
   - *Alignment Verdict:* **`Strong match`** — High alignment across taxonomy and context; minor lexical polish remaining.
+  - *Effective Organization Config:* `default-baseline-org` v`1.5.0` (`APPROVED` | Weights `45/20/15/10/10` | Cutoffs `Strong>=80, Borderline>=65`)
 
 ---
 
@@ -47,3 +48,34 @@
 
 | Rank | JD Requirement | Fix Strategy Tier | Recoverable Points | Actionable Instruction |
 | :---: | :--- | :--- | :---: | :--- |
+
+---
+
+## 5. Transparent Uncertainty: Score vs. Confidence vs. Evidence Completeness
+
+*The JD Alignment Score is a deterministic text-alignment heuristic, not an objective measurement of human capability or a prediction of job performance. Always interpret the point estimate alongside its Plausible Score Interval, Measurement Confidence, and Evidence Completeness.*
+
+| Distinct Evaluation Pillar | Value / Band | What This Measures (and Does Not Measure) |
+| :--- | :--- | :--- |
+| **1. Heuristic Alignment Score & Plausible Band** | **`100.0 / 100`** (Plausible Band: **`[100.0, 100.0]`**, spread `0.0 pts` — `HIGH_SCORE_STABILITY (Narrow Interval <= 3.0 pts)`) | Point estimate under active rubric weights. Lower bound (`100.0`) reflects strict literal-only filtering; upper bound (`100.0`) reflects full credit for synonyms & skills-list items already on the resume (excluding `0.0x` missing skills). |
+| **2. Measurement & Parser Confidence** | **`100.0%`** (`HIGH_MEASUREMENT_CONFIDENCE (>=85%)` — Resume Parse: `100%`, JD Config: `100%`) | Technical certainty that resume sections, work-history dates, and requisition requirements were parsed without structural loss. High parser confidence does **not** mean the candidate meets all requirements. |
+| **3. Evidence Completeness** | **`100.0%`** (`COMPLETE_EVIDENCE (>=85% Weighted Contextual Verification)` — `12` Full `1.0x` / `0` Partial / `0` Missing of `12`) | Share of weighted requisition requirements backed by direct `1.0x` recent-role evidence vs. partial (`0.5x` synonym / `0.4x` skills-list) or unverified (`0.0x`) items. |
+
+### Side-by-Side Semantic vs. Literal View Comparison
+
+| Component | Max Pts | Semantic View (`0.5x` Synonyms) | Literal-Only View (`1.0x` Exact Only) | Spread (`Semantic - Literal`) | Why the Views Agree or Diverge |
+| :--- | :-: | :-: | :-: | :-: | :--- |
+| **1. Requirement Coverage** | 45.0 | **45.00** | `45.00` | `+0.00 pts` | Semantic view credits verified same-capability synonyms at 0.5x; Literal view requires exact JD terms or JD-offered alternatives. |
+| **2. Contextual Placement & Recency** | 20.0 | **20.00** | `20.00` | `+0.00 pts` | Measures whether matched terms appear in recent work experience (1.0x), older roles (0.8x), or skills list only (0.4x). |
+| **3. Title, Tenure & Operational Scale** | 15.0 | **15.00** | `15.00` | `+0.00 pts` | Deterministic title alignment, merged net tenure vs. required years, and quantified operational scope. |
+| **4. Knockout Gate Verification** | 10.0 | **10.00** | `10.00` | `+0.00 pts` | Binary verification of required degree, certification, license, or clearance gates on submitted text. |
+| **5. Document & Parse Hygiene** | 10.0 | **10.00** | `10.00` | `+0.00 pts` | HR-XML section header standard compliance, date format parseability, and acronym expansion. |
+| **Total Score Comparison** | **100.0** | **`100.0 / 100`** | **`100.0%`** | **`+0.0 pts`** | 0 requirement(s) matched via same-capability synonym |
+
+### Explicit Missing & Partially Verified Evidence
+
+- **Unverified / Missing Requirements (`0.0x`):** *(None — all requirements have at least partial or full evidence on the resume)*
+
+## 6. Complete Point-Deduction Explanations (Reconciling `100.0` -> `100.0`)
+
+- **Zero points deducted (`0.00 pts` lost):** All 5 components earned maximum points (`100.0 / 100`).

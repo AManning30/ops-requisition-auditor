@@ -40,8 +40,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import job_posting_collector as jpc  # noqa: E402
+import governance_middleware as gov  # noqa: E402
 
-ENGINE_VERSION = "1.5.0"
+ENGINE_VERSION = gov.ENGINE_VERSION
 RUBRIC_VERSION = "rqs-0.2"
 
 COMPONENTS: List[Tuple[str, str, float]] = [
@@ -1025,6 +1026,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--limit", type=int, default=0, help="Audit at most N roles (board audits)")
     ap.add_argument("--details", action="store_true", help="Include a full report per role in board audits")
     ap.add_argument("--level-benchmarks", help="JSON file overriding default years per level, e.g. {\"level_2\": 3}")
+    ap.add_argument("--org-profile", help="Organization customization profile JSON overriding level benchmarks, gates, and thresholds")
+    ap.add_argument("--require-approved-org-profile", action="store_true", help="Fail closed (exit code 2) if --org-profile is not APPROVED with dual sign-off")
     ap.add_argument("--output", help="Write the Markdown report to this path")
     ap.add_argument("--json-out", help="Write the full JSON result to this path")
     ap.add_argument("--csv-out", help="Write a UTF-8 CSV summary table to this path")
@@ -1032,9 +1035,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = ap.parse_args(argv)
 
     benchmarks: Dict[str, float] = {}
+    org_prof = None
+    if args.org_profile:
+        try:
+            import org_customization_registry as ocr
+            org_prof = ocr.load_org_profile(args.org_profile, require_approved=args.require_approved_org_profile)
+            benchmarks.update(ocr.to_rqs_level_benchmarks(org_prof))
+        except Exception as exc:
+            sys.stderr.write(f"{exc}\n")
+            return 2
     if args.level_benchmarks:
-        with open(args.level_benchmarks, "r", encoding="utf-8") as fh:
-            benchmarks = {str(k): float(v) for k, v in json.load(fh).items()}
+        with open(gov.resolve_input_path(args.level_benchmarks), "r", encoding="utf-8") as fh:
+            benchmarks.update({str(k): float(v) for k, v in json.load(fh).items()})
 
     board_jobs: Optional[List[jpc.NormalizedJob]] = None
     source_label = ""
@@ -1081,12 +1093,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     elif args.stdin:
         audit = audit_text(sys.stdin.read(), benchmarks=benchmarks)
     elif args.jd_file:
-        with open(args.jd_file, "r", encoding="utf-8") as fh:
+        with open(gov.resolve_input_path(args.jd_file), "r", encoding="utf-8") as fh:
             audit = audit_text(fh.read(), benchmarks=benchmarks)
     else:
         audit = audit_text(DEMO_REQUISITION, benchmarks=benchmarks)
 
     report = render_markdown(audit)
+    if org_prof is not None:
+        import org_customization_registry as ocr
+        report = report + "\n\n---\n\n" + ocr.render_effective_config_markdown_block(org_prof)
     if args.output:
         _write(args.output, report + "\n")
     if args.json_out:

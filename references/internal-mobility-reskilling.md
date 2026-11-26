@@ -76,3 +76,37 @@ Internal career exploration frequently stalls when employees worry their current
 - `employee_initiated`: `true`
 - `share_with_manager`: defaults to `false` (`Private to employee/candidate`). It only switches to `true` when the user explicitly passes `--share-with-manager` on the CLI.
 - All scoring runs locally on the Python standard library with zero external API calls unless the user explicitly queries a public Greenhouse, Lever, or Ashby board.
+
+---
+
+## 6. Employee Skill Confirmation, Mentor/Manager Approvals & 90-Day Outcome Tracking (Workstream 11)
+
+Static 30/60/90-day transition plans can fail when they assume unconfirmed skills, ignore prerequisite or credential gates, or lack milestone governance. Workstream 11 upgrades `ops-req-mobility` (`scripts/internal_mobility_matcher.py`) with five production safeguards:
+
+### 6.1 Employee Confirmation of Skill Evidence (`Confirmed 30d` vs. `Projected 30d`)
+- Every Days 1–30 Tier 1 synonym or Tier 2 contextual-elevation step starts as `UNCONFIRMED_BY_EMPLOYEE`.
+- `ops-req-mobility` computes two distinct 30-day scores for every role:
+  - **`projected_30d_score` (Upper Bound if All Tier 1/2 Confirmed):** Score if the employee confirms every detected synonym and Skills-section item.
+  - **`confirmed_30d_score` (Verified Score):** Credits **only** the Days 1–30 steps where the employee has recorded `CONFIRMED` in `--confirmations-json`. If an employee marks a synonym or skill as `DECLINED` (or leaves it unconfirmed), it receives `0.0` confirmed points.
+
+### 6.2 Credential & Prerequisite Chain Detection
+- Each `RESKILLING_CATALOG` entry (`RESKILLING_CATALOG_VERSION = "wfm-reskill-cat-2.0"`) declares:
+  - `learning_resources`: Structured learning modules with provider, title, format, and estimated hours.
+  - `prerequisites`: Upstream skills or operational foundations required before starting the module (e.g., `erlang c` and `demand forecasting` before `workforce capacity modeling`).
+  - `requires_credential_or_prerequisite`: Flags formal certifications, degrees, or multi-skill prerequisites (`six sigma black belt`, `p&l ownership`, `workforce capacity modeling`) and surfaces explicit alerts in `credential_or_prerequisite_alerts`.
+  - `verification_artifact_type`, `catalog_owner`, and `last_reviewed_date`: Enforced programmatically via `validate_reskilling_catalog_governance()`.
+
+### 6.3 Mentor & Manager Approval Tracking (Respecting Employee Privacy)
+- `MentorAndManagerApprovalRecord` tracks mentor verification (`mentor_id`, `mentor_status`, `verified_milestones`) and manager transition sign-off (`manager_id`, `manager_status`).
+- **Privacy Guardrail:** If `share_with_manager` is `false` (employee-private exploration) and a payload attempts to record a manager approval (`manager_status: "APPROVED"`), `evaluate_employee_mobility()` raises a `ValueError` blocking manager sign-off until the employee explicitly enables `share_with_manager: true`.
+
+### 6.4 90-Day Role Transition & Outcome Measurement
+- `MobilityPlanOutcomeRecord` measures longitudinal plan effectiveness across:
+  - `baseline_score` $\to$ `day_30_score` $\to$ `day_60_score` $\to$ `day_90_score` (`score_delta_90d`)
+  - `transition_status` (`APPLIED`, `INTERVIEWED`, `TRANSITIONED`, `upskilling_in_progress`)
+  - `day_90_retention_status` and `verified_milestones_completed`
+- Run with confirmation & outcome tracking:
+  ```bash
+  ops-req-mobility --demo --confirmations-json examples/sample_mobility_confirmation_and_outcomes.json --output mobility_confirmed.md
+  ```
+

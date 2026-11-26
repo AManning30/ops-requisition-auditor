@@ -1,11 +1,11 @@
 ---
 name: ops-requisition-auditor
 description: "Deterministic WFM, BI, and ops requisition & resume auditor: 100-pt candidate JD Alignment, Employer Requisition Quality Score (RQS), blind-mode batch screening with Colorado/NYC/EEOC 4/5ths compliance notices, and 30/60/90-day internal mobility reskilling plans."
-version: 1.5.0
+version: 1.6.0
 author: Alexandru Manning
 license: AGPL-3.0-only OR LicenseRef-Commercial (see COMMERCIAL-LICENSE.md)
 metadata:
-  version: 1.5.0
+  version: 1.6.0
   author: Alexandru Manning
   hermes:
     tags: [Operations, WFM, Analytics, Requisition, Resume, Scoring, Skills-Based-Hiring, Compliance, Internal-Mobility]
@@ -25,6 +25,7 @@ Route immediately based on what the user shares and asks for:
 | **2. Employer Requisition Quality Audit (`Module 1`)** | 1 job requisition or a public board (`--greenhouse`, `--lever`, `--ashby`) — **no resume needed** | `ops-req-jd-audit` (`scripts/requisition_quality_auditor.py`) | 100-point **Requisition Quality Score (RQS)** (`rqs-0.2`), HBS "Hidden Workers" gate flags, auto-edited JD draft, and portfolio summary |
 | **3. Employer Explainable Screening (`Module 2`)** | N resumes (`--resumes-dir`) + 1 requisition/config (+ optional reviewer decisions & self-ID demographics) | `ops-req-screen` (`scripts/explainable_screening_assistant.py`) | Blind-mode human-in-the-loop shortlist (never auto-rejects), **Colorado SB 24-205 / NYC LL144 Candidate Factor Notices**, and **EEOC 4/5ths (`80%`) Selection-Rate Tables** |
 | **4. Internal Mobility & Outplacement (`Module 3`)** | 1 employee/displaced-worker resume + N open requisitions (`--reqs-dir` or public board) | `ops-req-mobility` (`scripts/internal_mobility_matcher.py`) | Multi-role readiness ranking (`Ready Now`, `Near-Ready`, `Stretch`), **Projected 30-Day Honest Alignment Score**, and **30/60/90-day WFM/BI reskilling roadmap** |
+| **5. Pilot & Empirical Evidence Harness** | Cohort manifest (`--manifest`) or `(requisition, resume)` pair + human decision & validated outcome | `ops-req-pilot` (`scripts/pilot_evidence_harness.py`) | Dual RQS + JD Alignment scores, **0–100% parser confidence**, heuristic-vs-confirmed JD drift, and outcome agreement metrics (Accuracy, F1, Cohen's $\kappa$, Pearson $r$, Spearman $\rho$, MAE/RMSE) |
 
 Also use `ops-req-collect` (`scripts/job_posting_collector.py`) when pulling structured requisition details (pay, benefits, requirements, reusable `--jd-config`) from Greenhouse, Lever, Ashby, USAJobs, employer career pages (`Schema.org/JobPosting`), or pasted job descriptions.
 
@@ -162,9 +163,23 @@ Do not fetch LinkedIn, Indeed, SimplyHired, ZipRecruiter, Glassdoor, Monster, Ca
 
 ## Reference files
 - `references/ats-scoring-rubric.md`: the 100-point requisition alignment scoring model as implemented in the script, for checking math.
+- `references/extraction-confidence-and-ambiguity.md`: per-requirement certainty taxonomy (`CONFIRMED`, `HIGH`, `MODERATE`, `LOW_INFERRED`), extraction provenance ledger, ambiguity detectors (experience, degree, clearance, location), negative-context exclusions, and multilingual (`en`/`es`/`fr`/`de`) parser rules.
 - `references/job-board-api-endpoints.md`: the 4 compliant public board APIs (Greenhouse, Lever US+EU, Ashby, USAJobs), the 10-board paste-only compliance gate, and the `Schema.org/JobPosting` JSON-LD fallback used for requisition collection.
 - `references/wfm-taxonomy.md`: contact-center WFM and operations analytics platforms, metrics, methods, titles, and synonym rules. Read in WFM/ops mode before extracting requirements.
 - `references/requisition-quality-rubric.md`: the 100-point Requisition Quality Score used in employer mode (Module 1).
 - `references/explainable-screening-governance.md`: blind-mode redaction rules, Colorado SB 24-205 / NYC LL144 candidate factor notices, and EEOC four-fifths (`80%`) selection-rate math for Module 2 (`ops-req-screen`).
-- `references/internal-mobility-reskilling.md`: readiness bands, projected 30-day honest alignment math, WFM/BI/ops 30/60/90-day reskilling catalog, and employee-privacy defaults for Module 3 (`ops-req-mobility`).
+- `references/governance-and-schema-validation.md`: human-approval schema rules, anti-automation blocks (`--auto-reject`), RBAC permissions, environment safeguards, and SHA-256 hash-chain immutability (`ops-req-governance` / `scripts/governance_middleware.py`).
+- `references/compliance-policy-versioning-and-checklist.md`: versioned compliance policy pack schema, dated jurisdiction rules (Colorado SB 24-205, NYC LL144, Illinois HB 3773, EEOC UGESP 4/5ths, ADEA, pay transparency), 4-stage update workflow, and enterprise legal-review checklist (`ops-req-policy` / `scripts/compliance_policy_registry.py`).
+- `references/privacy-architecture-and-threat-model.md`: 3-vault PII/Score/Demographic segregation architecture, explicit consent gate, configurable retention TTLs, cryptographic deletion API (`DeletionReceipt`), authenticated export encryption, and STRIDE threat model (`ops-req-privacy` / `scripts/privacy_data_minimization.py`).
+- `references/fairness-and-small-sample-methodology.md`: 6-dimension subgroup adverse-impact evaluation (race/ethnicity, sex, ADEA age proxies, disability status, resume language `en`/`es`/`fr`/`de`, and intersectional `race x sex`), 3-tier small-sample methodology (exact Fisher test, Wilson 95% CIs, EEOC Q&A #21 single-case flip test), parser/rubric error audits, and reviewer override disparity checks (`ops-req-fairness` / `scripts/fairness_adverse_impact_auditor.py`).
+- `references/parser-coverage-and-ocr-fallbacks.md`: DOCX headers/footers/tables/textboxes, 4-tier PDF & scanned-document OCR fallback chain, multilingual (`en`/`es`/`fr`/`de`) date and section parsing, overlapping-role interval union & non-punitive career-gap exclusion, and transferred-skill vs. competing-product classification (`ops-req-parser-bench` / `scripts/parser_benchmark_suite.py`).
+- `references/organization-native-customization-and-approval.md`: organization-specific leveling guides, configurable gate & degree-equivalency policies, custom component weights (`Sum = 100.0`) & verdict thresholds, Separation-of-Duties (`SoD`) dual-approval workflow, and SHA-256 hash-chained configuration audit history (`ops-req-org-config` / `scripts/org_customization_registry.py`).
+- `references/uncertainty-and-score-explanations.md`: 3-pillar separation (Heuristic Score & Plausible Score Interval `[lower, upper]` vs. Measurement Confidence vs. Evidence Completeness), side-by-side Semantic vs. Literal view comparison, explicit missing-evidence disclosure, and complete point-deduction reconciliation from `100.0` to `composite_score` (`AuditReport.uncertainty_and_explanations`).
+- `references/integrations-and-openapi-contract.md` & `references/openapi_and_ats_neutral_schema.json`: versioned ATS-neutral JSON contract (`ats-neutral-contract-1.0`), OpenAPI 3.1.0 & JSON Schema 2020-12 specification, bidirectional adapters for Greenhouse, Lever, Ashby, Workday HRIS, and HR-Open 4.x, HMAC-SHA256 webhook verification, and batch-job execution (`ops-req-integrate` / `scripts/integration_adapters_and_webhooks.py`).
+- `references/internal-mobility-reskilling.md`: readiness bands, employee skill confirmation workflow (`confirmed_30d_score` vs. `projected_30d_score`), governed WFM/BI/ops 30/60/90-day reskilling catalog (`wfm-reskill-cat-2.0`) with learning resources and prerequisite/credential chain detection, mentor & manager approval tracking, 90-day outcome measurement, and employee-privacy defaults for Module 3 (`ops-req-mobility`).
+- `references/ui-accessibility-and-workbench-parity.md` & `examples/shared_scoring_test_vectors.json`: canonical shared scoring test vectors (`shared-vectors-1.0`), Python-to-HTML non-divergence checks, and WCAG 2.1 AA / WAI-ARIA accessibility report (`ops-req-workbench` / `scripts/workbench_parity_and_a11y.py`).
+- `GOVERNANCE_CHARTER.md`, `SECURITY.md`, `CHANGELOG.md` & `examples/public_synthetic_benchmark_corpus.json`: public reproducible 6-domain benchmark suite, zero-PII synthetic data corpus, independent I-O psychology / HR compliance / WFM review sign-offs, 10 known failure modes & deterministic mitigations, responsible disclosure policy, and changelog discipline (`ops-req-trust-bench` / `scripts/public_trust_and_benchmarks.py`).
+- `references/pilot-evidence-harness.md`: dual-rubric pilot evaluation loop, deterministic parser confidence model (`0.0–1.0`), heuristic-vs-confirmed JD drift check, and statistical validation metrics (ROC-AUC, Brier Score, ECE, 95% CIs, Cohen's $\kappa$, Pearson $r$, Spearman $\rho$, MAE/RMSE, and component ablation) for `ops-req-pilot`.
+- `references/pilot-protocol.md`: pre-registered blinded validation study protocol across 5 longitudinal outcomes (`interview`, `selection`, `90d_performance`, `promotion`, `attrition_90d`).
+- `MODEL_CARD.md`: formal Model Card documenting intended use, prohibited auto-rejection use, calibration metrics, component ablation findings, and known limitations.
 - `references/maintainer-notes.md`: script CLI recipes, parser pitfalls, serialization details, and public-showcase packaging. Read only when modifying or debugging the scripts.

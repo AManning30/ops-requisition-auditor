@@ -1,0 +1,16 @@
+{
+  "policy_id": "default-ephemeral-privacy-policy",
+  "policy_version": "privacy-min-1.0",
+  "processing_mode": "ephemeral_in_memory",
+  "ephemeral_by_default": true,
+  "require_explicit_consent_batch": true,
+  "require_explicit_consent_mobility": true,
+  "require_explicit_consent_demographics": true,
+  "pii_vault_retention_days": 30,
+  "scoring_audit_retention_days": 365,
+  "demographics_vault_retention_days": 180,
+  "mobility_profile_retention_days": 0,
+  "secure_delete_overwrite_passes": 1,
+  "redact_pii_in_logs": true,
+  "encrypt_persistent_exports": false
+}

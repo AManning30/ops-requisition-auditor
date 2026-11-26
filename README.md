@@ -40,10 +40,20 @@ It runs entirely on the Python 3 standard library and uses **no language model i
 | Path | Purpose |
 | :--- | :--- |
 | `scripts/offline_ats_auditor.py` | Deterministic 100-point scoring engine; `.docx`/`.pdf`/`.txt`/`.md` resume loader; Markdown and JSON scorecards; `.docx` export of accepted rewrites |
-| `scripts/job_posting_collector.py` | Parses pasted or saved postings, or fetches compliant public sources, into a structured `JobPostingRecord` and a ready-to-use `--jd-config` |
+| `scripts/job_posting_collector.py` | Parses pasted or saved postings, or fetches compliant public sources, into a structured `JobPostingRecord`, an **Extraction Provenance & Certainty Ledger** (`CONFIRMED` vs. `INFERRED`), ambiguity/negation diagnostics, multilingual (`en`/`es`/`fr`/`de`) support, and a ready-to-use `--jd-config` |
 | `scripts/requisition_quality_auditor.py` | **Employer side (Module 1):** 100-point Requisition Quality Score for job requisitions, single or whole public board, with automatic and manual edit suggestions |
 | `scripts/explainable_screening_assistant.py` | **Employer side (Module 2):** human-in-the-loop batch screening (`ops-req-screen`), blind-mode PII/ZIP/graduation-year redaction, Colorado SB 24-205 / NYC LL144 candidate factor notices, and EEOC four-fifths selection-rate tables |
 | `scripts/internal_mobility_matcher.py` | **Employer & Outplacement side (Module 3):** multi-role internal mobility & outplacement matcher (`ops-req-mobility`) with deterministic 30/60/90-day reskilling roadmaps and employee-initiated privacy controls |
+| `scripts/pilot_evidence_harness.py` | **Empirical Validation Harness (`ops-req-pilot`):** runs `(requisition, resume)` cohorts through both RQS and JD Alignment rubrics, computes deterministic parser confidence (`0–100%`), logs human decisions, and benchmarks scores against manually validated outcomes (Accuracy, F1, Cohen's $\kappa$, Pearson $r$, Spearman $\rho$, MAE/RMSE) |
+| `scripts/governance_middleware.py` | **Human-Approval & Anti-Automation Middleware (`ops-req-governance`):** enforces `PENDING_HUMAN_REVIEW`, blocks `--auto-reject` / `--hiring-recommendation` modes, validates human reviewer identity, role (`RBAC`), timestamp, and override rationale, logs rubric/config versions, and verifies SHA-256 hash-chained audit logs |
+| `scripts/compliance_policy_registry.py` | **Compliance Policy Versioning & Jurisdiction Registry (`ops-req-policy`):** stores dated policy modules (Colorado SB 24-205, NYC LL144, Illinois HB 3773, EEOC UGESP 4/5ths, ADEA graduation-year redaction, and multi-state pay transparency) with effective dates, geography scopes, official source URLs, and `legal_review_status`, decoupling legal notices from the scoring engine and supporting custom organization policy packs (`--policy-pack`) |
+| `scripts/privacy_data_minimization.py` | **Privacy, Three-Vault Segregation, Retention & Deletion Engine (`ops-req-privacy`):** enforces explicit revocable consent (`--consent-json`, `--require-consent`), isolates PII vs. Pseudonymized Scores vs. Voluntary Demographics into 3 RBAC-bounded vaults, defaults to ephemeral processing, enforces configurable TTLs & right-to-erasure receipts (`DeletionReceipt`), redacts logs, and encrypts persistent exports (`PBKDF2-HMAC-SHA256` + `SHA256-CTR-HMAC-SHA256-ETM`) |
+| `scripts/fairness_adverse_impact_auditor.py` | **Fairness, Bias & Adverse-Impact Evaluation Engine (`ops-req-fairness`):** evaluates selection rates, Wilson 95% CIs, exact Fisher $p$-values, EEOC Q&A #21 small-sample flip tests, parser/rubric error rates, FPR/FNR, and human reviewer overrides across Race/Ethnicity, Sex, Age Proxies (ADEA $\ge 40$), Disability Status, Resume Language (`en`/`es`/`fr`/`de`), and Intersectional (`Race x Sex`) subgroups |
+| `scripts/parser_benchmark_suite.py` | **Resume Parser, Layout, OCR & Fuzz Benchmark Suite (`ops-req-parser-bench`):** benchmarks DOCX (headers/footers/tables/textboxes), PDF (`FlateDecode` stdlib stream + scanned sidecar OCR fallback), multilingual (`en`/`es`/`fr`/`de`) dates & section headers, overlapping-role tenure & career-break exclusion, transferred skills vs. competing products, and a deterministic 100-iteration fuzz harness |
+| `scripts/org_customization_registry.py` | **Organization-Native Customization & Approval Registry (`ops-req-org-config`):** configures organization-specific leveling guides (`L1..M2/D1`), gate types & degree-equivalency policies, custom component weights (`Sum = 100.0`) & verdict thresholds, dual-signoff Separation-of-Duties (`SoD`) approval workflows (`DRAFT -> PENDING_APPROVAL -> APPROVED`), and SHA-256 hash-chained configuration audit histories |
+| `scripts/integration_adapters_and_webhooks.py` | **ATS-Neutral Integration SDK, Vendor Adapters, Webhooks & Batch Engine (`ops-req-integrate`):** defines the versioned ATS-neutral JSON contract (`ats-neutral-contract-1.0`) and OpenAPI 3.1.0 specification, bidirectional import/export adapters for Greenhouse, Lever, Ashby, Workday HRIS, and HR-Open 4.x, HMAC-SHA256 signed webhook processing, and batch-job execution preserving 100% of audit and human-review governance fields |
+| `scripts/workbench_parity_and_a11y.py` | **Workbench Parity, Shared Test Vectors & WCAG Accessibility Verifier (`ops-req-workbench`):** generates canonical shared scoring test vectors (`shared-vectors-1.0`), verifies 100% Python-to-HTML mathematical parity and `demo.html == docs/index.html` byte parity, and audits WCAG 2.1 AA / WAI-ARIA tablist semantics, keyboard arrow navigation, form validation alerts, responsive mobile breakpoints, and synthetic demo-mode labeling |
+| `scripts/public_trust_and_benchmarks.py` | **Public Reproducible Benchmark Suite & Community Trust Auditor (`ops-req-trust-bench`):** runs all 6 reproducible public benchmark domains, exports and verifies the zero-real-PII synthetic benchmark corpus (`examples/public_synthetic_benchmark_corpus.json`), documents 10 known failure modes & deterministic mitigations, records independent I-O psychology / HR compliance / WFM review sign-offs, and verifies `GOVERNANCE_CHARTER.md`, `SECURITY.md`, and `CHANGELOG.md` |
 | `scripts/tos_compliant_collector.py` | Minimal bulk collector for Greenhouse, Lever, Ashby, and USAJobs public APIs, plus pasted text |
 | `SKILL.md` | Agent skill (`ops-requisition-auditor`): workflow, WFM/ops domain rules, grounding and privacy rules |
 | `references/` | Scoring rubric, WFM taxonomy, compliant endpoint reference, maintainer notes |
@@ -51,7 +61,7 @@ It runs entirely on the Python 3 standard library and uses **no language model i
 | `examples/` | Synthetic resume, JD config, replacements map, and baseline/optimized scorecards |
 | `tests/` | `unittest` suite, run in CI on Python 3.10–3.12 |
 
-> **Installed commands** (after `pip install .`): `ops-req-audit` (scoring engine), `ops-req-collect` (posting parser/collector), `ops-req-api-collect` (bulk public-API collector), `ops-req-jd-audit` (requisition quality audit), `ops-req-screen` (explainable batch screening assistant), and `ops-req-mobility` (internal mobility & outplacement matcher). The scripts can also be run directly with `python scripts/...` as shown below. The pre-1.5.0 command names `ats-auditor`, `job-collector`, and `tos-collector` have been retired.
+> **Installed commands** (after `pip install .`): `ops-req-audit` (scoring engine), `ops-req-collect` (posting parser/collector), `ops-req-api-collect` (bulk public-API collector), `ops-req-jd-audit` (requisition quality audit), `ops-req-screen` (explainable batch screening assistant), `ops-req-mobility` (internal mobility & outplacement matcher), `ops-req-pilot` (pilot & empirical evidence harness), `ops-req-governance` (human-approval & anti-automation validator), `ops-req-policy` (compliance policy pack validator & jurisdiction resolver), `ops-req-privacy` (3-vault privacy, retention, deletion, and export encryption engine), `ops-req-fairness` (fairness, adverse-impact, and small-sample subgroup evaluator), `ops-req-parser-bench` (multi-format, OCR, multilingual, and fuzz parser benchmark suite), `ops-req-org-config` (organization-native customization, leveling, and approval workflow validator), `ops-req-integrate` (ATS-neutral integration adapters, signed webhook processor, and batch-job runner), `ops-req-workbench` (shared scoring vector parity & WCAG 2.1 AA accessibility verifier), and `ops-req-trust-bench` (public 6-domain benchmark suite, zero-PII synthetic corpus verifier, and governance charter auditor). The scripts can also be run directly with `python scripts/...` as shown below. The pre-1.5.0 command names `ats-auditor`, `job-collector`, and `tos-collector` have been retired.
 
 ---
 
@@ -179,7 +189,7 @@ python scripts/explainable_screening_assistant.py --resumes-dir path/to/resumes 
   --notices-dir out/notices --output batch_report.md --json-out batch_audit.json
 ```
 
-Full governance & compliance specification: [references/explainable-screening-governance.md](references/explainable-screening-governance.md). Sample outputs: [batch shortlist & 4/5ths report](examples/sample_screening_report.md), [candidate factor notice (`CAND-003`)](examples/sample_candidate_factor_notice.md), [reviewer decisions JSON](examples/sample_screening_decisions.json), and [segregated demographics JSON](examples/sample_screening_demographics.json).
+Full governance & compliance specification: [references/explainable-screening-governance.md](references/explainable-screening-governance.md) and [references/governance-and-schema-validation.md](references/governance-and-schema-validation.md). Sample outputs: [batch shortlist & 4/5ths report](examples/sample_screening_report.md), [candidate factor notice (`CAND-003`)](examples/sample_candidate_factor_notice.md), [reviewer decisions JSON](examples/sample_screening_decisions.json), and [segregated demographics JSON](examples/sample_screening_demographics.json).
 
 ---
 
@@ -207,6 +217,31 @@ python scripts/internal_mobility_matcher.py --resume path/to/Resume.docx \
 ```
 
 Full specification & WFM/BI reskilling catalog: [references/internal-mobility-reskilling.md](references/internal-mobility-reskilling.md). Sample outputs: [3-role internal mobility plan](examples/sample_internal_mobility_plan.md), [outplacement transition packet](examples/sample_outplacement_transition_pack.md), and [career-ladder role bundle JSON](examples/sample_mobility_career_ladder.json).
+
+---
+
+## Pilot & Empirical Evidence Harness (`ops-req-pilot`)
+
+Evaluates one or more `(requisition, resume)` pairs through **both** the Employer Requisition Quality rubric (`rqs-0.2`) and the Candidate/Screening JD Alignment rubric (in raw and blind-redacted modes), records deterministic **0–100% parser confidence diagnostics**, logs human reviewer decisions, and benchmarks engine scores against manually validated hiring/interview outcomes:
+
+- **Parser Confidence & Drift Guardrails:** Computes `resume_confidence`, `requisition_confidence`, and `combined_confidence`, automatically flagging cases below `75%` (`requires_manual_parse_check: true`) and measuring **Heuristic JD vs. Confirmed Config score drift** when both raw text and a confirmed `--jd-config` are supplied.
+- **Empirical Outcome Validation Metrics:** Computes confusion matrices (`TP`, `FP`, `TN`, `FN`) at `>= 80.0` and `>= 65.0` score cutoffs, **Accuracy**, **Precision**, **Recall**, **Specificity**, **F1 Score**, **Cohen's Kappa ($\kappa$)**, **Pearson $r$**, **Spearman Rank $\rho$**, **MAE**, and **RMSE** against domain-expert ratings and manually validated outcomes.
+
+```bash
+# Run the built-in 6-case WFM & Analytics pilot validation cohort
+python scripts/pilot_evidence_harness.py --demo
+
+# Run a custom pilot manifest JSON and export Markdown, JSON, and CSV evidence tables
+python scripts/pilot_evidence_harness.py --manifest examples/sample_pilot_manifest.json \
+  --output pilot_report.md --json-out pilot_evidence.json --csv-out pilot_ledger.csv
+
+# Validate a single (requisition, resume) pair against a known manual outcome
+python scripts/pilot_evidence_harness.py --resume examples/sample_resume.txt \
+  --jd-config examples/sample_ats_config.json --jd-file examples/sample_requisition_improved.txt \
+  --human-decision ADVANCE --manual-outcome ADVANCE --manual-score 87.0
+```
+
+Full specification: [references/pilot-evidence-harness.md](references/pilot-evidence-harness.md). Pre-registered blinded validation protocol: [references/pilot-protocol.md](references/pilot-protocol.md). Model Card & limitations: [MODEL_CARD.md](MODEL_CARD.md). Sample outputs: [6-case statistical validation report](examples/sample_pilot_validation_report.md) and [pilot manifest JSON](examples/sample_pilot_manifest.json).
 
 ---
 

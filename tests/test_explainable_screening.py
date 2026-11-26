@@ -177,12 +177,14 @@ class TestExplainableScreeningAssistant(unittest.TestCase):
             self.assertTrue(os.path.isfile(out_md))
             self.assertTrue(os.path.isfile(out_json))
             self.assertTrue(os.path.isfile(out_csv))
-            csv_txt = open(out_csv, "r", encoding="utf-8").read()
+            with open(out_csv, "r", encoding="utf-8") as fh:
+                csv_txt = fh.read()
             self.assertIn("candidate_id,composite_score", csv_txt)
             self.assertIn("CAND_BETA,100.00", csv_txt)
             self.assertTrue(os.path.isfile(os.path.join(notices_dir, "CAND_ALPHA_disclosure_notice.md")))
             self.assertTrue(os.path.isfile(os.path.join(notices_dir, "CAND_BETA_disclosure_notice.md")))
-            data = json.loads(open(out_json, "r", encoding="utf-8").read())
+            with open(out_json, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
             self.assertEqual(data["total_candidates"], 2)
             self.assertEqual(data["candidates"][0]["composite_score"], 100.0)
             self.assertEqual(data["candidates"][1]["composite_score"], 88.3)

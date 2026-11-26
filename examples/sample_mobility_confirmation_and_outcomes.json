@@ -1,0 +1,65 @@
+{
+  "schema": "mobility-confirmation-and-outcomes-1.0",
+  "subject_id": "EMP-001",
+  "employee_confirmations": {
+    "Workforce Capacity Modeling": {
+      "confirmed": true,
+      "evidence_note": "Confirmed: my capacity planning work at Apex Global Retail covered 13-week FTE headcount and labor capacity modeling."
+    },
+    "P&L Ownership": {
+      "confirmed": true,
+      "evidence_note": "Confirmed: co-owned the $18M annual distribution analytics operating budget."
+    },
+    "Power BI": {
+      "confirmed": true,
+      "evidence_note": "Confirmed: built executive Power BI SLA scorecards alongside Tableau pipelines at Apex Global Retail."
+    },
+    "SAP S/4HANA": {
+      "confirmed": false,
+      "evidence_note": "Only used SAP read-only exports; do not elevate to recent role until Day-60 reconciliation project is complete."
+    }
+  },
+  "approvals_by_role": {
+    "INT-WFM-204": {
+      "mentor_id": "mentor_wfm_lead_a_ross",
+      "mentor_approval_status": "APPROVED",
+      "mentor_approved_timestamp": "2026-11-10T15:00:00Z",
+      "mentor_verified_milestones": [
+        "Verified 13-week FTE capacity model workbook",
+        "Verified Power BI SLA dashboard"
+      ],
+      "manager_id": "",
+      "manager_approval_status": "NOT_SHARED_PRIVATE",
+      "manager_approved_timestamp": "",
+      "approval_notes": "Mentor verified Day 1-30 evidence and Day 60 deliverables; plan remains private to employee."
+    },
+    "INT-WFM-108": {
+      "mentor_id": "mentor_wfm_lead_a_ross",
+      "mentor_approval_status": "IN_REVIEW",
+      "mentor_approved_timestamp": "2026-11-12T10:00:00Z",
+      "mentor_verified_milestones": [
+        "Completed Queueing Theory & Erlang C Interval Staffing Workbook"
+      ],
+      "manager_id": "",
+      "manager_approval_status": "NOT_SHARED_PRIVATE",
+      "manager_approved_timestamp": "",
+      "approval_notes": "Erlang C workbook completed; NICE IEX shadow cycle scheduled for Days 61-90."
+    }
+  },
+  "outcomes_by_role": {
+    "INT-WFM-204": {
+      "role_id": "INT-WFM-204",
+      "role_title": "Senior Analytics Manager",
+      "baseline_score": 88.3,
+      "confirmed_30d_score": 94.9,
+      "projected_30d_score": 96.7,
+      "day_60_milestones_completed": 1,
+      "day_60_milestones_total": 1,
+      "day_90_post_upskilling_score": 98.1,
+      "credentials_or_prerequisites_cleared": true,
+      "transition_outcome": "INTERNAL_TRANSFER_COMPLETED",
+      "day_90_performance_status": "MEETS_OR_EXCEEDS_90D_BAR",
+      "retained_at_90_days": true
+    }
+  }
+}

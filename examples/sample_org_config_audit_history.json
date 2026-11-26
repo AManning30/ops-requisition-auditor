@@ -1,0 +1,105 @@
+{
+  "schema": "org-config-audit-history-1.0",
+  "org_id": "northstar-contact-solutions",
+  "entries": [
+    {
+      "seq": 1,
+      "org_id": "default-baseline-org",
+      "config_version": "1.6.0",
+      "previous_version": "1.4.0",
+      "approval_status": "APPROVED",
+      "author_id": "arch_a_manning",
+      "ta_or_comp_approver_id": "ta_lead_m_chen",
+      "compliance_or_legal_approver_id": "hr_compliance_r_davis",
+      "approved_timestamp": "2026-11-01T09:30:00Z",
+      "change_rationale": "Baseline 100-point deterministic rubric and HBS Hidden Workers leveling ceilings.",
+      "parameter_diffs": [],
+      "config_sha256": "2d476d89063f9ac02bc00cb501e315f13797fdd6d2cc6e12a13b5cde67fc80ef",
+      "previous_entry_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "entry_sha256": "c81188146dedd9a44385dfef4aff6b3aa87420f38815469a7c47b0841596b997"
+    },
+    {
+      "seq": 2,
+      "org_id": "northstar-contact-solutions",
+      "config_version": "2026.11.2",
+      "previous_version": "1.6.0",
+      "approval_status": "APPROVED",
+      "author_id": "wfm_director_k_patel",
+      "ta_or_comp_approver_id": "ta_comp_lead_s_jenkins",
+      "compliance_or_legal_approver_id": "legal_counsel_d_thompson",
+      "approved_timestamp": "2026-11-15T11:00:00Z",
+      "change_rationale": "Adopted Northstar skills-first WFM leveling ceilings (L3=3y, L5=6y), elevated Component 2 recent-experience weight from 20 to 25 pts (C1=40, C2=25), lowered bachelor equivalency to 3 years, and set Strong shortlist threshold to 78.0.",
+      "parameter_diffs": [
+        {
+          "section": "scoring_and_thresholds",
+          "parameter": "comp1_keyword_max",
+          "old_value": 45.0,
+          "new_value": 40.0
+        },
+        {
+          "section": "scoring_and_thresholds",
+          "parameter": "comp2_context_max",
+          "old_value": 20.0,
+          "new_value": 25.0
+        },
+        {
+          "section": "scoring_and_thresholds",
+          "parameter": "jd_borderline_threshold",
+          "old_value": 65.0,
+          "new_value": 62.0
+        },
+        {
+          "section": "scoring_and_thresholds",
+          "parameter": "jd_strong_match_threshold",
+          "old_value": 80.0,
+          "new_value": 78.0
+        },
+        {
+          "section": "gate_and_equivalency_policy",
+          "parameter": "bachelor_equivalency_years",
+          "old_value": 4.0,
+          "new_value": 3.0
+        },
+        {
+          "section": "gate_and_equivalency_policy",
+          "parameter": "standard_equivalency_clause",
+          "old_value": "Bachelor's degree or equivalent practical experience (4+ years of relevant WFM, BI, or operations experience accepted in lieu of degree).",
+          "new_value": "Bachelor's degree or 3+ years of practical contact-center WFM, capacity planning, or BI experience accepted as full equivalency."
+        },
+        {
+          "section": "leveling_guide",
+          "parameter": "level_2.max_benchmark_years",
+          "old_value": 4.0,
+          "new_value": 3.0
+        },
+        {
+          "section": "leveling_guide",
+          "parameter": "level_3.max_benchmark_years",
+          "old_value": 6.0,
+          "new_value": 5.0
+        },
+        {
+          "section": "leveling_guide",
+          "parameter": "manager.max_benchmark_years",
+          "old_value": 8.0,
+          "new_value": 6.0
+        },
+        {
+          "section": "leveling_guide",
+          "parameter": "senior.max_benchmark_years",
+          "old_value": 8.0,
+          "new_value": 6.0
+        },
+        {
+          "section": "leveling_guide",
+          "parameter": "senior_manager.max_benchmark_years",
+          "old_value": 10.0,
+          "new_value": 8.0
+        }
+      ],
+      "config_sha256": "af592e61aef17cc62bf2f63757f1d16e385038ded42f4aec5c1114e37454a55a",
+      "previous_entry_sha256": "c81188146dedd9a44385dfef4aff6b3aa87420f38815469a7c47b0841596b997",
+      "entry_sha256": "4d41f8df6b094b4e5de59151690e117bc1f788b18a174c9dc736222755706717"
+    }
+  ]
+}
