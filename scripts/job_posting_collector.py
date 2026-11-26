@@ -1024,7 +1024,7 @@ def parse_job_posting_text(
             rec.location = m_loc.group(1).strip()
             continue
 
-        m_id = re.match(r"^(?:job[ \t]*(?:id|#|number)|req(?:uisition)?[ \t]+(?:id|#|number)|req(?:uisition)?)[ \t]*[:–-]?[ \t]*([A-Za-z0-9_-]{3,25})$", s_line, re.IGNORECASE)
+        m_id = re.match(r"^(?:job[ \t]*(?:id|#|number)|req(?:uisition)?(?:[ \t]+(?:id|#|number))?)(?:[ \t]*[:–-][ \t]*|[ \t]+)([A-Za-z0-9_-]{3,25})$", s_line, re.IGNORECASE)
         if m_id and not rec.job_id:
             rec.job_id = m_id.group(1).strip()
             continue
@@ -1039,8 +1039,15 @@ def parse_job_posting_text(
         for candidate in lines[:6]:
             clean_c = candidate.strip("#* \t")
             if 4 <= len(clean_c) <= 85 and not clean_c.endswith(":") and not clean_c.startswith(("-", "*", "•")):
-                # Strip trailing '| LinkedIn' or '- Indeed.com'
-                clean_c = re.split(r"[ \t]+[|\-–][ \t]+(?:LinkedIn|Indeed|ZipRecruiter|Glassdoor)\b", clean_c[:200], maxsplit=1, flags=re.IGNORECASE)[0].strip()
+                # Strip trailing '| LinkedIn' or '- Indeed.com' without regex backtracking
+                for board_tag in ("linkedin", "indeed", "ziprecruiter", "glassdoor"):
+                    for sep in ("|", "-", "–"):
+                        for idx_sep in range(len(clean_c)):
+                            if clean_c[idx_sep] == sep and idx_sep > 0 and clean_c[idx_sep - 1].isspace():
+                                tail = clean_c[idx_sep + 1:].lstrip()
+                                if tail.lower().startswith(board_tag):
+                                    clean_c = clean_c[:idx_sep].rstrip()
+                                    break
                 rec.job_title = clean_c
                 break
 
