@@ -826,6 +826,24 @@ def verify_webhook_signature(
     return True
 
 
+def _resolve_safe_vault_path(candidate_path: str, base_dir: str) -> str:
+    candidate = (candidate_path or "").strip()
+    if not candidate:
+        return ""
+
+    base_real = os.path.realpath(base_dir)
+    if os.path.isabs(candidate):
+        resolved = os.path.realpath(candidate)
+    else:
+        resolved = os.path.realpath(os.path.join(base_real, candidate))
+
+    if os.path.commonpath([base_real, resolved]) != base_real:
+        raise WebhookSignatureError(
+            f"[WEBHOOK VALIDATION] Unsafe vault_json_path '{candidate_path}' is outside allowed directory."
+        )
+    return resolved
+
+
 def process_signed_webhook_event(
     raw_body_str: str,
     signature_header: str,
@@ -933,13 +951,14 @@ def process_signed_webhook_event(
     # privacy.erasure_requested
     subject_id = str(event.get("subject_id", "CAND-004"))
     vault_file = vault_json_path or str(event.get("vault_json_path", ""))
-    if vault_file and os.path.isfile(vault_file):
-        with open(vault_file, "r", encoding="utf-8") as vfh:
+    safe_vault_file = _resolve_safe_vault_path(vault_file, SCRIPT_DIR) if vault_file else ""
+    if safe_vault_file and os.path.isfile(safe_vault_file):
+        with open(safe_vault_file, "r", encoding="utf-8") as vfh:
             v_raw = json.load(vfh)
         vault = pdm.SegregatedVaultStore(**v_raw)
         receipt = pdm.purge_subject_across_vaults(vault, subject_id_or_token=subject_id, purge_scoring_vault=False)
         rec_dict = dataclasses.asdict(receipt)
-        gov.atomic_write_json(vault_file, dataclasses.asdict(vault))
+        gov.atomic_write_json(safe_vault_file, dataclasses.asdict(vault))
     else:
         vault, _, _ = pdm.run_privacy_demo(reference_date=reference_date)
         tok = subject_id if subject_id.startswith("SUBJ-") else pdm.compute_pseudonym_token(subject_id)
