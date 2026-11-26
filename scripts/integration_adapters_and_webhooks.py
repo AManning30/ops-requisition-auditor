@@ -957,7 +957,9 @@ def process_signed_webhook_event(
 
     # privacy.erasure_requested
     subject_id = str(event.get("subject_id", "CAND-004"))
-    vault_file = vault_json_path or str(event.get("vault_json_path", ""))
+    # SECURITY: Do not accept vault path from untrusted webhook payload.
+    # Only use the trusted function argument provided by server-side configuration/caller.
+    vault_file = (vault_json_path or "").strip()
     safe_vault_file = _resolve_safe_vault_path(vault_file, SCRIPT_DIR) if vault_file else ""
     if safe_vault_file and os.path.isfile(safe_vault_file):
         with open(safe_vault_file, "r", encoding="utf-8") as vfh:
