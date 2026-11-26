@@ -964,7 +964,7 @@ def process_signed_webhook_event(
     if safe_vault_file and os.path.isfile(safe_vault_file):
         with open(safe_vault_file, "r", encoding="utf-8") as vfh:
             v_raw = json.load(vfh)
-        vault = pdm.SegregatedVaultStore(**v_raw)
+        vault = pdm.SegregatedDataVault(**v_raw)
         receipt = pdm.purge_subject_across_vaults(vault, subject_id_or_token=subject_id, purge_scoring_vault=False)
         rec_dict = dataclasses.asdict(receipt)
         gov.atomic_write_json(safe_vault_file, dataclasses.asdict(vault))
