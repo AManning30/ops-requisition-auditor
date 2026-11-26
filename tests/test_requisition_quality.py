@@ -5,6 +5,13 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+try:
+    from cryptography.fernet import Fernet
+except ImportError:
+    Fernet = None
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS_DIR = os.path.join(ROOT_DIR, "scripts")
@@ -214,6 +221,7 @@ class TestRequisitionQualityAuditor(unittest.TestCase):
         self.assertEqual(rows[0]["level_detected"], "level II")
         self.assertEqual(rows[0]["title"], "Workforce Management Analyst II - WFM Ops - L4")
 
+    @unittest.skipIf(Fernet is None, "encrypted exports require cryptography")
     def test_portfolio_audit_with_stubbed_board(self):
         def fake_greenhouse(token, job_id=None):
             return [
@@ -224,23 +232,73 @@ class TestRequisitionQualityAuditor(unittest.TestCase):
                                   _read(IMPROVED)),
             ]
 
-        original = jpc.fetch_greenhouse
-        jpc.fetch_greenhouse = fake_greenhouse
-        try:
+        key = Fernet.generate_key()
+        cipher = Fernet(key)
+        with patch.object(jpc, "fetch_greenhouse", fake_greenhouse), patch.dict(
+            os.environ, {"OPS_AUDITOR_OUTPUT_KEY": key.decode()}
+        ):
             with tempfile.TemporaryDirectory() as tmp:
                 out_md = os.path.join(tmp, "portfolio.md")
                 out_json = os.path.join(tmp, "portfolio.json")
                 rc = rqa.main(["--greenhouse", "northstar", "--output", out_md, "--json-out", out_json])
                 self.assertEqual(rc, 0)
-                md = _read(out_md)
-                data = json.loads(_read(out_json))
-        finally:
-            jpc.fetch_greenhouse = original
+                md = cipher.decrypt(Path(out_md).read_bytes()).decode("utf-8")
+                data = json.loads(cipher.decrypt(Path(out_json).read_bytes()))
         self.assertIn("# Requisition Portfolio Audit: Greenhouse board 'northstar'", md)
         self.assertIn("**Requisitions audited:** 2", md)
         scores = [a["score"] for a in data["audits"]]
         self.assertEqual(len(scores), 2)
         self.assertLess(min(scores), 50.0)
+
+    def test_export_without_key_does_not_create_or_replace_files(self):
+        script = os.path.join(SCRIPTS_DIR, "requisition_quality_auditor.py")
+        env = {**os.environ, "OPS_AUDITOR_OUTPUT_KEY": ""}
+        with tempfile.TemporaryDirectory() as tmp:
+            report = Path(tmp) / "report.fernet"
+            report.write_bytes(b"existing file")
+            csv = Path(tmp) / "new" / "report.fernet"
+            result = subprocess.run(
+                [sys.executable, "-B", script, "--demo", "--output", str(report), "--csv-out", str(csv)],
+                capture_output=True, env=env,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(b"OPS_AUDITOR_OUTPUT_KEY", result.stderr)
+            self.assertEqual(result.stdout, b"")
+            self.assertEqual(report.read_bytes(), b"existing file")
+            self.assertFalse(csv.parent.exists())
+
+    @unittest.skipIf(Fernet is None, "encrypted exports require cryptography")
+    def test_encrypted_exports_round_trip_and_reject_tampering(self):
+        script = os.path.join(SCRIPTS_DIR, "requisition_quality_auditor.py")
+        env = {**os.environ, "OPS_AUDITOR_OUTPUT_KEY": Fernet.generate_key().decode()}
+        with tempfile.TemporaryDirectory() as tmp:
+            files = [
+                ("--output", b"# Requisition Quality Report:"),
+                ("--json-out", b'"score":'),
+                ("--csv-out", b"input_sha256,title,company"),
+                ("--improved-out", b"Workforce Management Analyst II"),
+            ]
+            command = [sys.executable, "-B", script]
+            export = [*command, "--jd-file", UNICORN]
+            for flag, _ in files:
+                export.extend((flag, str(Path(tmp) / flag[2:])))
+            result = subprocess.run(export, capture_output=True, env=env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, b"")
+            for flag, marker in files:
+                path = Path(tmp) / flag[2:]
+                token = path.read_bytes()
+                self.assertNotIn(marker, token)
+                decrypt = [*command, "--decrypt", str(path)]
+                decoded = subprocess.run(decrypt, capture_output=True, env=env)
+                self.assertEqual(decoded.returncode, 0, decoded.stderr)
+                self.assertIn(marker, decoded.stdout)
+
+            path.write_bytes(token[:20] + (b"A" if token[20:21] != b"A" else b"B") + token[21:])
+            rejected = subprocess.run(decrypt, capture_output=True, env=env)
+            self.assertEqual(rejected.returncode, 2)
+            self.assertIn(b"Cannot authenticate", rejected.stderr)
+            self.assertEqual(rejected.stdout, b"")
 
     def test_cli_demo_and_compliance_gate(self):
         script = os.path.join(SCRIPTS_DIR, "requisition_quality_auditor.py")

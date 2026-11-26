@@ -1,7 +1,7 @@
 # ops-requisition-auditor
 
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
-![Zero External Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(Stdlib%20Only)-success.svg)
+
 ![Deterministic Scoring](https://img.shields.io/badge/Scoring-Deterministic%20%26%20Explainable-indigo.svg)
 ![License: AGPL-3.0 or Commercial](https://img.shields.io/badge/License-AGPL--3.0%20%7C%20Commercial-orange.svg)
 
@@ -19,7 +19,7 @@ The JD Alignment audit compares a resume with a job requisition and produces:
 - **knockout-gate verification** (degree, license, certification, clearance);
 - a **ranked point-recovery plan** and **grounded rewrites**: it never invents metrics, tools, titles, or seniority.
 
-It runs entirely on the Python 3 standard library and uses **no language model in the scoring path**, so the same inputs always give the same score.
+Its scoring engines run on the Python 3 standard library and uses **no language model in the scoring path**, so the same inputs always give the same score.
 
 > [!IMPORTANT]
 > **What the score is, and is not.** The JD Alignment Score is a transparent, repeatable *heuristic for finding fixable gaps between a resume and a requisition*. It is **not** any applicant tracking system's algorithm, and it does not predict a specific employer's or vendor's decision. Most ATS platforms parse and rank resumes but do not auto-reject them; recruiters and hiring managers make the decisions. Optimize for the human reader, and never add a term that isn't true.
@@ -96,7 +96,7 @@ See [references/wfm-taxonomy.md](references/wfm-taxonomy.md).
 
 ## Quickstart
 
-Nothing to install: everything runs on the Python 3.10+ standard library. Optionally run `pip install .` to get the `ops-req-audit`, `ops-req-collect`, `ops-req-api-collect`, and `ops-req-jd-audit` commands.
+Python 3.10+ is enough for scoring and terminal reports. Encrypted requisition exports use the optional `cryptography` package. Optionally run `pip install .` to get the `ops-req-audit`, `ops-req-collect`, `ops-req-api-collect`, and `ops-req-jd-audit` commands.
 
 ```bash
 # 1. Built-in verification demo
@@ -148,16 +148,23 @@ Scores the **job requisition itself**, not a candidate, with a deterministic 100
 
 Bands: **Clear & inclusive** ≥ 85, **Needs tuning** 70–84, **High hidden-worker risk** < 70. The tool also applies only the concrete edits (for example adding an equivalency clause) to a draft copy and re-scores it as a **projected RQS**; it never fills in placeholders such as pay ranges or year counts. Full rubric: [references/requisition-quality-rubric.md](references/requisition-quality-rubric.md).
 
+Markdown, JSON, CSV, and revised requisition exports use authenticated encryption. Install the optional dependency with `python -m pip install cryptography`. Generate a Fernet key with `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`, store it securely, and set `OPS_AUDITOR_OUTPUT_KEY` to that key in your environment before exporting. Keep the key to read the files later.
+
+An audit with no export flags prints its report to the terminal. When you request an encrypted export, the report is written to the requested file and omitted from the terminal output.
+
 ```bash
 # Audit one requisition (text or saved HTML) and write a draft with the automatic edits applied
 python scripts/requisition_quality_auditor.py --jd-file examples/sample_requisition_unicorn.txt \
-  --output rqs_report.md --json-out rqs_report.json --improved-out requisition_draft.txt
+  --output rqs_report.md.fernet --json-out rqs_report.json.fernet --improved-out requisition_draft.txt.fernet
 
 # Audit every open role on a public Greenhouse, Lever, or Ashby board (portfolio summary, lowest scores first)
-python scripts/requisition_quality_auditor.py --greenhouse <board_token> --title-filter "analyst|planner" --output portfolio.md
+python scripts/requisition_quality_auditor.py --greenhouse <board_token> --title-filter "analyst|planner" --output portfolio.md.fernet
 
 # Use your own leveling guide instead of the default year benchmarks
 python scripts/requisition_quality_auditor.py --jd-file req.txt --level-benchmarks my_levels.json
+
+# Read an encrypted report to standard output with the same key
+python scripts/requisition_quality_auditor.py --decrypt rqs_report.md.fernet
 ```
 
 | Example (fictional employer) | RQS | Band |
