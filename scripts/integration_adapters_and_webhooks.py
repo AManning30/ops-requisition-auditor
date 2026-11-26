@@ -831,15 +831,22 @@ def _resolve_safe_vault_path(candidate_path: str, base_dir: str) -> str:
     if not candidate:
         return ""
 
-    base_real = os.path.realpath(base_dir)
     if os.path.isabs(candidate):
-        resolved = os.path.realpath(candidate)
-    else:
-        resolved = os.path.realpath(os.path.join(base_real, candidate))
-
-    if os.path.commonpath([base_real, resolved]) != base_real:
         raise WebhookSignatureError(
-            f"[WEBHOOK VALIDATION] Unsafe vault_json_path '{candidate_path}' is outside allowed directory."
+            "[WEBHOOK VALIDATION] Absolute paths are not permitted for vault_json_path."
+        )
+
+    if not candidate.lower().endswith(".json"):
+        raise WebhookSignatureError(
+            f"[WEBHOOK VALIDATION] vault_json_path '{candidate_path}' must reference a .json file."
+        )
+
+    vault_root = os.path.realpath(os.path.join(base_dir, "vaults"))
+    resolved = os.path.realpath(os.path.join(vault_root, candidate))
+
+    if os.path.commonpath([vault_root, resolved]) != vault_root:
+        raise WebhookSignatureError(
+            f"[WEBHOOK VALIDATION] Unsafe vault_json_path '{candidate_path}' is outside allowed vault directory."
         )
     return resolved
 
