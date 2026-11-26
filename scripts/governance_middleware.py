@@ -315,7 +315,8 @@ def build_version_manifest(
 ) -> GovernanceVersionManifest:
     """
     Computes a deterministic SHA-256 fingerprint of the active requirement list,
-    alignment configuration, and rubric versions.
+    alignment configuration (explicitly including target_title, title_synonyms,
+    min_years_required, and target_seniority_keywords), and rubric versions.
     """
     req_dicts = [
         dataclasses.asdict(r) if dataclasses.is_dataclass(r) else dict(r)
@@ -326,6 +327,15 @@ def build_version_manifest(
         if dataclasses.is_dataclass(align_cfg)
         else dict(align_cfg or {})
     )
+    canonical_alignment = {
+        "target_title": align_dict.get("target_title", getattr(align_cfg, "target_title", "")),
+        "title_synonyms": list(align_dict.get("title_synonyms", getattr(align_cfg, "title_synonyms", []))),
+        "min_years_required": align_dict.get("min_years_required", getattr(align_cfg, "min_years_required", 0.0)),
+        "target_seniority_keywords": list(
+            align_dict.get("target_seniority_keywords", getattr(align_cfg, "target_seniority_keywords", []))
+        ),
+        **align_dict,
+    }
     payload = json.dumps(
         {
             "engine_version": ENGINE_VERSION,
@@ -333,7 +343,7 @@ def build_version_manifest(
             "rqs_rubric_version": RQS_RUBRIC_VERSION,
             "governance_policy_version": GOVERNANCE_POLICY_VERSION,
             "requirements": req_dicts,
-            "alignment": align_dict,
+            "alignment": canonical_alignment,
         },
         sort_keys=True,
     )
@@ -717,6 +727,62 @@ def verify_audit_chain_integrity(
     return True, []
 
 
+def sanitize_csv_cell(val: Any) -> Any:
+    """
+    Neutralize spreadsheet formula injection (CWE-1236) in exported CSV cells.
+    Prefixes any string starting with '=', '+', '-', '@', tab, or carriage return
+    (including after leading whitespace) with a single quote "'".
+    """
+    if not isinstance(val, str) or not val:
+        return val
+    stripped = val.lstrip(" ")
+    if stripped and stripped[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return f"'{val}"
+    if val[0] in ("\t", "\r"):
+        return f"'{val}"
+    return val
+
+
+def write_owner_only_text(path_str: str, content: str) -> None:
+    """
+    Atomically write sensitive report/audit text with strict owner-only permissions
+    (0o600 for file, 0o700 for newly created parent directories, CWE-732).
+    """
+    abs_target = os.path.realpath(os.path.abspath(path_str))
+    allowed_roots = [
+        os.path.realpath(os.getcwd()),
+        os.path.realpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        os.path.realpath(tempfile.gettempdir()),
+    ]
+    if not any(os.path.commonpath([root, abs_target]) == root for root in allowed_roots):
+        raise AuditImmutabilityError(
+            f"[GOVERNANCE GATE] Unsafe output path '{path_str}': target is outside approved directories."
+        )
+    parent = os.path.dirname(abs_target) or "."
+    os.makedirs(parent, mode=0o700, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(prefix=".ops_req_priv_", suffix=".tmp", dir=parent)
+    try:
+        try:
+            os.chmod(tmp_path, 0o600)
+        except OSError:
+            pass
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(content)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_path, abs_target)
+        try:
+            os.chmod(abs_target, 0o600)
+        except OSError:
+            pass
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+
+
 def atomic_write_json(path_str: str, payload: Any) -> None:
     """Atomically write JSON to disk using a temporary file in the target directory + os.replace()."""
     abs_target = os.path.realpath(os.path.abspath(path_str))
@@ -727,7 +793,8 @@ def atomic_write_json(path_str: str, payload: Any) -> None:
 
     allowed_roots = [
         os.path.realpath(os.getcwd()),
-        os.path.realpath(os.path.dirname(os.path.abspath(__file__))),
+        os.path.realpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        os.path.realpath(tempfile.gettempdir()),
     ]
     if not any(os.path.commonpath([root, abs_target]) == root for root in allowed_roots):
         raise AuditImmutabilityError(
@@ -735,14 +802,22 @@ def atomic_write_json(path_str: str, payload: Any) -> None:
         )
 
     parent = os.path.dirname(abs_target) or "."
-    os.makedirs(parent, exist_ok=True)
+    os.makedirs(parent, mode=0o700, exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(prefix=".ops_req_tmp_", suffix=".json", dir=parent)
     try:
+        try:
+            os.chmod(tmp_path, 0o600)
+        except OSError:
+            pass
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
             json.dump(payload, fh, indent=2)
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp_path, abs_target)
+        try:
+            os.chmod(abs_target, 0o600)
+        except OSError:
+            pass
     finally:
         if os.path.exists(tmp_path):
             try:

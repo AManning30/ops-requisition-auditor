@@ -882,12 +882,18 @@ def render_mobility_markdown(report: MobilityPortfolioReport) -> str:
                 "| Horizon | Requirement | Gap Type | Max Score Impact | Employee Confirmation | Prerequisites & Learning Resources | Concrete Action | Verification / Project Milestone |",
                 "| :--- | :--- | :--- | :-: | :--- | :--- | :--- | :--- |",
             ]
+            _CONF_STATUS_LABELS = {
+                "CONFIRMED_BY_EMPLOYEE": "CONFIRMED_BY_EMPLOYEE",
+                "PENDING_EMPLOYEE_CONFIRMATION": "PENDING_EMPLOYEE_CONFIRMATION",
+                "DECLINED_NOT_HELD": "DECLINED_NOT_HELD",
+            }
             for s in m.plan_30_60_90:
                 prereq_str = f"**Prereqs:** {', '.join(s.prerequisites)}; " if s.prerequisites else ""
                 res_str = f"**Resources:** {', '.join(s.learning_resources)}" if s.learning_resources else "—"
+                conf_badge = _CONF_STATUS_LABELS.get(s.employee_confirmation_status, "PENDING_EMPLOYEE_CONFIRMATION")
                 md.append(
                     f"| **{s.horizon}** | **{s.requirement}** ({s.tier}) | {s.gap_type} | `+{s.potential_score_gain:.2f} pts` | "
-                    f"`{s.employee_confirmation_status}` | {prereq_str}{res_str} | {s.action} | {s.verification_milestone} |"
+                    f"`{conf_badge}` | {prereq_str}{res_str} | {s.action} | {s.verification_milestone} |"
                 )
             md.append("")
         else:
@@ -1115,8 +1121,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     md_out = render_mobility_markdown(report)
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as fh:
-            fh.write(md_out)
+        gov.write_owner_only_text(args.output, md_out)
     else:
         sys.stdout.write(md_out + "\n")
 
@@ -1130,11 +1135,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     passphrase=passphrase,
                     associated_metadata={"module": MODULE_NAME, "mode": mode, "reference_date": args.reference_date},
                 )
-                with open(args.json_out, "w", encoding="utf-8") as fh:
-                    json.dump(env, fh, indent=2)
+                gov.write_owner_only_text(args.json_out, json.dumps(env, indent=2))
             else:
-                with open(args.json_out, "w", encoding="utf-8") as fh:
-                    fh.write(json_str)
+                gov.write_owner_only_text(args.json_out, json_str)
         except pdm.PrivacyError as exc:
             sys.stderr.write(f"{exc}\n")
             return 2
@@ -1155,26 +1158,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             top_items = "; ".join(f"{s.requirement} ({s.horizon}, +{s.potential_score_gain:.2f} pts)" for s in m.plan_30_60_90[:5])
             writer.writerow([
                 m.rank,
-                m.role_id,
-                m.title,
-                m.company,
-                m.location,
+                gov.sanitize_csv_cell(m.role_id),
+                gov.sanitize_csv_cell(m.title),
+                gov.sanitize_csv_cell(m.company),
+                gov.sanitize_csv_cell(m.location),
                 f"{m.current_score:.1f}",
                 f"{m.literal_score:.1f}",
                 f"{m.projected_30d_score:.1f}",
-                m.readiness_band,
+                gov.sanitize_csv_cell(m.readiness_band),
                 m.knockout_passed,
-                "; ".join(m.unverified_gates),
+                gov.sanitize_csv_cell("; ".join(m.unverified_gates)),
                 m.matched_count,
                 m.partial_count,
                 m.missing_count,
                 len(d30),
                 len(d60),
                 len(d90),
-                top_items,
+                gov.sanitize_csv_cell(top_items),
             ])
-        with open(args.csv_out, "w", encoding="utf-8") as fh:
-            fh.write(buf.getvalue())
+        gov.write_owner_only_text(args.csv_out, buf.getvalue())
 
     return 0
 

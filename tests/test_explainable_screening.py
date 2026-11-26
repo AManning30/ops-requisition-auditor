@@ -189,6 +189,67 @@ class TestExplainableScreeningAssistant(unittest.TestCase):
             self.assertEqual(data["candidates"][0]["composite_score"], 100.0)
             self.assertEqual(data["candidates"][1]["composite_score"], 88.3)
 
+    def test_cwe_354_config_hash_cwe_359_redaction_cwe_1236_csv_and_cwe_918_ssrf(self) -> None:
+        """Verifies CWE-354 config fingerprint coverage, CWE-359 pipe-header & bare grad-year redaction, CWE-706 duplicate ID block, CWE-1236 CSV neutralization, and CWE-918 SSRF block."""
+        import governance_middleware as gov
+        import job_posting_collector as jpc
+
+        _, reqs, align_cfg = oaa.get_demo_fixture()
+        h_base = gov.build_version_manifest(reqs, align_cfg).config_sha256
+        align_mod_syn = oaa.AlignmentConfig(
+            target_title=align_cfg.target_title,
+            title_synonyms=list(align_cfg.title_synonyms) + ["Principal WFM Lead"],
+            min_years_required=align_cfg.min_years_required,
+            target_seniority_keywords=list(align_cfg.target_seniority_keywords),
+        )
+        align_mod_kw = oaa.AlignmentConfig(
+            target_title=align_cfg.target_title,
+            title_synonyms=list(align_cfg.title_synonyms),
+            min_years_required=align_cfg.min_years_required,
+            target_seniority_keywords=list(align_cfg.target_seniority_keywords) + ["pioneered"],
+        )
+        self.assertNotEqual(h_base, gov.build_version_manifest(reqs, align_mod_syn).config_sha256)
+        self.assertNotEqual(h_base, gov.build_version_manifest(reqs, align_mod_kw).config_sha256)
+
+        # CWE-359: pipe-delimited name header + bare graduation year on degree line
+        redacted_txt, counts = esa.redact_resume_for_blind_screening(
+            "Jane Doe | jane@example.com | (314) 555-0142\n"
+            "Education\n"
+            "B.S. in Industrial Engineering 2019\n"
+        )
+        self.assertNotIn("Jane Doe", redacted_txt)
+        self.assertIn("[redacted-name]", redacted_txt)
+        self.assertNotIn("2019", redacted_txt)
+        self.assertGreaterEqual(counts["name_header"], 1)
+        self.assertGreaterEqual(counts["education_grad_date"], 1)
+
+        # CWE-706: duplicate candidate IDs in screen_batch must raise GovernanceValidationError
+        with self.assertRaises(gov.GovernanceValidationError):
+            esa.screen_batch(
+                candidate_inputs=[("DUP-01", "a.txt", "Resume A"), ("DUP-01", "b.docx", "Resume B")],
+                reqs=reqs,
+                align_cfg=align_cfg,
+                reference_date=datetime(2026, 11, 1),
+            )
+
+        # CWE-1236: CSV formula injection neutralization
+        for formula in ("=1+1", "+cmd|' /C calc'!A0", "-2+3", "@SUM(1,1)", "  =HYPERLINK(\"http://evil\")"):
+            safe = gov.sanitize_csv_cell(formula)
+            self.assertTrue(safe.startswith("'"), f"Expected leading quote on {formula!r}, got {safe!r}")
+
+        # CWE-918: SSRF and local file:// URL rejection
+        for bad_url in (
+            "file:///etc/passwd",
+            "ftp://example.com/job.txt",
+            "http://127.0.0.1:8080/admin",
+            "http://localhost/job",
+            "http://169.254.169.254/latest/meta-data/",
+            "http://10.0.0.1/internal",
+            "http://[::1]:8000/",
+        ):
+            with self.assertRaises(ValueError):
+                jpc.validate_public_http_url(bad_url)
+
 
 if __name__ == "__main__":
     unittest.main()

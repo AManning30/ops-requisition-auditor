@@ -351,12 +351,17 @@ MAX_UNCOMPRESSED_DOC_BYTES = 15 * 1024 * 1024  # 15 MB decompression bomb protec
 
 
 def _safe_zip_read(zf: zipfile.ZipFile, member_name: str, max_bytes: int = MAX_UNCOMPRESSED_DOC_BYTES) -> bytes:
-    """Read a member from a ZipFile while enforcing an uncompressed byte-size limit to block XML/ZIP bombs."""
+    """Read a member from a ZipFile while enforcing uncompressed byte-size and compression-ratio limits to block XML/ZIP bombs."""
     info = zf.getinfo(member_name)
     if info.file_size > max_bytes:
         raise ValueError(
             f"[SECURITY GATE] Archive member '{member_name}' uncompressed size ({info.file_size} bytes) "
             f"exceeds {max_bytes} byte limit (potential ZIP/XML bomb)."
+        )
+    if info.compress_size > 0 and info.file_size > 1024 * 1024 and (info.file_size / info.compress_size) > 200.0:
+        raise ValueError(
+            f"[SECURITY GATE] Archive member '{member_name}' compression ratio ({info.file_size / info.compress_size:.1f}x) "
+            "exceeds 200x safety threshold (potential ZIP/XML bomb)."
         )
     data = zf.read(member_name)
     if len(data) > max_bytes:
@@ -797,7 +802,7 @@ def parse_resume(raw_text: str, reference_date: Optional[datetime] = None) -> Pa
         if stripped.count("|") >= 2 and not re.search(r"\b(?:19|20)\d{2}\b", stripped) and "@" not in stripped:
             has_table_or_columns = True
 
-        clean_header = re.sub(r"^[#*\-\s]+|[#*:_\s]+$", "", stripped).lower()
+        clean_header = stripped.lstrip("#*- \t").rstrip("#*:_ \t").lower()
         matched_sec = _classify_standard_header(clean_header)
         if matched_sec:
             current_section = matched_sec
@@ -816,7 +821,7 @@ def parse_resume(raw_text: str, reference_date: Optional[datetime] = None) -> Pa
         if "|" in stripped and "@" not in stripped:
             parts = [p.strip() for p in stripped.split("|") if p.strip()]
             if len(parts) >= 2:
-                left_clean = re.sub(r"^[#*\-\s]+|[#*:_\s]+$", "", parts[0]).lower()
+                left_clean = parts[0].lstrip("#*- \t").rstrip("#*:_ \t").lower()
                 left_sec = _classify_standard_header(left_clean)
                 if left_sec:
                     current_section = left_sec
@@ -2056,12 +2061,12 @@ def extract_jd_from_text(jd_text: str) -> Tuple[List[JDRequirement], AlignmentCo
             continue
 
         # Detect explicit Job Title header
-        title_match = re.match(r"^(?:job\s+title|title|role|position)\s*[:–-]\s*(.+)$", s, re.IGNORECASE)
+        title_match = re.match(r"^(?:job[ \t]+title|title|role|position)[ \t]*[:–-][ \t]*(\S.*)$", s[:200], re.IGNORECASE)
         if title_match and not target_title:
             target_title = title_match.group(1).strip()
             continue
         if not target_title and not s.startswith(("-", "*", "•")) and len(s) <= 60 and not s.endswith(":"):
-            target_title = re.sub(r"^[#*\s]+|[#*\s]+$", "", s).strip()
+            target_title = s.strip("#* \t").strip()
 
         # Section header tier switching (resets when moving back to required section)
         is_bullet = s.startswith(("-", "*", "•")) or bool(re.match(r"^\d+[.)]\s", s))
@@ -2085,7 +2090,11 @@ def extract_jd_from_text(jd_text: str) -> Tuple[List[JDRequirement], AlignmentCo
 
             # Extract parenthetical examples as synonyms if present, e.g. 'Cloud Data Warehousing (Snowflake, Redshift)'
             synonyms: List[str] = []
-            paren_match = re.search(r"\((?:e\.g\.,?\s*|such\s+as\s*|including\s*)?([^)]+)\)", clean, re.IGNORECASE)
+            paren_match = re.search(
+                r"\((?:e\.g\.,?[ \t]*|such[ \t]+as[ \t]*|including[ \t]*)?([^\s()][^()]{0,200})\)",
+                clean[:400],
+                re.IGNORECASE,
+            )
             if paren_match:
                 raw_syns = [p.strip() for p in re.split(r",|\bor\b|/", paren_match.group(1)) if 2 <= len(p.strip()) <= 35]
                 synonyms = [p for p in raw_syns if not p.lower().startswith(("etc", "and "))]

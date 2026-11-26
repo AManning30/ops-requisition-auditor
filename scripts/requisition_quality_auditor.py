@@ -104,18 +104,18 @@ ADVANCED_OPTIONAL_RE = re.compile(
 PERM_RE = re.compile(r"minimum\s+requirements\s+for\s+(?:the\s+)?position|foreign\s+(?:degree\s+)?equivalent", re.IGNORECASE)
 SOFT_REQUIREMENT_RE = re.compile(r"\b(?:ideally|preferably|preferred|a\s+plus|nice\s+to\s+have|bonus)\b", re.IGNORECASE)
 PAY_RANGE_RE = re.compile(
-    r"(?:[$\u20ac\u00a3\u20b9]|\b(?:USD|EUR|GBP|CAD|INR|AUD)\s?)\s?\d[\d,.\u00a0 ]*(?:k|K)?\s*(?:[-\u2013\u2014]|to)\s*"
-    r"(?:[$\u20ac\u00a3\u20b9]|\b(?:USD|EUR|GBP|CAD|INR|AUD)\s?)?\s?\d"
+    r"(?:[$\u20ac\u00a3\u20b9]|\b(?:USD|EUR|GBP|CAD|INR|AUD)[ \t]?)[ \t]?\d[\d,.]{0,15}(?:k|K)?[ \t]*(?:[-\u2013\u2014]|to)[ \t]*"
+    r"(?:[$\u20ac\u00a3\u20b9]|\b(?:USD|EUR|GBP|CAD|INR|AUD)[ \t]?)?[ \t]?\d"
 )
 ADVANCED_DEGREE_RE = re.compile(r"\bmaster'?s\b|\bmasters\b|\bMBA\b|\bPh\.?D\b|\bdoctorate\b|\bM\.S\.", re.IGNORECASE)
 EQUIVALENCY_RE = re.compile(
-    r"or\s+(?:an?\s+)?equivalent|equivalent\s+(?:combination|work|practical|professional|relevant)?\s*(?:of\s+)?(?:education|experience)"
-    r"|in\s+lieu\s+of|combination\s+of\s+(?:education|training)\s+and\s+experience"
-    r"|or\s+(?:relevant|related|comparable)\s+(?:work\s+)?experience|degree\s+(?:is\s+)?(?:preferred|a\s+plus|not\s+required)",
+    r"or[ \t]+(?:an?[ \t]+)?equivalent|equivalent[ \t]+(?:(?:combination|work|practical|professional|relevant)[ \t]+)?(?:of[ \t]+)?(?:education|experience)"
+    r"|in[ \t]+lieu[ \t]+of|combination[ \t]+of[ \t]+(?:education|training)[ \t]+and[ \t]+experience"
+    r"|or[ \t]+(?:relevant|related|comparable)[ \t]+(?:work[ \t]+)?experience|degree[ \t]+(?:is[ \t]+)?(?:preferred|a[ \t]+plus|not[ \t]+required)",
     re.IGNORECASE,
 )
 YEARS_RE = re.compile(
-    r"\b(\d{1,2})\s*\+?\s*(?:(?:-|–|to)\s*(\d{1,2})\s*)?\+?\s*years?(?!\s+(?:of\s+age|old|or\s+older|ago)\b)\b",
+    r"\b(\d{1,2})(?:[ \t]*\+)?(?:[ \t]*(?:-|–|to)[ \t]*(\d{1,2})(?:[ \t]*\+)?)?[ \t]+years?(?![ \t]+(?:of[ \t]+age|old|or[ \t]+older|ago)\b)\b",
     re.IGNORECASE,
 )
 NON_EXPERIENCE_YEARS_RE = re.compile(
@@ -1016,20 +1016,20 @@ def render_rqs_csv(audits: Sequence[RequisitionAudit]) -> str:
         top_issue = a.findings[0].title if a.findings else ""
         writer.writerow([
             a.input_sha256[:16] if a.input_sha256 else "",
-            a.title or "",
-            a.company or "",
-            a.location or "",
-            str(a.stats.get("level_detected") or ""),
+            gov.sanitize_csv_cell(a.title or ""),
+            gov.sanitize_csv_cell(a.company or ""),
+            gov.sanitize_csv_cell(a.location or ""),
+            gov.sanitize_csv_cell(str(a.stats.get("level_detected") or "")),
             f"{a.score:.1f}",
             f"{a.projected_score:.1f}" if a.projected_score is not None else f"{a.score:.1f}",
-            a.band,
+            gov.sanitize_csv_cell(a.band),
             f"{c_map.get('gates', 0.0):.1f}",
             f"{c_map.get('load', 0.0):.1f}",
             f"{c_map.get('clarity', 0.0):.1f}",
             f"{c_map.get('title', 0.0):.1f}",
             f"{c_map.get('language', 0.0):.1f}",
             len(a.findings),
-            top_issue,
+            gov.sanitize_csv_cell(top_issue),
         ])
     return buf.getvalue()
 

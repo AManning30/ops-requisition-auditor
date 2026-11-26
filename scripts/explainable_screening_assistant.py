@@ -68,6 +68,13 @@ GRAD_DATE_RE = re.compile(
     r"|\b(?:class\s+of|graduated\s*:?)\s*(?:19\d{2}|20\d{2})\b",
     re.IGNORECASE,
 )
+EDU_DEGREE_LINE_RE = re.compile(
+    r"\b(?:B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?B\.?A\.?|Ph\.?D\.?|Bachelor'?s?|Master'?s?|Associate'?s?|University|College)\b",
+    re.IGNORECASE,
+)
+BARE_GRAD_YEAR_RE = re.compile(
+    r"(?:,\s*|\s+)(?:(?:0?[1-9]|1[0-2])[/.-])?(?:19\d{2}|20\d{2})\b"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -192,8 +199,8 @@ def redact_resume_for_blind_screening(raw_text: str) -> Tuple[str, Dict[str, int
         if sec is not None:
             in_education = (sec == "education")
 
-        # Redact top candidate name line (first non-empty line before any section header if it looks like a person's name)
-        if not name_redacted and idx <= 2 and stripped and sec is None:
+        # Redact top candidate name line (standalone or pipe/bullet-delimited contact header like 'Jane Doe | jane@example.com')
+        if not name_redacted and idx <= 3 and stripped and sec is None:
             words = stripped.split()
             if 2 <= len(words) <= 4 and all(re.match(r"^[A-Za-z.'-]+$", w) for w in words):
                 if not re.search(r"\b(?:resume|curriculum|vitae|summary|analyst|manager|engineer|director|specialist)\b", stripped, re.IGNORECASE):
@@ -201,6 +208,16 @@ def redact_resume_for_blind_screening(raw_text: str) -> Tuple[str, Dict[str, int
                     counts["name_header"] += 1
                     name_redacted = True
                     continue
+            if "|" in stripped or "•" in stripped:
+                delim = "|" if "|" in stripped else "•"
+                segments = [seg.strip() for seg in stripped.split(delim)]
+                first_words = segments[0].split() if segments else []
+                if 2 <= len(first_words) <= 4 and all(re.match(r"^[A-Za-z.'-]+$", w) for w in first_words):
+                    if not re.search(r"\b(?:resume|curriculum|vitae|summary|analyst|manager|engineer|director|specialist)\b", segments[0], re.IGNORECASE):
+                        segments[0] = "[redacted-name]"
+                        line = f" {delim} ".join(segments)
+                        counts["name_header"] += 1
+                        name_redacted = True
 
         updated = line
         updated, n_email = EMAIL_RE.subn("redacted@redacted.invalid", updated)
@@ -218,9 +235,12 @@ def redact_resume_for_blind_screening(raw_text: str) -> Tuple[str, Dict[str, int
 
         updated = STATE_ZIP_RE.sub(_zip_repl, updated)
 
-        if in_education and not oaa.DATE_RANGE_REGEX.search(updated):
+        if (in_education or EDU_DEGREE_LINE_RE.search(updated)) and not oaa.DATE_RANGE_REGEX.search(updated):
             updated, n_grad = GRAD_DATE_RE.subn("([redacted-grad-date])", updated)
             counts["education_grad_date"] += n_grad
+            if n_grad == 0 and EDU_DEGREE_LINE_RE.search(updated):
+                updated, n_bare = BARE_GRAD_YEAR_RE.subn(" ([redacted-grad-date])", updated)
+                counts["education_grad_date"] += n_bare
 
         out_lines.append(updated)
 
@@ -275,12 +295,19 @@ def _candidate_record_from_report(
         else:
             unverified.append(entry)
 
+    raw_sha = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
+    scored_sha = hashlib.sha256(scored_text.encode("utf-8")).hexdigest()
+    safe_source_file = (
+        f"[redacted-source:{raw_sha[:12]}]"
+        if blind_mode
+        else (os.path.basename(source_file) if source_file else candidate_id)
+    )
     return CandidateScreeningRecord(
         candidate_id=candidate_id,
-        source_file=os.path.basename(source_file) if source_file else candidate_id,
+        source_file=safe_source_file,
         blind_mode=blind_mode,
-        raw_sha256=hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
-        scored_sha256=hashlib.sha256(scored_text.encode("utf-8")).hexdigest(),
+        raw_sha256=raw_sha,
+        scored_sha256=scored_sha,
         redactions_applied=redactions,
         rank=0,
         composite_score=round(rep.composite_score, 1),
@@ -402,8 +429,15 @@ def screen_batch(
     version_manifest = gov.build_version_manifest(reqs, align_cfg)
     config_sha256 = version_manifest.config_sha256
 
+    seen_candidate_ids: set[str] = set()
     records: List[CandidateScreeningRecord] = []
     for cid, src_file, raw_text in candidate_inputs:
+        if cid in seen_candidate_ids:
+            raise gov.GovernanceValidationError(
+                f"[SCREENING INTEGRITY] Duplicate candidate_id '{cid}' detected in batch. "
+                "Every candidate submission must have a unique identifier to prevent decision or notice collisions."
+            )
+        seen_candidate_ids.add(cid)
         c_rec = pdm.verify_explicit_consent(
             subject_id=cid,
             flow_type="batch_screening",
@@ -954,10 +988,23 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             parser.error("Provide --jd-config or --jd-file when screening resumes.")
 
         candidate_inputs = []
+        seen_stems: set[str] = set()
         for idx, p in enumerate(resume_paths, start=1):
-            stem = Path(p).stem
-            cid = stem.upper() if stem else f"CAND-{idx:03d}"
-            candidate_inputs.append((cid, p, oaa.load_resume_file(p)))
+            raw_resume_txt = oaa.load_resume_file(p)
+            stem = Path(p).stem.strip()
+            stem_upper = stem.upper()
+            if stem_upper in seen_stems:
+                parser.error(
+                    f"Duplicate candidate filename stem '{stem}' detected ({p}). "
+                    "Rename colliding files so each submission has a unique candidate ID."
+                )
+            seen_stems.add(stem_upper)
+            if blind_mode and not re.match(r"^(?:CAND|SUBJ|APP)[-_A-Z0-9]+$", stem_upper):
+                raw_sha_prefix = hashlib.sha256(raw_resume_txt.encode("utf-8")).hexdigest()[:8].upper()
+                cid = f"CAND-{idx:03d}-{raw_sha_prefix}"
+            else:
+                cid = stem_upper if stem_upper else f"CAND-{idx:03d}"
+            candidate_inputs.append((cid, p, raw_resume_txt))
 
         decisions_map = _load_decisions(args.decisions_json)
         demographics_map = _load_demographics(args.demographics_json)
@@ -987,8 +1034,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     md_report = render_batch_markdown(batch, include_notices=True, policy_pack=policy_pack)
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as fh:
-            fh.write(md_report)
+        gov.write_owner_only_text(args.output, md_report)
     else:
         sys.stdout.write(md_report + "\n")
 
@@ -1002,11 +1048,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     passphrase=passphrase,
                     associated_metadata={"module": MODULE_NAME, "reference_date": args.reference_date},
                 )
-                with open(args.json_out, "w", encoding="utf-8") as fh:
-                    json.dump(env, fh, indent=2)
+                gov.write_owner_only_text(args.json_out, json.dumps(env, indent=2))
             else:
-                with open(args.json_out, "w", encoding="utf-8") as fh:
-                    fh.write(json_str)
+                gov.write_owner_only_text(args.json_out, json_str)
 
         if args.vault_out:
             seg_vault = pdm.partition_into_segregated_vaults(
@@ -1025,11 +1069,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     passphrase=passphrase,
                     associated_metadata={"vault_schema": seg_vault.vault_schema_version, "reference_date": args.reference_date},
                 )
-                with open(args.vault_out, "w", encoding="utf-8") as fh:
-                    json.dump(env, fh, indent=2)
+                gov.write_owner_only_text(args.vault_out, json.dumps(env, indent=2))
             else:
-                with open(args.vault_out, "w", encoding="utf-8") as fh:
-                    fh.write(vault_str)
+                gov.write_owner_only_text(args.vault_out, vault_str)
     except pdm.PrivacyError as exc:
         sys.stderr.write(f"{exc}\n")
         return 2
@@ -1047,7 +1089,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         for c in batch.candidates:
             writer.writerow([
                 c.rank,
-                c.candidate_id,
+                gov.sanitize_csv_cell(c.candidate_id),
                 f"{c.composite_score:.2f}",
                 f"{c.literal_score:.2f}",
                 f"{c.comp1_kw_score:.2f}",
@@ -1056,27 +1098,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 f"{c.comp4_knockout_score:.2f}",
                 f"{c.comp5_schema_score:.2f}",
                 c.knockout_passed,
-                "; ".join(c.unverified_gates),
+                gov.sanitize_csv_cell("; ".join(c.unverified_gates)),
                 len(c.verified_requirements),
                 len(c.partial_requirements),
                 len(c.unverified_requirements),
-                c.recommendation_band,
-                c.decision.status,
-                c.decision.reviewer,
-                c.decision.override_reason,
+                gov.sanitize_csv_cell(c.recommendation_band),
+                gov.sanitize_csv_cell(c.decision.status),
+                gov.sanitize_csv_cell(c.decision.reviewer),
+                gov.sanitize_csv_cell(c.decision.override_reason),
                 c.blind_mode,
                 c.raw_sha256,
                 c.scored_sha256,
             ])
-        with open(args.csv_out, "w", encoding="utf-8") as fh:
-            fh.write(buf.getvalue())
+        gov.write_owner_only_text(args.csv_out, buf.getvalue())
 
     if args.notices_dir:
-        os.makedirs(args.notices_dir, exist_ok=True)
+        os.makedirs(args.notices_dir, mode=0o700, exist_ok=True)
         for c in batch.candidates:
-            notice_path = os.path.join(args.notices_dir, f"{c.candidate_id}_disclosure_notice.md")
-            with open(notice_path, "w", encoding="utf-8") as fh:
-                fh.write(render_candidate_notice(batch, c, policy_pack=policy_pack))
+            safe_cid = re.sub(r"[^A-Za-z0-9_-]", "_", c.candidate_id)
+            notice_path = os.path.join(args.notices_dir, f"{safe_cid}_disclosure_notice.md")
+            gov.write_owner_only_text(notice_path, render_candidate_notice(batch, c, policy_pack=policy_pack))
 
     return 0
 

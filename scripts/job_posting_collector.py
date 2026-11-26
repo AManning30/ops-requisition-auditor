@@ -208,12 +208,24 @@ def detect_platform(url: str, raw_text: str = "") -> str:
 
 
 def extract_jsonld_job_posting(raw_html: str) -> Optional[Dict[str, Any]]:
-    """Extract Schema.org JobPosting JSON-LD block if embedded in the HTML page."""
-    script_blocks = re.findall(
-        r"<script[^>]*type=[\"']application/ld\+json[\"'][^>]*>(.*?)</script>",
-        raw_html,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
+    """Extract Schema.org JobPosting JSON-LD block if embedded in the HTML page (linear-time scan, zero ReDoS)."""
+    script_blocks: List[str] = []
+    lower_html = raw_html.lower()
+    pos = 0
+    while True:
+        start_tag = lower_html.find("<script", pos)
+        if start_tag == -1:
+            break
+        tag_end = lower_html.find(">", start_tag)
+        if tag_end == -1:
+            break
+        close_tag = lower_html.find("</script>", tag_end + 1)
+        if close_tag == -1:
+            break
+        open_tag_header = lower_html[start_tag:tag_end + 1]
+        if "application/ld+json" in open_tag_header:
+            script_blocks.append(raw_html[tag_end + 1:close_tag])
+        pos = close_tag + 9
     for block in script_blocks:
         cleaned = block.strip()
         if not cleaned:
@@ -275,15 +287,77 @@ def paste_only_platform(url: str) -> Optional[str]:
     return PASTE_ONLY_LABELS[m.group(1).lower()] if m else None
 
 
+def validate_public_http_url(url: str) -> str:
+    """
+    Enforce SSRF and local-file inclusion protections (CWE-918):
+      1. Only `http` and `https` schemes are allowed (blocks `file://`, `ftp://`, `data:`, etc.).
+      2. Blocks `localhost`, `.local`, `.internal`, and any IP literal or DNS-resolved address
+         in loopback, private (RFC-1918 / RFC-4193), link-local (`169.254.0.0/16` metadata),
+         multicast, or unspecified ranges.
+    """
+    import ipaddress
+    import socket
+
+    parts = urllib.parse.urlparse((url or "").strip())
+    if parts.scheme.lower() not in ("http", "https"):
+        raise ValueError(
+            f"[SECURITY GATE] Disallowed URL scheme '{parts.scheme or 'none'}': only http:// and https:// URLs are permitted."
+        )
+    host = (parts.hostname or "").strip().lower()
+    if not host:
+        raise ValueError("[SECURITY GATE] URL is missing a valid hostname.")
+    if host in ("localhost", "localhost.localdomain") or host.endswith((".local", ".internal", ".localhost")):
+        raise ValueError(f"[SECURITY GATE] Disallowed local/internal hostname '{host}'.")
+
+    def _check_ip(ip_str: str) -> None:
+        ip_obj = ipaddress.ip_address(ip_str)
+        if (
+            ip_obj.is_private
+            or ip_obj.is_loopback
+            or ip_obj.is_link_local
+            or ip_obj.is_multicast
+            or ip_obj.is_reserved
+            or ip_obj.is_unspecified
+        ):
+            raise ValueError(f"[SECURITY GATE] Disallowed non-public IP address '{ip_str}' for host '{host}'.")
+
+    try:
+        _check_ip(host)
+    except ValueError as exc:
+        if "[SECURITY GATE]" in str(exc):
+            raise
+        # Host is a domain name; if it resolves in DNS, verify all resolved IPs are public
+        try:
+            addr_infos = socket.getaddrinfo(host, parts.port or (443 if parts.scheme.lower() == "https" else 80))
+            for ai in addr_infos:
+                sockaddr = ai[4]
+                if sockaddr and sockaddr[0]:
+                    _check_ip(str(sockaddr[0]).split("%")[0])
+        except socket.gaierror:
+            # Unresolvable host will fail cleanly during urlopen
+            pass
+    return url
+
+
+class _SafePublicRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Validates every HTTP redirect destination against validate_public_http_url to prevent redirect-based SSRF."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_public_http_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def _http_get(url: str, timeout: int = 20) -> Tuple[int, str]:
+    validate_public_http_url(url)
     headers = {
         "User-Agent": USER_AGENT,
         "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
     }
     req = urllib.request.Request(url, headers=headers)
+    opener = urllib.request.build_opener(_SafePublicRedirectHandler)
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             charset = resp.headers.get_content_charset() or "utf-8"
             body = resp.read().decode(charset, errors="replace")
             return resp.status, body
@@ -293,6 +367,8 @@ def _http_get(url: str, timeout: int = 20) -> Tuple[int, str]:
         except Exception:
             body = ""
         return e.code, body
+    except ValueError:
+        raise
     except Exception as e:
         return 0, str(e)
 
@@ -300,12 +376,12 @@ def _http_get(url: str, timeout: int = 20) -> Tuple[int, str]:
 def robots_allows(url: str) -> bool:
     """False only when the site's robots.txt was read and asks automated tools not to fetch `url`.
 
-    A missing robots.txt (404) or an unreachable site counts as allowed, since the page fetch that
-    follows would fail anyway. A 401/403 on robots.txt counts as disallowed, per the usual convention.
+    Non-http(s) schemes or non-public hosts are rejected via validate_public_http_url().
     """
+    validate_public_http_url(url)
     parts = urllib.parse.urlparse(url)
     if parts.scheme not in ("http", "https") or not parts.netloc:
-        return True
+        return False
     status, body = _http_get(f"{parts.scheme}://{parts.netloc}/robots.txt")
     if status in (401, 403):
         return False
@@ -828,7 +904,7 @@ def classify_section_header(line: str) -> Optional[str]:
     normalized = line.replace("\u2019", "'").replace("\u2018", "'").replace("\xa0", " ")
     if re.match(r"^\s*(?:[-*•▪▸]|\d+[.)])\s+", normalized) and len(normalized.split()) > 5:
         return None  # a bullet sentence such as "- Requirements gathering with stakeholders" is content, not a heading
-    cleaned = re.sub(r"^[#*\-•\s]+|(?:[#*:_?\s]|\.\.\.|\u2026)+$", "", normalized).strip()
+    cleaned = normalized.lstrip("#*-• \t").rstrip("#*:_?. \t\u2026").strip()
     if not cleaned or len(cleaned) > 80:
         return None
     # Must not look like a full sentence ending with a period
@@ -932,27 +1008,28 @@ def parse_job_posting_text(
 
     # 2. Extract Metadata Labels (Job Title, Company, Location, Req ID, Date) from text when missing
     for idx, line in enumerate(lines[:30]):
-        m_title = re.match(r"^(?:job\s+title|position\s+title|title|role|position)\s*[:–-]\s*(.+)$", line, re.IGNORECASE)
+        s_line = line[:240]
+        m_title = re.match(r"^(?:job[ \t]+title|position[ \t]+title|title|role|position)[ \t]*[:–-][ \t]*(\S.*)$", s_line, re.IGNORECASE)
         if m_title and not rec.job_title:
             rec.job_title = m_title.group(1).strip()
             continue
 
-        m_comp = re.match(r"^(?:company|organization|employer|hiring\s+company)\s*[:–-]\s*(.+)$", line, re.IGNORECASE)
+        m_comp = re.match(r"^(?:company|organization|employer|hiring[ \t]+company)[ \t]*[:–-][ \t]*(\S.*)$", s_line, re.IGNORECASE)
         if m_comp and not rec.company_name:
             rec.company_name = m_comp.group(1).strip()
             continue
 
-        m_loc = re.match(r"^(?:location|work\s+location|office\s+location|city)\s*[:–-]\s*(.+)$", line, re.IGNORECASE)
+        m_loc = re.match(r"^(?:location|work[ \t]+location|office[ \t]+location|city)[ \t]*[:–-][ \t]*(\S.*)$", s_line, re.IGNORECASE)
         if m_loc and not rec.location:
             rec.location = m_loc.group(1).strip()
             continue
 
-        m_id = re.match(r"^(?:job\s*(?:id|#|number)|req(?:uisition)?\s*(?:id|#|number)?)\s*[:–-]?\s*([A-Za-z0-9_-]{3,25})$", line, re.IGNORECASE)
+        m_id = re.match(r"^(?:job[ \t]*(?:id|#|number)|req(?:uisition)?[ \t]+(?:id|#|number)|req(?:uisition)?)[ \t]*[:–-]?[ \t]*([A-Za-z0-9_-]{3,25})$", s_line, re.IGNORECASE)
         if m_id and not rec.job_id:
             rec.job_id = m_id.group(1).strip()
             continue
 
-        m_dept = re.match(r"^(?:department|team|function|business\s+unit)\s*[:–-]\s*(.+)$", line, re.IGNORECASE)
+        m_dept = re.match(r"^(?:department|team|function|business[ \t]+unit)[ \t]*[:–-][ \t]*(\S.*)$", s_line, re.IGNORECASE)
         if m_dept and not rec.department:
             rec.department = m_dept.group(1).strip()
             continue
@@ -960,10 +1037,10 @@ def parse_job_posting_text(
     # Fallback heuristics for Job Title, Company, and City/State in top lines
     if not rec.job_title and lines:
         for candidate in lines[:6]:
-            clean_c = re.sub(r"^[#*\s]+|[#*\s]+$", "", candidate)
+            clean_c = candidate.strip("#* \t")
             if 4 <= len(clean_c) <= 85 and not clean_c.endswith(":") and not clean_c.startswith(("-", "*", "•")):
                 # Strip trailing '| LinkedIn' or '- Indeed.com'
-                clean_c = re.split(r"\s+[|\-–]\s+(?:LinkedIn|Indeed|ZipRecruiter|Glassdoor).*$", clean_c, flags=re.IGNORECASE)[0].strip()
+                clean_c = re.split(r"[ \t]+[|\-–][ \t]+(?:LinkedIn|Indeed|ZipRecruiter|Glassdoor)\b", clean_c[:200], maxsplit=1, flags=re.IGNORECASE)[0].strip()
                 rec.job_title = clean_c
                 break
 
@@ -1103,13 +1180,14 @@ def parse_job_posting_text(
 
     # 6. Years of Experience, Education, Certifications, Clearance, Work Auth, Travel
     _NON_EXP_YEARS_LINE_RE = re.compile(
-        r"\b(?:\d{1,2}\s*\+?\s*years?\s+of\s+age|at\s+least\s+\d{1,2}\s+years?\s+old"
-        r"|(?:for\s+(?:over|nearly|more\s+than)\s+\d{1,3}\s+years?)\s*,?\s*(?:we|our|the\s+company))\b",
+        r"\b(?:\d{1,2}(?:[ \t]*\+)?[ \t]+years?[ \t]+of[ \t]+age|at[ \t]+least[ \t]+\d{1,2}[ \t]+years?[ \t]+old"
+        r"|(?:for[ \t]+(?:over|nearly|more[ \t]+than)[ \t]+\d{1,3}[ \t]+years?)(?:,[ \t]*|[ \t]+)(?:we|our|the[ \t]+company))\b",
         re.IGNORECASE,
     )
     yr_matches: List[re.Match[str]] = []
     for line in lines:
-        if _NON_EXP_YEARS_LINE_RE.search(line):
+        s_line = line[:300]
+        if _NON_EXP_YEARS_LINE_RE.search(s_line):
             rec.negative_exclusions.append({
                 "category": "non_experience_years",
                 "term": "years",
@@ -1118,10 +1196,10 @@ def parse_job_posting_text(
             })
             continue
         for m in re.finditer(
-            r"\b(\d{1,2})\s*(?:\+|(?:[-–]|to|a|à|bis)\s*(\d{1,2}))?\s*(?:years?|a[ñn]os?|ans?|jahre[n]?)\s+"
-            r"(?:(?:of\s+|de\s+|d['\u2019]\s*|von\s+))?(?:[\wÀ-ÿ\-/&]+\s+){0,7}?"
-            r"(?:experience|exp\b|background|track\s+record|experiencia|exp[eé]rience|berufserfahrung|erfahrung)",
-            line,
+            r"\b(\d{1,2})(?:[ \t]*\+|(?:[ \t]*[-–][ \t]*|[ \t]+(?:to|a|à|bis)[ \t]+)(\d{1,2}))?[ \t]+(?:years?|a[ñn]os?|ans?|jahre[n]?)[ \t]+"
+            r"(?:(?:of|de|von)[ \t]+|d['\u2019][ \t]*)?(?:[\wÀ-ÿ\-/&]{1,25}[ \t]+){0,7}"
+            r"(?:experience|exp\b|background|track[ \t]+record|experiencia|exp[eé]rience|berufserfahrung|erfahrung)",
+            s_line,
             re.IGNORECASE,
         ):
             yr_matches.append(m)
@@ -1747,7 +1825,10 @@ def parse_from_fetch_result(fetch_res: Dict[str, Any]) -> JobPostingRecord:
         board = str(fetch_res.get("board") or data.get("departmentName") or "")
         content_text = (str(data.get("descriptionPlain") or "")).strip() or html_fragment_to_text(str(data.get("descriptionHtml") or ""))
         comp_obj = data.get("compensation") or {}
-        comp_summary = str(comp_obj.get("scrapeableCompensationSalarySummary") or comp_obj.get("compensationTierSummary") or "").strip()
+        comp_summary = next(
+            (str(v).strip() for k, v in comp_obj.items() if isinstance(k, str) and k.lower().endswith("summary") and v),
+            "",
+        )
         header_block = (
             f"Job Title: {data.get('title', '')}\n"
             f"Company: {board}\n"
