@@ -719,7 +719,21 @@ def verify_audit_chain_integrity(
 
 def atomic_write_json(path_str: str, payload: Any) -> None:
     """Atomically write JSON to disk using a temporary file in the target directory + os.replace()."""
-    abs_target = os.path.abspath(path_str)
+    abs_target = os.path.realpath(os.path.abspath(path_str))
+    if not abs_target.lower().endswith(".json"):
+        raise AuditImmutabilityError(
+            f"[GOVERNANCE GATE] Unsafe JSON output path '{path_str}': expected a .json target."
+        )
+
+    allowed_roots = [
+        os.path.realpath(os.getcwd()),
+        os.path.realpath(os.path.dirname(os.path.abspath(__file__))),
+    ]
+    if not any(os.path.commonpath([root, abs_target]) == root for root in allowed_roots):
+        raise AuditImmutabilityError(
+            f"[GOVERNANCE GATE] Unsafe JSON output path '{path_str}': target is outside approved directories."
+        )
+
     parent = os.path.dirname(abs_target) or "."
     os.makedirs(parent, exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(prefix=".ops_req_tmp_", suffix=".json", dir=parent)
