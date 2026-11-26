@@ -169,6 +169,35 @@ class TestIntegrationsAndWebhooks(unittest.TestCase):
             self.assertEqual(ev_res["status"], "PROCESSED")
             self.assertIn(expected_key, ev_res)
 
+        # Edge Case 1 verification: custom vault_json_path inside scripts/vaults/ with SegregatedDataVault
+        vault_dir = os.path.join(iaw.SCRIPT_DIR, "vaults")
+        os.makedirs(vault_dir, exist_ok=True)
+        vault_file = os.path.join(vault_dir, "test_webhook_erasure_vault.json")
+        try:
+            demo_vault, _, _ = iaw.pdm.run_privacy_demo(reference_date="2026-11-01")
+            iaw.gov.atomic_write_json(vault_file, iaw.dataclasses.asdict(demo_vault))
+            erasure_body = json.dumps({"event_id": "E4-FILE", "event_type": "privacy.erasure_requested", "subject_id": "CAND-002"})
+            erasure_sig = iaw.compute_webhook_signature(secret, ts, erasure_body)
+            file_res = iaw.process_signed_webhook_event(
+                raw_body_str=erasure_body,
+                signature_header=erasure_sig,
+                timestamp_header=ts,
+                webhook_secret=secret,
+                reference_epoch=1793534450,
+                vault_json_path="test_webhook_erasure_vault.json",
+            )
+            self.assertEqual(file_res["status"], "PROCESSED")
+            self.assertEqual(file_res["deletion_receipt"]["verification_status"], "VERIFIED_PURGED")
+            with open(vault_file, "r", encoding="utf-8") as vfh:
+                persisted_vault = json.load(vfh)
+            tok_002 = iaw.pdm.compute_pseudonym_token("CAND-002")
+            self.assertNotIn(tok_002, persisted_vault["pii_vault"])
+        finally:
+            if os.path.exists(vault_file):
+                os.remove(vault_file)
+            if os.path.isdir(vault_dir) and not os.listdir(vault_dir):
+                os.rmdir(vault_dir)
+
     def test_openapi_router_and_cli_jsonl_exports(self) -> None:
         code_h, body_h = iaw.handle_integration_api_request("GET", "/healthz")
         self.assertEqual(code_h, 200)

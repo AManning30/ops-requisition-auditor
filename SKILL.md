@@ -139,8 +139,8 @@ Resumes hold personal data. Use only what is needed, and when building public ex
 - **Module 3 — Internal Mobility & Outplacement Matcher (`ops-req-mobility` / `scripts/internal_mobility_matcher.py`):** Use when an employee, HR/talent-mobility team, outplacement counselor, or state workforce board wants to evaluate one profile against multiple internal requisitions (`--reqs-dir`, `--from-json`) or public boards (`--greenhouse`, `--lever`, `--ashby`) and generate a **30/60/90-day reskilling and transition roadmap**. It classifies each role into `Ready Now (>=80)`, `Near-Ready (65-79.9)`, or `Stretch (<65)`, separates honest **Days 1–30 profile alignment** (Tier 1 synonym swaps + Tier 2 contextual elevations, yielding a projected 30-day score with zero fabrication) from **Days 31–60 targeted WFM/BI upskilling & shadowing** (`RESKILLING_CATALOG`) and **Days 61–90 gate verification**, defaults to employee-private exploration (`share_with_manager: false`), and supports `--outplacement-pack`. Spec: `references/internal-mobility-reskilling.md`.
 
 ```bash
-# Module 1: Audit a single JD or an entire public board
-python scripts/requisition_quality_auditor.py --jd-file examples/sample_requisition_unicorn.txt --output rqs.md --improved-out draft.txt
+# Module 1: Audit a single JD (prints report to stdout; file exports require OPS_AUDITOR_OUTPUT_KEY + cryptography)
+python scripts/requisition_quality_auditor.py --jd-file examples/sample_requisition_unicorn.txt
 
 # Module 2: Screen a resume folder in blind mode + emit Colorado/NYC disclosure notices + 4/5ths table
 python scripts/explainable_screening_assistant.py --resumes-dir path/to/resumes --jd-config examples/sample_ats_config.json \

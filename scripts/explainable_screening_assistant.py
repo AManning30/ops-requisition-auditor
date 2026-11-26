@@ -1005,12 +1005,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if blind_mode and not re.match(r"^(?:CAND|SUBJ|APP)[-_A-Z0-9]+$", stem_upper):
                 raw_sha_prefix = hashlib.sha256(raw_resume_txt.encode("utf-8")).hexdigest()[:8].upper()
                 cid = f"CAND-{idx:03d}-{raw_sha_prefix}"
-                if stem_upper in decisions_map and cid not in decisions_map:
-                    decisions_map[cid] = decisions_map[stem_upper]
-                if stem_upper in demographics_map and cid not in demographics_map:
-                    demographics_map[cid] = demographics_map[stem_upper]
-                if consent_map and stem_upper in consent_map and cid not in consent_map:
-                    consent_map[cid] = consent_map[stem_upper]
+                for k_cand in (stem_upper, stem):
+                    if k_cand in decisions_map and cid not in decisions_map:
+                        decisions_map[cid] = decisions_map[k_cand]
+                    if k_cand in demographics_map and cid not in demographics_map:
+                        demographics_map[cid] = demographics_map[k_cand]
+                    if consent_map is not None:
+                        if k_cand in consent_map and cid not in consent_map:
+                            consent_map[cid] = consent_map[k_cand]
+                        flow_key = f"{k_cand}:batch_screening"
+                        if flow_key in consent_map and f"{cid}:batch_screening" not in consent_map:
+                            consent_map[f"{cid}:batch_screening"] = consent_map[flow_key]
+                            consent_map[cid] = consent_map[flow_key]
             else:
                 cid = stem_upper if stem_upper else f"CAND-{idx:03d}"
             candidate_inputs.append((cid, p, raw_resume_txt))

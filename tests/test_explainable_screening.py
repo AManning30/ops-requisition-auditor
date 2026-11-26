@@ -250,6 +250,70 @@ class TestExplainableScreeningAssistant(unittest.TestCase):
             with self.assertRaises(ValueError):
                 jpc.validate_public_http_url(bad_url)
 
+        # Edge Case 2 verification: real-name resume filename in blind mode aliases decisions, demographics, and consent
+        with tempfile.TemporaryDirectory() as tmp:
+            res_dir = os.path.join(tmp, "resumes")
+            os.makedirs(res_dir)
+            src_resume = os.path.join(ROOT_DIR, "examples", "sample_resume_optimized.txt")
+            alice_path = os.path.join(res_dir, "alice_smith.txt")
+            with open(src_resume, "r", encoding="utf-8") as f_in, open(alice_path, "w", encoding="utf-8") as f_out:
+                f_out.write(f_in.read())
+            dec_path = os.path.join(tmp, "decisions.json")
+            demo_path = os.path.join(tmp, "demographics.json")
+            consent_path = os.path.join(tmp, "consent.json")
+            out_json = os.path.join(tmp, "out.json")
+            with open(dec_path, "w", encoding="utf-8") as fh:
+                json.dump(
+                    {"ALICE_SMITH": {"status": "ADVANCE", "reviewer": "recruiter_j_smith", "timestamp": "2026-11-01T10:00:00Z"}},
+                    fh,
+                )
+            with open(demo_path, "w", encoding="utf-8") as fh:
+                json.dump({"ALICE_SMITH": {"gender": "Female", "race_ethnicity": "Asian"}}, fh)
+            with open(consent_path, "w", encoding="utf-8") as fh:
+                json.dump(
+                    {
+                        "records": [
+                            {
+                                "subject_id": "ALICE_SMITH",
+                                "flow_type": "batch_screening",
+                                "consented": True,
+                                "consent_scope": ["batch_screening"],
+                                "consent_timestamp": "2026-11-01T08:00:00Z",
+                                "consent_method": "portal_opt_in",
+                            }
+                        ]
+                    },
+                    fh,
+                )
+            rc = esa.main([
+                "--resumes-dir", res_dir,
+                "--jd-config", os.path.join(ROOT_DIR, "examples", "sample_ats_config.json"),
+                "--decisions-json", dec_path,
+                "--demographics-json", demo_path,
+                "--consent-json", consent_path,
+                "--require-consent",
+                "--json-out", out_json,
+            ])
+            self.assertEqual(rc, 0)
+            with open(out_json, "r", encoding="utf-8") as fh:
+                audit_data = json.load(fh)
+            cand_rec = audit_data["candidates"][0]
+            self.assertTrue(cand_rec["candidate_id"].startswith("CAND-001-"))
+            self.assertNotIn("ALICE_SMITH", cand_rec["candidate_id"])
+            self.assertEqual(cand_rec["decision"]["status"], "ADVANCE")
+            self.assertTrue(cand_rec["consent_verified"])
+            self.assertGreaterEqual(len(audit_data["selection_rate_tables"]), 1)
+
+            # Edge Case 4 verification: write_owner_only_text & atomic_write_json allow paths under user home (~)
+            home_dir = os.path.realpath(os.path.expanduser("~"))
+            home_tmp = os.path.join(home_dir, ".ops_req_auditor_edge4_test.json")
+            try:
+                esa.gov.atomic_write_json(home_tmp, {"edge_case_4": "verified"})
+                self.assertTrue(os.path.isfile(home_tmp))
+            finally:
+                if os.path.exists(home_tmp):
+                    os.remove(home_tmp)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -753,6 +753,7 @@ def write_owner_only_text(path_str: str, content: str) -> None:
         os.path.realpath(os.getcwd()),
         os.path.realpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         os.path.realpath(tempfile.gettempdir()),
+        os.path.realpath(os.path.expanduser("~")),
     ]
     if not any(os.path.commonpath([root, abs_target]) == root for root in allowed_roots):
         raise AuditImmutabilityError(
@@ -795,6 +796,7 @@ def atomic_write_json(path_str: str, payload: Any) -> None:
         os.path.realpath(os.getcwd()),
         os.path.realpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         os.path.realpath(tempfile.gettempdir()),
+        os.path.realpath(os.path.expanduser("~")),
     ]
     if not any(os.path.commonpath([root, abs_target]) == root for root in allowed_roots):
         raise AuditImmutabilityError(

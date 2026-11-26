@@ -328,8 +328,8 @@ def load_consent_records(path: Optional[str]) -> Dict[str, ConsentRecord]:
     with open(resolved, "r", encoding="utf-8") as fh:
         raw = json.load(fh)
     records: Dict[str, ConsentRecord] = {}
-    if isinstance(raw, dict) and "consents" in raw and isinstance(raw["consents"], list):
-        items = raw["consents"]
+    if isinstance(raw, dict) and any(k in raw and isinstance(raw[k], list) for k in ("consents", "consent_records", "records")):
+        items = next(raw[k] for k in ("consents", "consent_records", "records") if k in raw and isinstance(raw[k], list))
     elif isinstance(raw, list):
         items = raw
     elif isinstance(raw, dict):
