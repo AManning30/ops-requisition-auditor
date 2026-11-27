@@ -30,7 +30,7 @@ Issues = "https://github.com/AManning30/ops-requisition-auditor/issues"
 
 [tool.setuptools]
 package-dir = {"" = "scripts"}
-py-modules = ["offline_ats_auditor", "job_posting_collector", "tos_compliant_collector", "requisition_quality_auditor", "explainable_screening_assistant", "internal_mobility_matcher", "pilot_evidence_harness", "governance_middleware", "compliance_policy_registry", "privacy_data_minimization", "fairness_adverse_impact_auditor", "parser_benchmark_suite", "org_customization_registry", "integration_adapters_and_webhooks", "workbench_parity_and_a11y", "public_trust_and_benchmarks"]
+py-modules = ["offline_ats_auditor", "job_posting_collector", "tos_compliant_collector", "requisition_quality_auditor", "explainable_screening_assistant", "internal_mobility_matcher", "pilot_evidence_harness", "governance_middleware", "compliance_policy_registry", "privacy_data_minimization", "fairness_adverse_impact_auditor", "parser_benchmark_suite", "org_customization_registry", "integration_adapters_and_webhooks", "workbench_parity_and_a11y", "public_trust_and_benchmarks", "hybrid_auth"]
 
 [project.scripts]
 ops-req-audit = "offline_ats_auditor:main"
